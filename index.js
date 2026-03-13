@@ -41085,22 +41085,14 @@ document.addEventListener('click', async (e) => {
         if (tid === 'gigma-global-help') {
             try { if (e && typeof e.preventDefault === 'function') e.preventDefault(); } catch (_) {}
             try { if (e && typeof e.stopPropagation === 'function') e.stopPropagation(); } catch (_) {}
-            const viewerUrl = new URL('./web/viewer.html', import.meta.url);
-            const pdfUrl = new URL('./help_anchor.pdf', import.meta.url);
-            viewerUrl.searchParams.set('file', pdfUrl.href);
-            viewerUrl.hash = 'nameddest=h5';
-            window.open(viewerUrl.href, 'gigma-help-pdf');
+            window.open('https://discord.com/channels/1477884589664899214/1477885047049814106', '_blank');
             return;
         }
 
         if (tid === 'gigma-global-bug') {
             try { if (e && typeof e.preventDefault === 'function') e.preventDefault(); } catch (_) {}
             try { if (e && typeof e.stopPropagation === 'function') e.stopPropagation(); } catch (_) {}
-            const viewerUrl = new URL('./web/viewer.html', import.meta.url);
-            const pdfUrl = new URL('./help_anchor.pdf', import.meta.url);
-            viewerUrl.searchParams.set('file', pdfUrl.href);
-            viewerUrl.hash = 'nameddest=h3';
-            window.open(viewerUrl.href, 'gigma-help-pdf');
+            window.open('https://discord.com/channels/1477884589664899214/1477885002590191617', '_blank');
             return;
         }
 
@@ -41364,7 +41356,8 @@ function gigmaInjectPromptManagerGlobalTokenRefreshStyles() {
 
 function gigmaFindTotalTokensLabelElement(scope) {
     try {
-        const all = Array.from(scope.querySelectorAll('*'));
+        // Search deepest-first so we anchor to the actual label, not a larger wrapper that also contains it.
+        const all = Array.from(scope.querySelectorAll('*')).reverse();
         for (const el of all) {
             const text = String(el.textContent || '').trim();
             if (!text) continue;
