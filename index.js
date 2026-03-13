@@ -5083,22 +5083,22 @@ function gigmaInstallTokenizerChangeHooksOnce() {
 }
 // === GIGMA: Modal lorebook stats (entries/tokens per category) ===
 const GIGMA_MODAL_STATS_CATEGORIES = [
-    { key: 'total', label: 'T', menuHtml: `<b>T</b>otal` },
-    { key: 'enabled', label: 'E', menuHtml: `<b>E</b>nabled` },
-    { key: 'disabled', label: 'D', menuHtml: `<b>D</b>isabled` },
-    { key: 'constant', label: 'C', menuHtml: `<b>C</b>onstant` },
-    { key: 'normal', label: 'N', menuHtml: `<b>N</b>ormal` },
-    { key: 'vectorized', label: 'V', menuHtml: `<b>V</b>ectorized` },
-    { key: 'charUp', label: '↑Ch', menuHtml: `<b>↑</b> <b>Ch</b>aracter Definitions` },
-    { key: 'charDown', label: '↓Ch', menuHtml: `<b>↓</b> <b>Ch</b>aracter Definitions` },
-    { key: 'emUp', label: '↑EM', menuHtml: `<b>↑</b> <b>E</b>xample <b>M</b>essages` },
-    { key: 'emDown', label: '↓EM', menuHtml: `<b>↓</b> <b>E</b>xample <b>M</b>essages` },
-    { key: 'anUp', label: '↑AN', menuHtml: `<b>↑</b> <b>A</b>uthor's <b>n</b>ote` },
-    { key: 'anDown', label: '↓AN', menuHtml: `<b>↓</b> <b>A</b>uthor's <b>n</b>ote` },
-    { key: 'depthSystem', label: '@DS', menuHtml: `<b>@</b> <b>D</b>epth <b>S</b>ystem` },
-    { key: 'depthUser', label: '@DU', menuHtml: `<b>@</b> <b>D</b>epth <b>U</b>ser` },
-    { key: 'depthAssistant', label: '@DA', menuHtml: `<b>@</b> <b>D</b>epth <b>A</b>ssistant` },
-    { key: 'outlet', label: '→O', menuHtml: `<b>→</b> <b>O</b>utlet` },
+    { key: 'total', label: 'Total', menuHtml: `<b>T</b>otal` },
+    { key: 'enabled', label: 'Enabled', menuHtml: `<b>E</b>nabled` },
+    { key: 'disabled', label: 'Disabled', menuHtml: `<b>D</b>isabled` },
+    { key: 'constant', label: 'Constant', menuHtml: `<b>C</b>onstant` },
+    { key: 'normal', label: 'Normal', menuHtml: `<b>N</b>ormal` },
+    { key: 'vectorized', label: 'Vectorized', menuHtml: `<b>V</b>ectorized` },
+    { key: 'charUp', label: '↑ Char Def', menuHtml: `<b>↑</b> <b>Ch</b>aracter Definitions` },
+    { key: 'charDown', label: '↓ Char Def', menuHtml: `<b>↓</b> <b>Ch</b>aracter Definitions` },
+    { key: 'emUp', label: '↑ Expl Msgs', menuHtml: `<b>↑</b> <b>E</b>xample <b>M</b>essages` },
+    { key: 'emDown', label: '↓ Expl Msgs', menuHtml: `<b>↓</b> <b>E</b>xample <b>M</b>essages` },
+    { key: 'anUp', label: '↑ Auth Note', menuHtml: `<b>↑</b> <b>A</b>uthor's <b>n</b>ote` },
+    { key: 'anDown', label: '↓ Auth Note', menuHtml: `<b>↓</b> <b>A</b>uthor's <b>n</b>ote` },
+    { key: 'depthSystem', label: '@ Depth Sytm', menuHtml: `<b>@</b> <b>D</b>epth <b>S</b>ystem` },
+    { key: 'depthUser', label: '@ Depth Usr', menuHtml: `<b>@</b> <b>D</b>epth <b>U</b>ser` },
+    { key: 'depthAssistant', label: '@ Depth Asnt', menuHtml: `<b>@</b> <b>D</b>epth <b>A</b>ssistant` },
+    { key: 'outlet', label: '→ Outlet', menuHtml: `<b>→</b> <b>O</b>utlet` },
 ];
 const GIGMA_MODAL_STATS_DEFAULT_CSV = GIGMA_MODAL_STATS_CATEGORIES.map(c => c.key).join(',');
 const GIGMA_MODAL_STATS_KEY_SET = new Set(GIGMA_MODAL_STATS_CATEGORIES.map(c => c.key));
@@ -5110,9 +5110,9 @@ const GIGMA_GLOBAL_WI_STATS_CONTEXT_OPTIONS = [
     { key: 'fullContext', label: 'Context', menuHtml: '<i class="fa-solid fa-expand"></i> Context' },
     { key: 'usableContext', label: 'Usable', menuHtml: '<i class="fa-solid fa-bars-progress"></i> Usable' },
     { key: 'responseTokens', label: 'Response', menuHtml: '<i class="fa-solid fa-reply"></i> Response' },
-    { key: 'globalBudget', label: 'WI Budget', menuHtml: '<i class="fa-solid fa-wallet"></i> WI Budget' },
-    { key: 'contextPercent', label: 'Ctx %', menuHtml: '<i class="fa-solid fa-percent"></i> Ctx %' },
-    { key: 'budgetCap', label: 'Cap', menuHtml: '<i class="fa-solid fa-arrow-down-short-wide"></i> Cap' },
+    { key: 'globalBudget', label: 'World Info Budget', menuHtml: '<i class="fa-solid fa-wallet"></i> WI Budget' },
+    { key: 'contextPercent', label: 'Context Percentage', menuHtml: '<i class="fa-solid fa-percent"></i> Ctx %' },
+    { key: 'budgetCap', label: 'Budget Cap', menuHtml: '<i class="fa-solid fa-arrow-down-short-wide"></i> Cap' },
     { key: 'tokenizer', label: 'Tokenizer', menuHtml: '<i class="fa-solid fa-font"></i> Tokenizer' },
     { key: 'ignoredBudget', label: 'Ignored', menuHtml: '<i class="fa-solid fa-ban"></i> Ignored' },
     { key: 'trimmedBudget', label: 'Dropped', menuHtml: '<i class="fa-solid fa-scissors"></i> Dropped' },
@@ -5121,14 +5121,14 @@ const GIGMA_GLOBAL_WI_STATS_CONTEXT_OPTIONS = [
 // Extra (count-only) keys displayed alongside the regular WI category totals.
 const GIGMA_GLOBAL_WI_STATS_EXTRA_OPTIONS = [
     { key: 'folders', label: 'Folders', menuHtml: '<i class="fa-solid fa-folder"></i> Folders' },
-    { key: 'lorebooks', label: 'Lorebooks (LB)', menuHtml: '<i class="fa-solid fa-file-lines"></i> Lorebooks (LB)' },
+    { key: 'lorebooks', label: 'Lorebooks', menuHtml: '<i class="fa-solid fa-file-lines"></i> Lorebooks (LB)' },
     { key: 'unchained', label: 'Unchained lorebooks', menuHtml: '<i class="fa-solid fa-link-slash"></i> Unchained lorebooks' },
     { key: 'chained', label: 'Chained lorebooks', menuHtml: '<i class="fa-solid fa-link"></i> Chained lorebooks' },
-    { key: 'global', label: 'Global lbs', menuHtml: '<i class="fa-solid fa-globe gigma-active-world-globe"></i> Global lbs' },
-    { key: 'character', label: 'Character-tied lbs', menuHtml: '<i class="fa-solid fa-users gigma-active-world-globe gigma-character-world-icon"></i> Character-tied lbs' },
-    { key: 'chat', label: 'Chat-tied lbs', menuHtml: '<i class="fa-solid fa-comment gigma-active-world-globe gigma-chat-world-icon"></i> Chat-tied lbs' },
-    { key: 'persona', label: 'Persona-tied lbs', menuHtml: '<i class="fa-solid fa-user gigma-active-world-globe gigma-persona-world-icon"></i> Persona-tied lbs' },
-    { key: 'other', label: 'Untied lbs', menuHtml: '<i class="fa-solid fa-file"></i> Untied lbs' },
+    { key: 'global', label: 'Global lorebooks', menuHtml: '<i class="fa-solid fa-globe gigma-active-world-globe"></i> Global lbs' },
+    { key: 'character', label: 'Char Lbs', menuHtml: '<i class="fa-solid fa-users gigma-active-world-globe gigma-character-world-icon"></i> Character-tied lbs' },
+    { key: 'chat', label: 'Chat Lbs', menuHtml: '<i class="fa-solid fa-comment gigma-active-world-globe gigma-chat-world-icon"></i> Chat-tied lbs' },
+    { key: 'persona', label: 'Prsna Lbs', menuHtml: '<i class="fa-solid fa-user gigma-active-world-globe gigma-persona-world-icon"></i> Persona-tied lbs' },
+    { key: 'other', label: 'Untied Lbs', menuHtml: '<i class="fa-solid fa-file"></i> Untied lbs' },
 ];
 
 const GIGMA_GLOBAL_WI_STATS_CONTEXT_KEY_SET = new Set(GIGMA_GLOBAL_WI_STATS_CONTEXT_OPTIONS.map(o => o.key));
@@ -7918,13 +7918,13 @@ function gigmaGetGlobalWiStatsBooksSectionItems(computed, extrasSelected){
 
         for (const k of (Array.isArray(extrasSelected) ? extrasSelected : [])) {
             if (k === 'unchained') {
-                items.push({ label: 'Order unch.', labelHtml: '<i class="fa-solid fa-link-slash"></i> Order unch.', value: ob ? (Number(ob.order && ob.order.unchained) || 0) : 0 });
-                items.push({ label: 'Budget unch.', labelHtml: '<i class="fa-solid fa-link-slash"></i> Budget unch.', value: ob ? (Number(ob.budget && ob.budget.unchained) || 0) : 0 });
+                items.push({ label: 'Order Unch', labelHtml: '<i class="fa-solid fa-link-slash"></i> Order Unch', value: ob ? (Number(ob.order && ob.order.unchained) || 0) : 0 });
+                items.push({ label: 'Budget Unch', labelHtml: '<i class="fa-solid fa-link-slash"></i> Budget Unch', value: ob ? (Number(ob.budget && ob.budget.unchained) || 0) : 0 });
                 continue;
             }
             if (k === 'chained') {
-                items.push({ label: 'Order chained', labelHtml: '<i class="fa-solid fa-link"></i> Order chained', value: ob ? (Number(ob.order && ob.order.chained) || 0) : 0 });
-                items.push({ label: 'Budget chained', labelHtml: '<i class="fa-solid fa-link"></i> Budget chained', value: ob ? (Number(ob.budget && ob.budget.chained) || 0) : 0 });
+                items.push({ label: 'Order Ch', labelHtml: '<i class="fa-solid fa-link"></i> Order Ch', value: ob ? (Number(ob.order && ob.order.chained) || 0) : 0 });
+                items.push({ label: 'Budget Ch', labelHtml: '<i class="fa-solid fa-link"></i> Budget Ch', value: ob ? (Number(ob.budget && ob.budget.chained) || 0) : 0 });
                 continue;
             }
             items.push({
@@ -8793,6 +8793,7 @@ function gigmaRenderLorebookStatsInto(el, rawStats, worldName) {
     if (totalChipCount > 0) el.classList.remove('gigma-hidden');
     else el.classList.add('gigma-hidden');
     gigmaUpdateModalLorebookStatsColumnCountsAllRows();
+    gigmaQueueStatChipFitModeIn(el);
 }
 
 function gigmaUpdateModalLorebookRowStats(row) {
@@ -12334,16 +12335,16 @@ function gigmaGetWorldInfoLorebookStatsDisplayItems(stats, removeIrrelevantCateg
             ['constant', 'Constant'],
             ['normal', 'Normal'],
             ['vectorized', 'Vectorized'],
-            ['charUp', 'Char Up'],
-            ['charDown', 'Char Down'],
-            ['emUp', 'EM Up'],
-            ['emDown', 'EM Down'],
-            ['anUp', 'AN Up'],
-            ['anDown', 'AN Down'],
-            ['depthSystem', '@D System'],
-            ['depthUser', '@D User'],
-            ['depthAssistant', '@D Assistant'],
-            ['outlet', 'Outlet'],
+            ['charUp', '↑ Character Definitions'],
+            ['charDown', '↓ Character Definitions'],
+            ['emUp', '↑ Example Messages'],
+            ['emDown', '↓ Example Messages'],
+            ['anUp', '↑ Author\'s Note'],
+            ['anDown', '↓ Author\'s Note'],
+            ['depthSystem', '@ Depth System'],
+            ['depthUser', '@ Depth User'],
+            ['depthAssistant', '@ Depth Assistant'],
+            ['outlet', '→ Outlet'],
         ]);
         return gigmaGetStatsDisplayItems(stats, {
             sectionKey,
