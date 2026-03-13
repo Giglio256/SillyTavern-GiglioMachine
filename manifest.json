@@ -1,0 +1,12 @@
+{
+  "display_name": "Giglio Machine",
+  "loading_order": 10,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "author": "Giglio",
+  "license": "AGPL-3.0",
+  "version": "2.2.3",
+  "homePage": "https://github.com/Giglio/Giglio-Machine",
+  "description": "Allows properly ordering lorebooks for World Info. Also supports character-specific overrides and micro tweaks to lorebook order for group chats."
+}
