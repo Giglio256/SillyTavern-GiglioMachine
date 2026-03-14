@@ -8,5 +8,5 @@
   "license": "AGPL-3.0",
   "version": "2.2.3",
   "homePage": "https://github.com/Giglio/Giglio-Machine",
-  "description": "Allows properly ordering lorebooks for World Info. Also supports character-specific overrides and micro tweaks to lorebook order for group chats."
+  "description": "ST extension offering most comprehensive control over order & budget of lorebooks as of March 2026. Allows ordering of lorebooks via drag & drop."
 }
