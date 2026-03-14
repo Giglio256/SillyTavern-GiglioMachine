@@ -5089,15 +5089,15 @@ const GIGMA_MODAL_STATS_CATEGORIES = [
     { key: 'constant', label: 'Constant', menuHtml: `<b>C</b>onstant` },
     { key: 'normal', label: 'Normal', menuHtml: `<b>N</b>ormal` },
     { key: 'vectorized', label: 'Vectorized', menuHtml: `<b>V</b>ectorized` },
-    { key: 'charUp', label: '↑ Char Def', menuHtml: `<b>↑</b> <b>Ch</b>aracter Definitions` },
-    { key: 'charDown', label: '↓ Char Def', menuHtml: `<b>↓</b> <b>Ch</b>aracter Definitions` },
-    { key: 'emUp', label: '↑ Expl Msgs', menuHtml: `<b>↑</b> <b>E</b>xample <b>M</b>essages` },
-    { key: 'emDown', label: '↓ Expl Msgs', menuHtml: `<b>↓</b> <b>E</b>xample <b>M</b>essages` },
-    { key: 'anUp', label: '↑ Auth Note', menuHtml: `<b>↑</b> <b>A</b>uthor's <b>n</b>ote` },
-    { key: 'anDown', label: '↓ Auth Note', menuHtml: `<b>↓</b> <b>A</b>uthor's <b>n</b>ote` },
-    { key: 'depthSystem', label: '@ Depth Sytm', menuHtml: `<b>@</b> <b>D</b>epth <b>S</b>ystem` },
-    { key: 'depthUser', label: '@ Depth Usr', menuHtml: `<b>@</b> <b>D</b>epth <b>U</b>ser` },
-    { key: 'depthAssistant', label: '@ Depth Asnt', menuHtml: `<b>@</b> <b>D</b>epth <b>A</b>ssistant` },
+    { key: 'charUp', label: '↑ Char Def', menuHtml: `<b>↑</b> Char Def` },
+    { key: 'charDown', label: '↓ Char Def', menuHtml: `<b>↓</b> Char Def` },
+    { key: 'emUp', label: '↑ Expl Msgs', menuHtml: `<b>↑</b> Expl Msgs` },
+    { key: 'emDown', label: '↓ Expl Msgs', menuHtml: `<b>↓</b> Expl Msgs` },
+    { key: 'anUp', label: '↑ Auth Note', menuHtml: `<b>↑</b> Auth Note` },
+    { key: 'anDown', label: '↓ Auth Note', menuHtml: `<b>↓</b> Auth Note` },
+    { key: 'depthSystem', label: '@ Depth Sytm', menuHtml: `<b>@</b> Depth Sytm` },
+    { key: 'depthUser', label: '@ Depth Usr', menuHtml: `<b>@</b> Depth Usr` },
+    { key: 'depthAssistant', label: '@ Depth Asnt', menuHtml: `<b>@</b> Depth Asnt` },
     { key: 'outlet', label: '→ Outlet', menuHtml: `<b>→</b> <b>O</b>utlet` },
 ];
 const GIGMA_MODAL_STATS_DEFAULT_CSV = GIGMA_MODAL_STATS_CATEGORIES.map(c => c.key).join(',');
@@ -5121,14 +5121,14 @@ const GIGMA_GLOBAL_WI_STATS_CONTEXT_OPTIONS = [
 // Extra (count-only) keys displayed alongside the regular WI category totals.
 const GIGMA_GLOBAL_WI_STATS_EXTRA_OPTIONS = [
     { key: 'folders', label: 'Folders', menuHtml: '<i class="fa-solid fa-folder"></i> Folders' },
-    { key: 'lorebooks', label: 'Lorebooks', menuHtml: '<i class="fa-solid fa-file-lines"></i> Lorebooks (LB)' },
+    { key: 'lorebooks', label: 'Lorebooks', menuHtml: '<i class="fa-solid fa-file-lines"></i> Lorebooks' },
     { key: 'unchained', label: 'Unchained lorebooks', menuHtml: '<i class="fa-solid fa-link-slash"></i> Unchained lorebooks' },
     { key: 'chained', label: 'Chained lorebooks', menuHtml: '<i class="fa-solid fa-link"></i> Chained lorebooks' },
     { key: 'global', label: 'Global lorebooks', menuHtml: '<i class="fa-solid fa-globe gigma-active-world-globe"></i> Global lbs' },
-    { key: 'character', label: 'Char Lbs', menuHtml: '<i class="fa-solid fa-users gigma-active-world-globe gigma-character-world-icon"></i> Character-tied lbs' },
-    { key: 'chat', label: 'Chat Lbs', menuHtml: '<i class="fa-solid fa-comment gigma-active-world-globe gigma-chat-world-icon"></i> Chat-tied lbs' },
-    { key: 'persona', label: 'Prsna Lbs', menuHtml: '<i class="fa-solid fa-user gigma-active-world-globe gigma-persona-world-icon"></i> Persona-tied lbs' },
-    { key: 'other', label: 'Untied Lbs', menuHtml: '<i class="fa-solid fa-file"></i> Untied lbs' },
+    { key: 'character', label: 'Char Lbs', menuHtml: '<i class="fa-solid fa-users gigma-active-world-globe gigma-character-world-icon"></i> Char Lbs' },
+    { key: 'chat', label: 'Chat Lbs', menuHtml: '<i class="fa-solid fa-comment gigma-active-world-globe gigma-chat-world-icon"></i> Chat Lbs' },
+    { key: 'persona', label: 'Prsna Lbs', menuHtml: '<i class="fa-solid fa-user gigma-active-world-globe gigma-persona-world-icon"></i> Prsna Lbs' },
+    { key: 'other', label: 'Untied Lbs', menuHtml: '<i class="fa-solid fa-file"></i> Untied Lbs' },
 ];
 
 const GIGMA_GLOBAL_WI_STATS_CONTEXT_KEY_SET = new Set(GIGMA_GLOBAL_WI_STATS_CONTEXT_OPTIONS.map(o => o.key));
@@ -5137,6 +5137,36 @@ const GIGMA_GLOBAL_WI_STATS_ALL_KEY_SET = new Set([
     ...Array.from(GIGMA_MODAL_STATS_KEY_SET),
     ...Array.from(GIGMA_GLOBAL_WI_STATS_CONTEXT_KEY_SET),
     ...Array.from(GIGMA_GLOBAL_WI_STATS_EXTRA_KEY_SET),
+]);
+
+const GIGMA_NATIVE_WI_FULL_STATS_LABEL_BY_KEY = new Map([
+    ['enabled', 'Enabled'],
+    ['disabled', 'Disabled'],
+    ['total', 'Total'],
+    ['constant', 'Constant'],
+    ['normal', 'Normal'],
+    ['vectorized', 'Vectorized'],
+    ['charUp', '↑ Character Definitions'],
+    ['charDown', '↓ Character Definitions'],
+    ['emUp', '↑ Example Messages'],
+    ['emDown', '↓ Example Messages'],
+    ['anUp', '↑ Author\'s Note'],
+    ['anDown', '↓ Author\'s Note'],
+    ['depthSystem', '@ Depth System'],
+    ['depthUser', '@ Depth User'],
+    ['depthAssistant', '@ Depth Assistant'],
+    ['outlet', '→ Outlet'],
+]);
+const GIGMA_NATIVE_WI_FULL_GLOBAL_BOOKS_LABEL_BY_KEY = new Map([
+    ['folders', 'Folders'],
+    ['lorebooks', 'Lorebooks'],
+    ['unchained', 'Unchained lorebooks'],
+    ['chained', 'Chained lorebooks'],
+    ['global', 'Global lorebooks'],
+    ['character', 'Character-tied lorebooks'],
+    ['chat', 'Chat-tied lorebooks'],
+    ['persona', 'Persona-tied lorebooks'],
+    ['other', 'Untied lorebooks'],
 ]);
 
 // Default: everything on (cats + Budget & Context + extras) so nothing is "missing" out of the box.
@@ -7175,7 +7205,7 @@ function gigmaBuildGlobalWiStatsPanel(panel, place){
             cb.type = 'checkbox';
             cb.setAttribute('data-gigma-gwi', c.key);
             const txt = document.createElement('span');
-            txt.innerHTML = c.menuHtml || c.key;
+            txt.innerHTML = (place === 'wi') ? (GIGMA_NATIVE_WI_FULL_STATS_LABEL_BY_KEY.get(c.key) || c.key) : (c.menuHtml || c.key);
             row.appendChild(cb);
             row.appendChild(txt);
             list.appendChild(row);
@@ -7193,7 +7223,7 @@ function gigmaBuildGlobalWiStatsPanel(panel, place){
             cb.type = 'checkbox';
             cb.setAttribute('data-gigma-gwi', o.key);
             const txt = document.createElement('span');
-            txt.innerHTML = o.menuHtml || o.label || o.key;
+            txt.innerHTML = (place === 'wi') ? (o.label || o.key) : (o.menuHtml || o.label || o.key);
             row.appendChild(cb);
             row.appendChild(txt);
             list.appendChild(row);
@@ -7212,7 +7242,7 @@ function gigmaBuildGlobalWiStatsPanel(panel, place){
             cb.type = 'checkbox';
             cb.setAttribute('data-gigma-gwi', o.key);
             const txt = document.createElement('span');
-            txt.innerHTML = o.menuHtml || o.label || o.key;
+            txt.innerHTML = (place === 'wi') ? (GIGMA_NATIVE_WI_FULL_GLOBAL_BOOKS_LABEL_BY_KEY.get(o.key) || o.label || o.key) : (o.menuHtml || o.label || o.key);
             row.appendChild(cb);
             row.appendChild(txt);
             list.appendChild(row);
@@ -7889,6 +7919,18 @@ function gigmaQueueStatChipFitModeIn(root){
     try{
         if (!root || !root.isConnected) return;
         if (root.__gigmaStatChipFitRaf) cancelAnimationFrame(root.__gigmaStatChipFitRaf);
+        gigmaApplyStatChipFitModeIn(root);
+        const pending = root.querySelectorAll ? Array.from(root.querySelectorAll('.gigma-row-stat-chip-fit-target')).some((target) => {
+            try{
+                return !!target && Math.floor(target.clientWidth || 0) <= 0;
+            }catch(_eTarget){
+                return false;
+            }
+        }) : false;
+        if (!pending) {
+            root.__gigmaStatChipFitRaf = 0;
+            return;
+        }
         root.__gigmaStatChipFitRaf = requestAnimationFrame(() => {
             root.__gigmaStatChipFitRaf = 0;
             if (!root.isConnected) return;
@@ -7897,11 +7939,20 @@ function gigmaQueueStatChipFitModeIn(root){
     }catch(_e){}
 }
 
-function gigmaGetGlobalWiStatsBooksSectionItems(computed, extrasSelected){
+function gigmaGetGlobalWiStatsBooksSectionItems(computed, extrasSelected, place){
     try{
         const items = [];
-        const labelByKey = new Map(GIGMA_GLOBAL_WI_STATS_EXTRA_OPTIONS.map(o => [o.key, o.label]));
-        const menuByKey = new Map(GIGMA_GLOBAL_WI_STATS_EXTRA_OPTIONS.map(o => [o.key, o.menuHtml || o.label || o.key]));
+        const useNativeWiFullLabels = place === 'wi';
+        const labelByKey = useNativeWiFullLabels
+            ? GIGMA_NATIVE_WI_FULL_GLOBAL_BOOKS_LABEL_BY_KEY
+            : new Map(GIGMA_GLOBAL_WI_STATS_EXTRA_OPTIONS.map(o => [o.key, o.label]));
+        const menuByKey = useNativeWiFullLabels
+            ? new Map(Array.from(labelByKey.entries()))
+            : new Map(GIGMA_GLOBAL_WI_STATS_EXTRA_OPTIONS.map(o => [o.key, o.menuHtml || o.label || o.key]));
+        const orderUnchLabel = useNativeWiFullLabels ? 'Order Unchained' : 'Order Unch';
+        const budgetUnchLabel = useNativeWiFullLabels ? 'Budget Unchained' : 'Budget Unch';
+        const orderChLabel = useNativeWiFullLabels ? 'Order Chained' : 'Order Ch';
+        const budgetChLabel = useNativeWiFullLabels ? 'Budget Chained' : 'Budget Ch';
         const getVal = (k) => {
             if (k === 'folders') return computed?.meta?.folders;
             if (k === 'lorebooks') return computed?.meta?.lorebooks;
@@ -7918,13 +7969,13 @@ function gigmaGetGlobalWiStatsBooksSectionItems(computed, extrasSelected){
 
         for (const k of (Array.isArray(extrasSelected) ? extrasSelected : [])) {
             if (k === 'unchained') {
-                items.push({ label: 'Order Unch', labelHtml: '<i class="fa-solid fa-link-slash"></i> Order Unch', value: ob ? (Number(ob.order && ob.order.unchained) || 0) : 0 });
-                items.push({ label: 'Budget Unch', labelHtml: '<i class="fa-solid fa-link-slash"></i> Budget Unch', value: ob ? (Number(ob.budget && ob.budget.unchained) || 0) : 0 });
+                items.push({ label: orderUnchLabel, labelHtml: `<i class="fa-solid fa-link-slash"></i> ${orderUnchLabel}`, value: ob ? (Number(ob.order && ob.order.unchained) || 0) : 0 });
+                items.push({ label: budgetUnchLabel, labelHtml: `<i class="fa-solid fa-link-slash"></i> ${budgetUnchLabel}`, value: ob ? (Number(ob.budget && ob.budget.unchained) || 0) : 0 });
                 continue;
             }
             if (k === 'chained') {
-                items.push({ label: 'Order Ch', labelHtml: '<i class="fa-solid fa-link"></i> Order Ch', value: ob ? (Number(ob.order && ob.order.chained) || 0) : 0 });
-                items.push({ label: 'Budget Ch', labelHtml: '<i class="fa-solid fa-link"></i> Budget Ch', value: ob ? (Number(ob.budget && ob.budget.chained) || 0) : 0 });
+                items.push({ label: orderChLabel, labelHtml: `<i class="fa-solid fa-link"></i> ${orderChLabel}`, value: ob ? (Number(ob.order && ob.order.chained) || 0) : 0 });
+                items.push({ label: budgetChLabel, labelHtml: `<i class="fa-solid fa-link"></i> ${budgetChLabel}`, value: ob ? (Number(ob.budget && ob.budget.chained) || 0) : 0 });
                 continue;
             }
             items.push({
@@ -8111,7 +8162,9 @@ function gigmaRenderGlobalWiStatsBooksSectionInto(el, computed, extrasSelected){
 function gigmaRenderGlobalWiStatsSectionInto(el, stats, sectionKey, showEntries, showTokens, categoryList, place){
     try{
         if (!el) return 0;
-        const labelByKey = new Map(GIGMA_MODAL_STATS_CATEGORIES.map(c => [c.key, c.label]));
+        const labelByKey = (place === 'wi')
+            ? GIGMA_NATIVE_WI_FULL_STATS_LABEL_BY_KEY
+            : new Map(GIGMA_MODAL_STATS_CATEGORIES.map(c => [c.key, c.label]));
         const items = gigmaGetStatsDisplayItems(stats, {
             sectionKey,
             categorySet: new Set(Array.isArray(categoryList) ? categoryList : []),
@@ -8790,10 +8843,16 @@ function gigmaRenderLorebookStatsInto(el, rawStats, worldName) {
     }
 
     el.replaceChildren(frag);
-    if (totalChipCount > 0) el.classList.remove('gigma-hidden');
-    else el.classList.add('gigma-hidden');
-    gigmaUpdateModalLorebookStatsColumnCountsAllRows();
-    gigmaQueueStatChipFitModeIn(el);
+    if (totalChipCount > 0) {
+        try { gigmaRecomputeModalLorebookStatsTargetCountCache(el); } catch (_eStatsCache) { }
+        try { gigmaApplyModalLorebookStatsColumnCount(el); } catch (_eStatsCols) { }
+        try { gigmaApplyStatChipFitModeIn(el); } catch (_eStatsFit) { }
+        el.classList.remove('gigma-hidden');
+        gigmaUpdateModalLorebookStatsColumnCountsAllRows();
+        gigmaQueueStatChipFitModeIn(el);
+    } else {
+        el.classList.add('gigma-hidden');
+    }
 }
 
 function gigmaUpdateModalLorebookRowStats(row) {
@@ -11862,7 +11921,7 @@ function gigmaBuildWorldInfoLorebookStatsDropdown(panel){
             cb.type = 'checkbox';
             cb.setAttribute('data-gigma-wi-lore-cat', c.key);
             const txt = document.createElement('span');
-            txt.innerHTML = c.menuHtml || c.key;
+            txt.innerHTML = GIGMA_NATIVE_WI_FULL_STATS_LABEL_BY_KEY.get(c.key) || c.key;
             row.appendChild(cb);
             row.appendChild(txt);
             list.appendChild(row);
@@ -12328,24 +12387,7 @@ function gigmaBlockNativeWorldInfoEntryInitialTokenCounter() {
 
 function gigmaGetWorldInfoLorebookStatsDisplayItems(stats, removeIrrelevantCategories, removeZeroTokenCategories, categorySet, sectionKey) {
     try {
-        const labelByKey = new Map([
-            ['enabled', 'Enabled'],
-            ['disabled', 'Disabled'],
-            ['total', 'Total'],
-            ['constant', 'Constant'],
-            ['normal', 'Normal'],
-            ['vectorized', 'Vectorized'],
-            ['charUp', '↑ Character Definitions'],
-            ['charDown', '↓ Character Definitions'],
-            ['emUp', '↑ Example Messages'],
-            ['emDown', '↓ Example Messages'],
-            ['anUp', '↑ Author\'s Note'],
-            ['anDown', '↓ Author\'s Note'],
-            ['depthSystem', '@ Depth System'],
-            ['depthUser', '@ Depth User'],
-            ['depthAssistant', '@ Depth Assistant'],
-            ['outlet', '→ Outlet'],
-        ]);
+        const labelByKey = GIGMA_NATIVE_WI_FULL_STATS_LABEL_BY_KEY;
         return gigmaGetStatsDisplayItems(stats, {
             sectionKey,
             categorySet: (categorySet instanceof Set) ? categorySet : gigmaGetWorldInfoLorebookStatsCategorySet(),
@@ -12512,7 +12554,7 @@ async function gigmaUpdateWorldInfoTokenDisplay() {
                     const safeShowEntries = (showEntries || !showTokens);
                     const safeShowTokens = (showTokens || !showEntries);
 
-                    const shortByKey = new Map(GIGMA_MODAL_STATS_CATEGORIES.map(c => [c.key, c.label]));
+                    const fullByKey = GIGMA_NATIVE_WI_FULL_STATS_LABEL_BY_KEY;
                     const fmtSection = (stats, sectionKey) => {
                         try{
                             const items = gigmaGetStatsDisplayItems(stats, {
@@ -12522,7 +12564,7 @@ async function gigmaUpdateWorldInfoTokenDisplay() {
                                 showTokens: safeShowTokens,
                                 removeIrrelevantCategories: !!EXTENSION_STATE.globalWiStatsWiRemoveIrrelevantCategories,
                                 removeZeroTokenCategories: !!EXTENSION_STATE.globalWiStatsWiRemoveZeroTokenCategories,
-                                labelByKey: shortByKey,
+                                labelByKey: fullByKey,
                             });
                             return items.map((item) => `${item.label} ${item.value}`).join(' · ');
                         }catch(_eFmt){ return ''; }
@@ -12542,7 +12584,7 @@ async function gigmaUpdateWorldInfoTokenDisplay() {
                     if (hasExtras) {
                         const block = createTotalBlock();
                         addPart(block, GIGMA_GLOBAL_WI_STATS_BOOKS_SECTION_LABEL, '');
-                        const items = gigmaGetGlobalWiStatsBooksSectionItems(computed, extrasSelected);
+                        const items = gigmaGetGlobalWiStatsBooksSectionItems(computed, extrasSelected, 'wi');
                         for (const item of items) {
                             if (!item) continue;
                             addPart(block, item.label || '', String(item.value ?? 0));
