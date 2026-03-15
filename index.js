@@ -3520,6 +3520,11 @@ function gigmaAfterMultiDrop(groupEls) {
             if (t && typeof t.closest === "function" && t.closest("button")) return;
         } catch (_) {}
 
+        try {
+            const t = e.target;
+            if (typeof window.gigmaIsDistributionUiTarget === 'function' && window.gigmaIsDistributionUiTarget(t)) return;
+        } catch (_) {}
+
         // NEW: ignore native scrollbar interactions so selection persists while scrolling
         const scrollHost = (e.target && e.target.closest && e.target.closest('#gigma-ordering-container, #gigma-ordering-list, .gigma-unsorted-content, .gigma-focus-pane-list')) || null;
         if (scrollHost) {
@@ -3561,6 +3566,7 @@ function gigmaAfterMultiDrop(groupEls) {
         try {
             selectedEls.forEach(el => el.classList && el.classList.remove('gigma-selected'));
         } catch (_) {}
+        try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
         if (clickedSelectableItem) {
             // Swallow the pointerdown so that no drag is started from this press.
             // The subsequent click event will still fire, allowing normal selection
@@ -3599,6 +3605,7 @@ function gigmaAfterMultiDrop(groupEls) {
             // If the click lands on a selectable row or folder header, let the normal
             // selection handler deal with it instead of force-clearing.
             if (target.closest('.gigma-row, .gigma-folder-header')) return;
+            if (typeof window.gigmaIsDistributionUiTarget === 'function' && window.gigmaIsDistributionUiTarget(target)) return;
             // Gather currently selected elements (either via tracked selection or CSS class)
             let selectedEls = [];
             try {
@@ -3627,6 +3634,7 @@ function gigmaAfterMultiDrop(groupEls) {
                     if (el && el.classList) el.classList.remove('gigma-selected');
                 });
             } catch (_) {}
+            try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
         } catch (_) {
             // Never let a background deselect failure break the rest of the UI
         }
@@ -23290,6 +23298,7 @@ function gigmaAttachBudgetHeaderControlsToRow(row){
           }
         }catch(_eBreakChain){}
         persistBudgetSettings();
+        try{ if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); }catch(_){}
       }catch(_){}
     });
     const onBudgetInputChange = () => {
@@ -23389,6 +23398,7 @@ function gigmaAttachBudgetHeaderControlsToRow(row){
           }
         }catch(_eBreakChain){}
         persistBudgetSettings();
+        try{ if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); }catch(_){}
       }catch(_){}
     };
     budgetInput.addEventListener('input', onBudgetInputChange);
@@ -23565,6 +23575,10 @@ function gigmaApplyBudgetModeState(active){
   // Ensure per-row budget header controls exist only in Budget mode.
   try{
     if (typeof gigmaSyncBudgetHeaderControlsForMode === 'function') gigmaSyncBudgetHeaderControlsForMode(!!active);
+  }catch(_){}
+  try{
+    if (!active && typeof window.gigmaCloseAllBudgetDistributionBars === 'function') window.gigmaCloseAllBudgetDistributionBars();
+    else if (typeof window.gigmaSyncBudgetDistributionUi === 'function') window.gigmaSyncBudgetDistributionUi();
   }catch(_){}
   // Keep inherit-area + parent unchained placeholders in sync even when the mode is restored programmatically.
   try{ if (typeof gigmaUpdateInheritAreaVisibility === 'function') gigmaUpdateInheritAreaVisibility(); }catch(_){ }
@@ -29519,6 +29533,56 @@ if (collapse && !isRight) {
           }
           #gigma-search-folders, #gigma-search-folders-right{ padding: 0.25em !important; }
           #gigma-search-folders svg, #gigma-search-folders-right svg{ width:1.375em; height:1.375em; display:block; }
+          .gigma-pane-distribution-host{ display:none; width:100%; box-sizing:border-box; position:relative; }
+          .gigma-pane-distribution-row{ display:flex; align-items:center; width:100%; box-sizing:border-box; gap:0.375em; position:relative; }
+          .gigma-pane-distribution-input{
+            width:100%;
+            height:100%;
+            box-sizing:border-box;
+            padding: 0 0.625em;
+            padding-right:22.5em !important;
+            text-align:left;
+            flex:1 1 auto;
+            min-width:0;
+          }
+          .gigma-pane-distribution-unit{
+            position:absolute;
+            right:2.45em;
+            top:50%;
+            transform:translateY(-50%);
+            max-width:none;
+            overflow:visible;
+            text-overflow:clip;
+            white-space:nowrap;
+            opacity:0.85;
+            pointer-events:none;
+            text-align:right;
+          }
+          .gigma-pane-distribution-close{
+            position:absolute;
+            right:0.35em;
+            top:50%;
+            transform:translateY(-50%);
+            width:1.7em;
+            height:1.7em;
+            min-width:1.7em;
+            padding:0 !important;
+            margin:0;
+            border-radius:0.25em;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            line-height:1;
+            opacity:0.9;
+          }
+          #gigma-distribute-budgets,
+          #gigma-distribute-budgets-right{
+            cursor:pointer !important;
+          }
+          html:not(.gigma-budget-mode-active) #gigma-distribute-budgets,
+          html:not(.gigma-budget-mode-active) #gigma-distribute-budgets-right{
+            display:none !important;
+          }
 
           /* In narrow view, hide the right pane's Search button (it is not usable there). */
           dialog:not(.gigma-wide) .gigma-unsorted-pane #gigma-toolbar-right .gigma-toolbar-group #gigma-search-folders-right{
@@ -30588,6 +30652,256 @@ function rerenderOpenSearches(){
   }catch(_){ }
 }
 
+function getBudgetDrawerLabel(mode){
+  try{
+    const opts = Array.isArray(GIGMA_LOREBOOK_BUDGET_MODE_OPTIONS) ? GIGMA_LOREBOOK_BUDGET_MODE_OPTIONS : [];
+    const hit = opts.find((opt)=>opt && opt.value === mode);
+    if (hit) return String(hit.drawer || hit.header || mode || '');
+  }catch(_){ }
+  return String(mode || '');
+}
+
+function getDistributionRange(mode){
+  if (mode === 'percentage_budget' || mode === 'percentage_context' || mode === 'percentage_lorebook' || mode === 'percentage_entries') return { min: 0, max: 100 };
+  if (mode === 'fixed' || mode === 'entries') return { min: 0, max: 99999 };
+  return { min: 0, max: 0 };
+}
+
+function getDistributionSelectedRows(){
+  const rows = [];
+  const seen = new Set();
+  const pushRow = (row)=>{
+    try{
+      if (!row || !row.classList || !row.classList.contains('gigma-row')) return;
+      if (seen.has(row)) return;
+      if (typeof gigmaIsRowReadOnlyUnchained === 'function' && gigmaIsRowReadOnlyUnchained(row)) return;
+      seen.add(row);
+      rows.push(row);
+    }catch(_){ }
+  };
+  try{
+    const sel = window.gigmaSelection;
+    if (sel && sel.items && sel.items.size) sel.items.forEach(pushRow);
+  }catch(_){ }
+  if (!rows.length) {
+    try{ document.querySelectorAll('.gigma-row.gigma-selected').forEach(pushRow); }catch(_){ }
+  }
+  return rows;
+}
+
+function getDistributionModeInfo(){
+  const rows = getDistributionSelectedRows();
+  if (!rows.length) return { rows, sameMode:false, mode:'', label:'', decimalsAllowed:false, min:0, max:0 };
+  let mode = '';
+  let sameMode = true;
+  rows.forEach((row, idx)=>{
+    try{
+      const sel = row && row.querySelector ? row.querySelector('.gigma-budget-header-select') : null;
+      const nextMode = gigmaNormalizeBudgetHeaderMode(sel ? (sel.value || 'default') : 'default');
+      if (!idx) mode = nextMode;
+      else if (nextMode !== mode) sameMode = false;
+    }catch(_){ sameMode = false; }
+  });
+  const range = getDistributionRange(mode);
+  return {
+    rows,
+    sameMode,
+    mode,
+    label: sameMode ? getBudgetDrawerLabel(mode) : '',
+    decimalsAllowed: sameMode && gigmaIsPercentageBudgetMode(mode),
+    min: range.min,
+    max: range.max,
+  };
+}
+
+function normalizeDistributionInputRaw(raw, info){
+  let s = String(raw ?? '');
+  s = s.replace(/-/g, '');
+  if (!(info && info.sameMode)) {
+    s = s.replace(/[^\d.]/g, '');
+    const firstDot = s.indexOf('.');
+    if (firstDot !== -1) {
+      s = s.slice(0, firstDot + 1) + s.slice(firstDot + 1).replace(/\./g, '');
+      s = s.slice(0, firstDot + 4);
+    }
+    return s;
+  }
+  if (info.decimalsAllowed) {
+    s = s.replace(/[^\d.]/g, '');
+    const firstDot = s.indexOf('.');
+    if (firstDot !== -1) {
+      s = s.slice(0, firstDot + 1) + s.slice(firstDot + 1).replace(/\./g, '');
+      const before = s.slice(0, firstDot + 1);
+      const after = s.slice(firstDot + 1, firstDot + 4);
+      s = before + after;
+    }
+    return s;
+  }
+  return s.replace(/\D/g, '');
+}
+
+function isDistributionValueEffective(info, raw){
+  try{
+    if (!info || !info.sameMode) return false;
+    if (!Array.isArray(info.rows) || info.rows.length < 2) return false;
+    const s = String(raw ?? '');
+    if (!s || s === '.') return false;
+    if (info.decimalsAllowed) {
+      if (!/^\d*(?:\.\d{0,3})?$/.test(s)) return false;
+    } else if (!/^\d+$/.test(s)) {
+      return false;
+    }
+    const n = Number(s);
+    if (!Number.isFinite(n)) return false;
+    if (n < info.min) return false;
+    if (n > info.max) return false;
+    return true;
+  }catch(_){ return false; }
+}
+
+function splitDistributionValue(raw, count, decimalsAllowed){
+  const scale = decimalsAllowed ? 1000 : 1;
+  const totalScaled = Math.round(Number(raw) * scale);
+  const base = Math.floor(totalScaled / count);
+  let remainder = totalScaled - (base * count);
+  const values = [];
+  for (let i = 0; i < count; i++) {
+    const scaled = base + (remainder > 0 ? 1 : 0);
+    if (remainder > 0) remainder -= 1;
+    values.push(decimalsAllowed ? gigmaPctToString(scaled / scale) : String(scaled));
+  }
+  return values;
+}
+
+function refreshDistributionDrawerFromRowDataset(){
+  try{
+    const selectEl = document.getElementById('gigma-lorebook-dropdown-toggle');
+    if (!selectEl || !selectEl.value || typeof gigmaApplyLorebookSettingsToForm !== 'function') return;
+    const esc = (window.CSS && typeof CSS.escape === 'function')
+      ? CSS.escape(String(selectEl.value))
+      : String(selectEl.value).replace(/"/g, '\\"');
+    const row = document.querySelector('.gigma-row[data-world-id="' + esc + '"], .gigma-row[data-world="' + esc + '"]');
+    if (!row || !row.dataset) return;
+    const mode = gigmaNormalizeBudgetHeaderMode(row.dataset.gigmaBudgetMode || 'default');
+    let budget = gigmaParseBudgetValueForMode(mode, row.dataset.gigmaBudgetValue || '0');
+    if (!Number.isFinite(budget)) budget = 0;
+    const randomTrim = row.dataset.gigmaRandomTrim === '1';
+    gigmaApplyLorebookSettingsToForm(Object.assign({}, DEFAULT_LOREBOOK_SETTINGS, {
+      budgetMode: mode,
+      budget: (mode === 'default' || mode === 'off') ? 0 : budget,
+      randomTrim,
+    }));
+    try{ if (typeof gigmaSyncLorebookDrawerLockBoxFromCache === 'function') gigmaSyncLorebookDrawerLockBoxFromCache(); }catch(_){ }
+  }catch(_){ }
+}
+
+function applyDistributionToRows(info, raw){
+  try{
+    const rows = (info && Array.isArray(info.rows)) ? info.rows.slice() : [];
+    if (!rows.length) return false;
+    const values = splitDistributionValue(raw, rows.length, !!info.decimalsAllowed);
+    try{ window.__gigmaBudgetBulkApply = true; }catch(_){ }
+    try{
+      rows.forEach((row, idx)=>{
+        try{
+          const input = row && row.querySelector ? row.querySelector('.gigma-budget-header-value') : null;
+          if (!input) return;
+          input.value = values[idx];
+          input.dispatchEvent(new Event('input', { bubbles:true }));
+        }catch(_){ }
+      });
+    }finally{
+      try{ window.__gigmaBudgetBulkApply = false; }catch(_){ }
+    }
+    try{
+      if (typeof gigmaIsChildPresetInheritingBudget === 'function' && gigmaIsChildPresetInheritingBudget()) {
+        rows.forEach((row)=>{
+          try{
+            const id = row && row.dataset ? (row.dataset.worldId || row.dataset.world || null) : null;
+            if (id && typeof gigmaSetBudgetLockStateForLorebookId === 'function') gigmaSetBudgetLockStateForLorebookId(id, true);
+          }catch(_){ }
+        });
+        try{ if (typeof gigmaSyncLorebookDrawerLockBoxFromCache === 'function') gigmaSyncLorebookDrawerLockBoxFromCache(); }catch(_){ }
+      }
+    }catch(_){ }
+    try{ refreshDistributionDrawerFromRowDataset(); }catch(_){ }
+    return true;
+  }catch(_){ return false; }
+}
+
+function syncDistributionUiBits(state){
+  try{
+    if (!state || !state.distInput) return;
+    const info = getDistributionModeInfo();
+    if (state.distUnit){
+      const text = (info.sameMode && info.label) ? info.label : '';
+      state.distUnit.textContent = text;
+      state.distUnit.title = text;
+      state.distUnit.style.display = text ? '' : 'none';
+    }
+    if (state.distBtn) {
+      const inBudgetMode = !!(document && document.documentElement && document.documentElement.classList && document.documentElement.classList.contains('gigma-budget-mode-active'));
+      state.distBtn.style.display = inBudgetMode ? '' : 'none';
+    }
+  }catch(_){ }
+}
+
+function syncDistributionUiBitsAll(){
+  try{
+    Object.values(STATES).forEach((s)=>{ try{ syncDistributionUiBits(s); }catch(_){ } });
+  }catch(_){ }
+}
+
+function applyDistributionFromState(state){
+  try{
+    if (!state || !state.distInput) return;
+    const info = getDistributionModeInfo();
+    const next = normalizeDistributionInputRaw(state.distInput.value, info);
+    if (state.distInput.value !== next) state.distInput.value = next;
+    syncDistributionUiBits(state);
+    if (!isDistributionValueEffective(info, next)) return;
+    applyDistributionToRows(info, next);
+  }catch(_){ }
+}
+
+function rerenderOpenDistributions(){
+  try{
+    Object.values(STATES).forEach((s)=>{
+      try{
+        if (s && s.distOpen) applyDistributionFromState(s);
+        else syncDistributionUiBits(s);
+      }catch(_){ }
+    });
+  }catch(_){ }
+}
+
+function openDistribution(state){
+  try{
+    if (!state || !state.group || !state.distHost || !state.distInput) return;
+    try{ closeSearch(state); }catch(_){ }
+    const h = state.group.getBoundingClientRect ? state.group.getBoundingClientRect().height : state.group.offsetHeight;
+    if (h) state.distRow.style.height = h + 'px';
+    state._prevGroupDisplay = state.group.style.display;
+    state.group.style.display = 'none';
+    state.distHost.style.display = 'block';
+    state.distOpen = true;
+    syncDistributionUiBits(state);
+    applyDistributionFromState(state);
+    try{ state.distInput.focus(); }catch(_){ }
+    try{ state.distInput.select(); }catch(_){ }
+  }catch(_){ }
+}
+
+function closeDistribution(state){
+  try{
+    if (!state) return;
+    state.distOpen = false;
+    if (state.distHost) state.distHost.style.display = 'none';
+    if (state.group) state.group.style.display = (state._prevGroupDisplay !== undefined ? state._prevGroupDisplay : '');
+    syncDistributionUiBits(state);
+  }catch(_){ }
+}
+
 
 function isSearchResultsListOpen(state){
   try{
@@ -30957,6 +31271,7 @@ function openSearch(state){
 
       try{
         if (!state || !state.group || !state.host || !state.input) return;
+        try{ closeDistribution(state); }catch(_){ }
         // Fix row height to match the button row height.
         try{
           const h = state.group.getBoundingClientRect ? state.group.getBoundingClientRect().height : state.group.offsetHeight;
@@ -30999,6 +31314,7 @@ function openSearch(state){
       try{
         const restoreId = (which === 'right') ? 'gigma-restore-folders-right' : 'gigma-restore-folders';
         const searchId = (which === 'right') ? 'gigma-search-folders-right' : 'gigma-search-folders';
+        const distributionId = (which === 'right') ? 'gigma-distribute-budgets-right' : 'gigma-distribute-budgets';
         const barId = (which === 'right') ? 'gigma-toolbar-right' : 'gigma-toolbar';
         const restoreBtn = document.getElementById(restoreId);
         const bar = document.getElementById(barId);
@@ -31017,6 +31333,22 @@ function openSearch(state){
           restoreBtn.insertAdjacentElement('afterend', searchBtn);
         }
         applyIcon(searchBtn);
+
+        let distBtn = document.getElementById(distributionId);
+        if (!distBtn) {
+          distBtn = document.createElement('button');
+          distBtn.id = distributionId;
+          distBtn.type = 'button';
+          distBtn.className = restoreBtn.className || 'menu_button';
+          distBtn.classList.add('gigma-icon-btn');
+          distBtn.title = 'Distribute';
+          distBtn.setAttribute('aria-label', 'Distribute');
+          distBtn.innerHTML = '<i class="fa-solid fa-divide" aria-hidden="true"></i>';
+          searchBtn.insertAdjacentElement('afterend', distBtn);
+        }
+        try{
+          if (searchBtn.parentNode && searchBtn.nextElementSibling !== distBtn) searchBtn.insertAdjacentElement('afterend', distBtn);
+        }catch(_){ }
 
         // Search host (replaces toolbar row when active)
         let host = bar.querySelector('.gigma-pane-search-host[data-gigma-pane="' + which + '"]');
@@ -31038,6 +31370,33 @@ function openSearch(state){
           bar.appendChild(host);
         }
 
+        let distHost = bar.querySelector('.gigma-pane-distribution-host[data-gigma-pane="' + which + '"]');
+        if (!distHost) {
+          distHost = document.createElement('div');
+          distHost.className = 'gigma-pane-distribution-host';
+          distHost.setAttribute('data-gigma-pane', which);
+          const distRow = document.createElement('div');
+          distRow.className = 'gigma-pane-distribution-row';
+          const distInput = document.createElement('input');
+          distInput.type = 'text';
+          distInput.inputMode = 'decimal';
+          distInput.className = 'text_pole textarea_compact gigma-pane-distribution-input';
+          distInput.placeholder = 'Distribute.';
+          const distUnit = document.createElement('span');
+          distUnit.className = 'gigma-pane-distribution-unit';
+          const distClose = document.createElement('button');
+          distClose.type = 'button';
+          distClose.className = 'menu_button gigma-pane-distribution-close';
+          distClose.title = 'Close distribution';
+          distClose.setAttribute('aria-label', 'Close distribution');
+          distClose.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+          distRow.appendChild(distInput);
+          distRow.appendChild(distUnit);
+          distRow.appendChild(distClose);
+          distHost.appendChild(distRow);
+          bar.appendChild(distHost);
+        }
+
         const group = bar.querySelector('.gigma-toolbar-group');
         if (!group) return;
 
@@ -31046,15 +31405,38 @@ function openSearch(state){
           const input = host.querySelector('input.gigma-pane-search-input');
           const results = host.querySelector('.gigma-pane-search-results');
           const row = host.querySelector('.gigma-pane-search-row');
-          STATES[which] = { which, searchBtn, bar, group, host, input, results, row, open:false };
+          STATES[which] = {
+            which,
+            searchBtn,
+            distBtn,
+            bar,
+            group,
+            host,
+            distHost,
+            input,
+            results,
+            row,
+            distInput: distHost.querySelector('input.gigma-pane-distribution-input'),
+            distRow: distHost.querySelector('.gigma-pane-distribution-row'),
+            distUnit: distHost.querySelector('.gigma-pane-distribution-unit'),
+            distClose: distHost.querySelector('.gigma-pane-distribution-close'),
+            open:false,
+            distOpen:false,
+          };
         } else {
           STATES[which].searchBtn = searchBtn;
+          STATES[which].distBtn = distBtn;
           STATES[which].bar = bar;
           STATES[which].group = group;
           STATES[which].host = host;
+          STATES[which].distHost = distHost;
           STATES[which].input = host.querySelector('input.gigma-pane-search-input');
           STATES[which].results = host.querySelector('.gigma-pane-search-results');
           STATES[which].row = host.querySelector('.gigma-pane-search-row');
+          STATES[which].distInput = distHost.querySelector('input.gigma-pane-distribution-input');
+          STATES[which].distRow = distHost.querySelector('.gigma-pane-distribution-row');
+          STATES[which].distUnit = distHost.querySelector('.gigma-pane-distribution-unit');
+          STATES[which].distClose = distHost.querySelector('.gigma-pane-distribution-close');
         }
 
         try{
@@ -31069,14 +31451,44 @@ function openSearch(state){
           }
         }catch(_){ }
 
+        try{
+          const distInput = STATES[which] && STATES[which].distInput;
+          const distClose = STATES[which] && STATES[which].distClose;
+          if (distInput && !distInput.__gigmaDistributionInputWired) {
+            distInput.__gigmaDistributionInputWired = true;
+            distInput.addEventListener('input', ()=>{
+              try{ applyDistributionFromState(STATES[which]); }catch(_){ }
+            });
+          }
+          if (distClose && !distClose.__gigmaDistributionCloseWired) {
+            distClose.__gigmaDistributionCloseWired = true;
+            distClose.addEventListener('click', (ev)=>{
+              try{ ev.preventDefault(); ev.stopPropagation(); }catch(_){ }
+              closeDistribution(STATES[which]);
+            });
+          }
+        }catch(_){ }
+
         if (!searchBtn.__gigmaSearchWired) {
           searchBtn.__gigmaSearchWired = true;
           searchBtn.addEventListener('click', (ev)=>{
             try{ ev.preventDefault(); ev.stopPropagation(); }catch(_){ }
             ensureStyle();
+            try{ closeDistribution(STATES[which]); }catch(_){ }
             openSearch(STATES[which]);
           });
         }
+
+        if (!distBtn.__gigmaDistributionWired) {
+          distBtn.__gigmaDistributionWired = true;
+          distBtn.addEventListener('click', (ev)=>{
+            try{ ev.preventDefault(); ev.stopPropagation(); }catch(_){ }
+            ensureStyle();
+            openDistribution(STATES[which]);
+          });
+        }
+
+        try{ syncDistributionUiBits(STATES[which]); }catch(_){ }
 
       }catch(_){ }
     }
@@ -31215,16 +31627,18 @@ function openSearch(state){
         window.__gigmaPaneSearchOutsideCloser = true;
         document.addEventListener('pointerdown', (ev)=>{
           try{
-            const openStates = Object.values(STATES).filter(s=>s && s.open);
+            const openStates = Object.values(STATES).filter((s)=>s && s.open);
             if (!openStates.length) return;
             const t = ev.target;
             for (const s of openStates){
-              if ((s.host && s.host.contains && s.host.contains(t)) || (s.searchBtn && s.searchBtn.contains && s.searchBtn.contains(t))) {
+              if ((s.host && s.host.contains && s.host.contains(t)) ||
+                  (s.searchBtn && s.searchBtn.contains && s.searchBtn.contains(t))) {
                 return;
               }
             }
+
             // Click outside: close search UI and swallow so selection is not disturbed.
-            openStates.forEach(s=>closeSearch(s));
+            openStates.forEach((s)=>{ try{ closeSearch(s); }catch(_){ } });
             try{ ev.preventDefault(); }catch(_){ }
             try{ ev.stopPropagation(); }catch(_){ }
             try{ if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); }catch(_){ }
@@ -31232,6 +31646,29 @@ function openSearch(state){
         }, true);
       }catch(_){ }
     }
+
+    let distributionRefreshRaf = 0;
+    window.gigmaScheduleBudgetDistributionRefresh = function(){
+      try{
+        if (distributionRefreshRaf) return;
+        distributionRefreshRaf = requestAnimationFrame(()=>{
+          distributionRefreshRaf = 0;
+          try{ syncDistributionUiBitsAll(); }catch(_){ }
+          try{ rerenderOpenDistributions(); }catch(_){ }
+        });
+      }catch(_){ }
+    };
+    window.gigmaIsDistributionUiTarget = function(target){
+      try{
+        return !!(target && typeof target.closest === 'function' && target.closest('.gigma-pane-distribution-host, #gigma-distribute-budgets, #gigma-distribute-budgets-right'));
+      }catch(_){ return false; }
+    };
+    window.gigmaCloseAllBudgetDistributionBars = function(){
+      try{ Object.values(STATES).forEach((s)=>{ try{ closeDistribution(s); }catch(_){ } }); }catch(_){ }
+    };
+    window.gigmaSyncBudgetDistributionUi = function(){
+      try{ window.gigmaScheduleBudgetDistributionRefresh(); }catch(_){ }
+    };
 
     ensureAll();
     installOutsideCloser();
@@ -42872,6 +43309,7 @@ function gigmaBindSelectionHandlers() {
             window.gigmaSelection.anchor = null;
             if (window.gigmaSelection.shiftSessionActive) window.gigmaSelection.shiftSessionActive = false;
         }
+        try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
     };
     clickRoot.addEventListener('click', handler);
     clickRoot.__gigmaSelectionHandlerBound = true;
