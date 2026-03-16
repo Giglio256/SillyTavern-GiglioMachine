@@ -29533,8 +29533,120 @@ if (collapse && !isRight) {
           }
           #gigma-search-folders, #gigma-search-folders-right{ padding: 0.25em !important; }
           #gigma-search-folders svg, #gigma-search-folders-right svg{ width:1.375em; height:1.375em; display:block; }
-          .gigma-pane-distribution-host{ display:none; width:100%; box-sizing:border-box; position:relative; }
-          .gigma-pane-distribution-row{ display:flex; align-items:center; width:100%; box-sizing:border-box; gap:0.375em; position:relative; }
+          .gigma-pane-distribution-host{ display:none; width:100%; box-sizing:border-box; position:relative; overflow:visible; }
+          .gigma-pane-distribution-row{ display:flex; align-items:center; width:100%; box-sizing:border-box; gap:0.375em; position:relative; overflow:visible; }
+          .gigma-pane-distribution-shape-wrap{ position:relative; flex:0 0 auto; overflow:visible; }
+          .gigma-pane-distribution-shape{
+            width:2.65em;
+            height:1.9em;
+            min-width:2.65em;
+            padding:0 0.35em !important;
+            display:inline-flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:0.3em;
+            line-height:1;
+          }
+          .gigma-pane-distribution-shape-glyph{
+            display:block;
+            width:0.9em;
+            height:0.9em;
+            background:currentColor;
+            opacity:0.92;
+            flex:0 0 auto;
+          }
+          .gigma-pane-distribution-shape-caret{
+            font-size:0.78em;
+            opacity:0.92;
+            flex:0 0 auto;
+          }
+          .gigma-pane-distribution-shape-menu{
+            display:none;
+            position:absolute;
+            top:calc(100% + 0.25em);
+            left:0;
+            z-index:2147483646;
+            padding:0.25em;
+            border-radius:0.5em;
+            background:var(--SmartThemeBlurTintColor, rgba(20,20,20,0.96));
+            border:1px solid var(--SmartThemeBorderColor, rgba(255,255,255,0.12));
+            box-shadow:0 0.35em 1em rgba(0,0,0,0.35);
+            grid-template-columns:repeat(5, 1.9em);
+            gap:0.25em;
+          }
+          .gigma-pane-distribution-shape-wrap.gigma-open .gigma-pane-distribution-shape-menu{
+            display:grid;
+          }
+          .gigma-pane-distribution-shape-option{
+            width:1.9em;
+            height:1.9em;
+            min-width:1.9em;
+            padding:0 !important;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            line-height:1;
+          }
+          .gigma-pane-distribution-shape-option[data-gigma-active="true"]{
+            box-shadow: inset 0 0 0 0.0625em currentColor;
+          }
+          .gigma-pane-distribution-shape[data-gigma-distribution-shape="even"] .gigma-pane-distribution-shape-glyph,
+          .gigma-pane-distribution-shape-option[data-gigma-distribution-shape="even"] .gigma-pane-distribution-shape-glyph{
+            border-radius:0.08em;
+          }
+          .gigma-pane-distribution-shape[data-gigma-distribution-shape="lowest"] .gigma-pane-distribution-shape-glyph,
+          .gigma-pane-distribution-shape-option[data-gigma-distribution-shape="lowest"] .gigma-pane-distribution-shape-glyph{
+            clip-path:polygon(0 0, 100% 0, 50% 100%);
+          }
+          .gigma-pane-distribution-shape[data-gigma-distribution-shape="highest"] .gigma-pane-distribution-shape-glyph,
+          .gigma-pane-distribution-shape-option[data-gigma-distribution-shape="highest"] .gigma-pane-distribution-shape-glyph{
+            clip-path:polygon(50% 0, 0 100%, 100% 100%);
+          }
+          .gigma-pane-distribution-shape[data-gigma-distribution-shape="diamond"] .gigma-pane-distribution-shape-glyph,
+          .gigma-pane-distribution-shape-option[data-gigma-distribution-shape="diamond"] .gigma-pane-distribution-shape-glyph{
+            border-radius:0.08em;
+            transform:rotate(45deg);
+          }
+          .gigma-pane-distribution-shape[data-gigma-distribution-shape="circle"] .gigma-pane-distribution-shape-glyph,
+          .gigma-pane-distribution-shape-option[data-gigma-distribution-shape="circle"] .gigma-pane-distribution-shape-glyph{
+            border-radius:999px;
+          }
+          .gigma-pane-distribution-shape[data-gigma-distribution-shape="half_circle_lowest"] .gigma-pane-distribution-shape-glyph,
+          .gigma-pane-distribution-shape-option[data-gigma-distribution-shape="half_circle_lowest"] .gigma-pane-distribution-shape-glyph{
+            -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='black' d='M0 0H100C88 45 74 73 50 100C26 73 12 45 0 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='black' d='M0 0H100C88 45 74 73 50 100C26 73 12 45 0 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
+          }
+          .gigma-pane-distribution-shape[data-gigma-distribution-shape="half_circle_highest"] .gigma-pane-distribution-shape-glyph,
+          .gigma-pane-distribution-shape-option[data-gigma-distribution-shape="half_circle_highest"] .gigma-pane-distribution-shape-glyph{
+            -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='black' d='M50 0C74 27 88 55 100 100H0C12 55 26 27 50 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='black' d='M50 0C74 27 88 55 100 100H0C12 55 26 27 50 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
+          }
+          .gigma-pane-distribution-shape[data-gigma-distribution-shape="concave_half_circle_lowest"] .gigma-pane-distribution-shape-glyph,
+          .gigma-pane-distribution-shape-option[data-gigma-distribution-shape="concave_half_circle_lowest"] .gigma-pane-distribution-shape-glyph{
+            -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='black' d='M0 0H100C66 34 58 66 50 100C42 66 34 34 0 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='black' d='M0 0H100C66 34 58 66 50 100C42 66 34 34 0 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
+          }
+          .gigma-pane-distribution-shape[data-gigma-distribution-shape="concave_half_circle_highest"] .gigma-pane-distribution-shape-glyph,
+          .gigma-pane-distribution-shape-option[data-gigma-distribution-shape="concave_half_circle_highest"] .gigma-pane-distribution-shape-glyph{
+            -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='black' d='M50 0C58 34 66 66 100 100H0C34 66 42 34 50 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='black' d='M50 0C58 34 66 66 100 100H0C34 66 42 34 50 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
+          }
+          .gigma-pane-distribution-shape[data-gigma-distribution-shape="opposite_circle"] .gigma-pane-distribution-shape-glyph,
+          .gigma-pane-distribution-shape-option[data-gigma-distribution-shape="opposite_circle"] .gigma-pane-distribution-shape-glyph{
+            -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='black' d='M50 0C38 22 22 38 0 50C22 62 38 78 50 100C62 78 78 62 100 50C78 38 62 22 50 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='black' d='M50 0C38 22 22 38 0 50C22 62 38 78 50 100C62 78 78 62 100 50C78 38 62 22 50 0Z'/%3E%3C/svg%3E") center/contain no-repeat;
+          }
+          .gigma-pane-distribution-strength{
+            width:3.65em;
+            min-width:3.65em;
+            text-align:center;
+            padding:0 0.4em !important;
+            height:100%;
+            box-sizing:border-box;
+          }
+          .gigma-pane-distribution-strength:disabled{
+            opacity:0.55;
+          }
           .gigma-pane-distribution-input{
             width:100%;
             height:100%;
@@ -30667,6 +30779,8 @@ function getDistributionRange(mode){
   return { min: 0, max: 0 };
 }
 
+const GIGMA_DISTRIBUTION_SHAPES = ['even', 'lowest', 'highest', 'diamond', 'circle', 'half_circle_lowest', 'half_circle_highest', 'concave_half_circle_lowest', 'concave_half_circle_highest', 'opposite_circle'];
+
 function getDistributionSelectedRows(){
   const rows = [];
   const seen = new Set();
@@ -30686,7 +30800,150 @@ function getDistributionSelectedRows(){
   if (!rows.length) {
     try{ document.querySelectorAll('.gigma-row.gigma-selected').forEach(pushRow); }catch(_){ }
   }
+  try{
+    const ordered = [];
+    document.querySelectorAll('.gigma-row').forEach((row)=>{
+      try{ if (seen.has(row)) ordered.push(row); }catch(_){ }
+    });
+    if (ordered.length === rows.length) return ordered;
+  }catch(_){ }
   return rows;
+}
+
+function getDistributionShapeMeta(shape){
+  const v = GIGMA_DISTRIBUTION_SHAPES.includes(shape) ? shape : 'even';
+  if (v === 'lowest') return { value:'lowest', title:'Linear weighting toward lower-order lorebooks' };
+  if (v === 'highest') return { value:'highest', title:'Linear weighting toward higher-order lorebooks' };
+  if (v === 'diamond') return { value:'diamond', title:'Linear weighting toward center lorebooks' };
+  if (v === 'circle') return { value:'circle', title:'Curved weighting toward center lorebooks' };
+  if (v === 'half_circle_lowest') return { value:'half_circle_lowest', title:'Half-circle weighting toward lower-order lorebooks' };
+  if (v === 'half_circle_highest') return { value:'half_circle_highest', title:'Half-circle weighting toward higher-order lorebooks' };
+  if (v === 'concave_half_circle_lowest') return { value:'concave_half_circle_lowest', title:'Concave half-circle weighting toward lower-order lorebooks' };
+  if (v === 'concave_half_circle_highest') return { value:'concave_half_circle_highest', title:'Concave half-circle weighting toward higher-order lorebooks' };
+  if (v === 'opposite_circle') return { value:'opposite_circle', title:'Inward-curved weighting toward center lorebooks' };
+  return { value:'even', title:'Equal distribution' };
+}
+
+function normalizeDistributionStrengthRaw(raw){
+  let s = String(raw ?? '').replace(/\D/g, '');
+  if (!s) return '';
+  let n = parseInt(s, 10);
+  if (!Number.isFinite(n)) return '';
+  if (n < 0) n = 0;
+  if (n > 100) n = 100;
+  return String(n);
+}
+
+function getDistributionShapeValue(state){
+  try{
+    const v = state && state.distShapeValue;
+    return GIGMA_DISTRIBUTION_SHAPES.includes(v) ? v : 'even';
+  }catch(_){ return 'even'; }
+}
+
+function getDistributionStrengthValue(state){
+  try{
+    const v = normalizeDistributionStrengthRaw(state && state.distStrengthValue);
+    return v === '' ? 50 : Number(v);
+  }catch(_){ return 50; }
+}
+
+function openDistributionShapeMenu(state){
+  try{
+    if (!state || !state.distShapeWrap) return;
+    state.distShapeOpen = true;
+    state.distShapeWrap.classList.add('gigma-open');
+    if (state.distShape) state.distShape.setAttribute('aria-expanded', 'true');
+  }catch(_){ }
+}
+
+function closeDistributionShapeMenu(state){
+  try{
+    if (!state || !state.distShapeWrap) return;
+    state.distShapeOpen = false;
+    state.distShapeWrap.classList.remove('gigma-open');
+    if (state.distShape) state.distShape.setAttribute('aria-expanded', 'false');
+  }catch(_){ }
+}
+
+function toggleDistributionShapeMenu(state){
+  try{
+    if (!state) return;
+    if (state.distShapeOpen) closeDistributionShapeMenu(state);
+    else openDistributionShapeMenu(state);
+  }catch(_){ }
+}
+
+function installDistributionShapeMenuCloser(){
+  try{
+    if (window.__gigmaDistributionShapeMenuCloser) return;
+    window.__gigmaDistributionShapeMenuCloser = true;
+    document.addEventListener('pointerdown', (ev)=>{
+      try{
+        const t = ev.target;
+        Object.values(STATES).forEach((state)=>{
+          try{
+            if (!state || !state.distShapeOpen || !state.distShapeWrap) return;
+            if (state.distShapeWrap.contains && state.distShapeWrap.contains(t)) return;
+            closeDistributionShapeMenu(state);
+          }catch(_){ }
+        });
+      }catch(_){ }
+    }, true);
+  }catch(_){ }
+}
+
+function getDistributionShapeCore(count, shape){
+  if (!(count > 0)) return [];
+  const mode = GIGMA_DISTRIBUTION_SHAPES.includes(shape) ? shape : 'even';
+  if (mode === 'even') return Array(count).fill(1);
+  if (count === 1) return [1];
+  const q = [];
+  if (mode === 'lowest' || mode === 'highest') {
+    for (let i = 0; i < count; i++) {
+      const t = i / (count - 1);
+      if (mode === 'lowest') q.push(1 - t);
+      else q.push(t);
+    }
+    return q;
+  }
+  const center = (count - 1) / 2;
+  const span = Math.max(1, center);
+  for (let i = 0; i < count; i++) {
+    const u = (i - center) / span;
+    const t = i / (count - 1);
+    if (mode === 'diamond') q.push(Math.max(0, 1 - Math.abs(u)));
+    else if (mode === 'circle') q.push(Math.sqrt(Math.max(0, 1 - (u * u))));
+    else if (mode === 'opposite_circle') q.push(Math.max(0, 1 - (u * u)));
+    else if (mode === 'half_circle_lowest') q.push(Math.sqrt(Math.max(0, 1 - (t * t))));
+    else if (mode === 'half_circle_highest') q.push(Math.sqrt(Math.max(0, 1 - ((1 - t) * (1 - t)))));
+    else if (mode === 'concave_half_circle_lowest') q.push(1 - Math.sqrt(Math.max(0, 1 - ((1 - t) * (1 - t)))));
+    else if (mode === 'concave_half_circle_highest') q.push(1 - Math.sqrt(Math.max(0, 1 - (t * t))));
+  }
+  return q;
+}
+
+function getDistributionWeights(count, shape, strengthValue){
+  if (!(count > 0)) return [];
+  const mode = GIGMA_DISTRIBUTION_SHAPES.includes(shape) ? shape : 'even';
+  if (mode === 'even') return Array(count).fill(1);
+  if (count === 1) return [1];
+  const amt = Math.max(0, Math.min(100, Number(strengthValue) || 0)) / 100;
+  const q = getDistributionShapeCore(count, mode);
+  const qSum = q.reduce((acc, v)=>acc + v, 0);
+  const k = (100 - count) / qSum;
+  const profile = q.map((v)=>1 + (k * v));
+  return profile.map((v)=>(1 - amt) + (amt * v));
+}
+
+function getDistributionRemainderSource(count, shape, strengthValue){
+  if (!(count > 0)) return [];
+  const mode = GIGMA_DISTRIBUTION_SHAPES.includes(shape) ? shape : 'even';
+  if (mode === 'even') return Array(count).fill(1);
+  if (count === 1) return [1];
+  const amt = Math.max(0, Math.min(100, Number(strengthValue) || 0)) / 100;
+  const q = getDistributionShapeCore(count, mode);
+  return q.map((v)=>(1 - amt) + (amt * v));
 }
 
 function getDistributionModeInfo(){
@@ -30759,18 +31016,32 @@ function isDistributionValueEffective(info, raw){
   }catch(_){ return false; }
 }
 
-function splitDistributionValue(raw, count, decimalsAllowed){
+function splitDistributionValue(raw, count, decimalsAllowed, weights, remainderSource, shape){
   const scale = decimalsAllowed ? 1000 : 1;
   const totalScaled = Math.round(Number(raw) * scale);
-  const base = Math.floor(totalScaled / count);
-  let remainder = totalScaled - (base * count);
-  const values = [];
-  for (let i = 0; i < count; i++) {
-    const scaled = base + (remainder > 0 ? 1 : 0);
-    if (remainder > 0) remainder -= 1;
-    values.push(decimalsAllowed ? gigmaPctToString(scaled / scale) : String(scaled));
+  const allocateScaled = (amountScaled, source)=>{
+    const saneSource = source.map((v)=>Number(v));
+    const sumSource = saneSource.reduce((acc, v)=>acc + v, 0);
+    const rawParts = saneSource.map((w)=> (amountScaled * w) / sumSource);
+    const scaledValues = rawParts.map((v)=> Math.floor(v));
+    let remainder = amountScaled - scaledValues.reduce((acc, v)=>acc + v, 0);
+    const order = rawParts
+      .map((v, idx)=>({ idx, frac: v - Math.floor(v) }))
+      .sort((a, b)=>{
+        if (b.frac !== a.frac) return b.frac - a.frac;
+        return a.idx - b.idx;
+      });
+    for (let i = 0; i < order.length && remainder > 0; i++, remainder--) {
+      scaledValues[order[i].idx] += 1;
+    }
+    return scaledValues;
+  };
+  if (!decimalsAllowed && shape !== 'even' && totalScaled >= count) {
+    const extras = allocateScaled(totalScaled - count, remainderSource);
+    return extras.map((extra)=> String(1 + extra));
   }
-  return values;
+  const scaledValues = allocateScaled(totalScaled, weights);
+  return scaledValues.map((scaled)=> decimalsAllowed ? gigmaPctToString(scaled / scale) : String(scaled));
 }
 
 function refreshDistributionDrawerFromRowDataset(){
@@ -30795,11 +31066,15 @@ function refreshDistributionDrawerFromRowDataset(){
   }catch(_){ }
 }
 
-function applyDistributionToRows(info, raw){
+function applyDistributionToRows(info, raw, state){
   try{
     const rows = (info && Array.isArray(info.rows)) ? info.rows.slice() : [];
     if (!rows.length) return false;
-    const values = splitDistributionValue(raw, rows.length, !!info.decimalsAllowed);
+    const shape = getDistributionShapeValue(state);
+    const strength = getDistributionStrengthValue(state);
+    const weights = getDistributionWeights(rows.length, shape, strength);
+    const remainderSource = getDistributionRemainderSource(rows.length, shape, strength);
+    const values = splitDistributionValue(raw, rows.length, !!info.decimalsAllowed, weights, remainderSource, shape);
     try{ window.__gigmaBudgetBulkApply = true; }catch(_){ }
     try{
       rows.forEach((row, idx)=>{
@@ -30839,6 +31114,36 @@ function syncDistributionUiBits(state){
       state.distUnit.title = text;
       state.distUnit.style.display = text ? '' : 'none';
     }
+    if (state.distShape) {
+      const meta = getDistributionShapeMeta(getDistributionShapeValue(state));
+      state.distShape.setAttribute('data-gigma-distribution-shape', meta.value);
+      state.distShape.title = meta.title;
+      state.distShape.setAttribute('aria-label', meta.title);
+      state.distShape.setAttribute('aria-haspopup', 'menu');
+      state.distShape.setAttribute('aria-expanded', state.distShapeOpen ? 'true' : 'false');
+    }
+    if (state.distShapeOptions && state.distShapeOptions.length) {
+      const current = getDistributionShapeValue(state);
+      state.distShapeOptions.forEach((btn)=>{
+        try{
+          const shape = btn && btn.dataset ? btn.dataset.gigmaDistributionShape : '';
+          const meta = getDistributionShapeMeta(shape);
+          btn.setAttribute('data-gigma-distribution-shape', meta.value);
+          btn.setAttribute('data-gigma-active', shape === current ? 'true' : 'false');
+          btn.title = meta.title;
+          btn.setAttribute('aria-label', meta.title);
+        }catch(_){ }
+      });
+    }
+    if (state.distStrength) {
+      const normalized = normalizeDistributionStrengthRaw(state.distStrengthValue);
+      state.distStrengthValue = (normalized === '') ? '50' : normalized;
+      if (state.distStrength.value !== state.distStrengthValue) state.distStrength.value = state.distStrengthValue;
+      const disabled = getDistributionShapeValue(state) === 'even';
+      state.distStrength.disabled = disabled;
+      state.distStrength.title = disabled ? 'Weight strength' : ('Weight strength: ' + state.distStrengthValue);
+      state.distStrength.setAttribute('aria-label', disabled ? 'Weight strength disabled for equal distribution' : ('Weight strength ' + state.distStrengthValue));
+    }
     if (state.distBtn) {
       const inBudgetMode = !!(document && document.documentElement && document.documentElement.classList && document.documentElement.classList.contains('gigma-budget-mode-active'));
       state.distBtn.style.display = inBudgetMode ? '' : 'none';
@@ -30860,7 +31165,7 @@ function applyDistributionFromState(state){
     if (state.distInput.value !== next) state.distInput.value = next;
     syncDistributionUiBits(state);
     if (!isDistributionValueEffective(info, next)) return;
-    applyDistributionToRows(info, next);
+    applyDistributionToRows(info, next, state);
   }catch(_){ }
 }
 
@@ -30896,6 +31201,7 @@ function closeDistribution(state){
   try{
     if (!state) return;
     state.distOpen = false;
+    try{ closeDistributionShapeMenu(state); }catch(_){ }
     if (state.distHost) state.distHost.style.display = 'none';
     if (state.group) state.group.style.display = (state._prevGroupDisplay !== undefined ? state._prevGroupDisplay : '');
     syncDistributionUiBits(state);
@@ -31377,6 +31683,29 @@ function openSearch(state){
           distHost.setAttribute('data-gigma-pane', which);
           const distRow = document.createElement('div');
           distRow.className = 'gigma-pane-distribution-row';
+          const distShapeWrap = document.createElement('div');
+          distShapeWrap.className = 'gigma-pane-distribution-shape-wrap';
+          const distShape = document.createElement('button');
+          distShape.type = 'button';
+          distShape.className = 'menu_button gigma-pane-distribution-shape';
+          distShape.innerHTML = '<span class="gigma-pane-distribution-shape-glyph" aria-hidden="true"></span><i class="fa-solid fa-caret-down gigma-pane-distribution-shape-caret" aria-hidden="true"></i>';
+          const distShapeMenu = document.createElement('div');
+          distShapeMenu.className = 'gigma-pane-distribution-shape-menu';
+          GIGMA_DISTRIBUTION_SHAPES.forEach((shape)=>{
+            const opt = document.createElement('button');
+            opt.type = 'button';
+            opt.className = 'menu_button gigma-pane-distribution-shape-option';
+            opt.setAttribute('data-gigma-distribution-shape', shape);
+            opt.innerHTML = '<span class="gigma-pane-distribution-shape-glyph" aria-hidden="true"></span>';
+            distShapeMenu.appendChild(opt);
+          });
+          distShapeWrap.appendChild(distShape);
+          distShapeWrap.appendChild(distShapeMenu);
+          const distStrength = document.createElement('input');
+          distStrength.type = 'text';
+          distStrength.inputMode = 'numeric';
+          distStrength.className = 'text_pole textarea_compact gigma-pane-distribution-strength';
+          distStrength.placeholder = '50';
           const distInput = document.createElement('input');
           distInput.type = 'text';
           distInput.inputMode = 'decimal';
@@ -31390,6 +31719,8 @@ function openSearch(state){
           distClose.title = 'Close distribution';
           distClose.setAttribute('aria-label', 'Close distribution');
           distClose.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+          distRow.appendChild(distShapeWrap);
+          distRow.appendChild(distStrength);
           distRow.appendChild(distInput);
           distRow.appendChild(distUnit);
           distRow.appendChild(distClose);
@@ -31416,10 +31747,18 @@ function openSearch(state){
             input,
             results,
             row,
+            distShapeWrap: distHost.querySelector('.gigma-pane-distribution-shape-wrap'),
+            distShape: distHost.querySelector('.gigma-pane-distribution-shape'),
+            distShapeMenu: distHost.querySelector('.gigma-pane-distribution-shape-menu'),
+            distShapeOptions: Array.from(distHost.querySelectorAll('.gigma-pane-distribution-shape-option')),
+            distStrength: distHost.querySelector('input.gigma-pane-distribution-strength'),
             distInput: distHost.querySelector('input.gigma-pane-distribution-input'),
             distRow: distHost.querySelector('.gigma-pane-distribution-row'),
             distUnit: distHost.querySelector('.gigma-pane-distribution-unit'),
             distClose: distHost.querySelector('.gigma-pane-distribution-close'),
+            distShapeValue:'even',
+            distStrengthValue:'50',
+            distShapeOpen:false,
             open:false,
             distOpen:false,
           };
@@ -31433,10 +31772,17 @@ function openSearch(state){
           STATES[which].input = host.querySelector('input.gigma-pane-search-input');
           STATES[which].results = host.querySelector('.gigma-pane-search-results');
           STATES[which].row = host.querySelector('.gigma-pane-search-row');
+          STATES[which].distShapeWrap = distHost.querySelector('.gigma-pane-distribution-shape-wrap');
+          STATES[which].distShape = distHost.querySelector('.gigma-pane-distribution-shape');
+          STATES[which].distShapeMenu = distHost.querySelector('.gigma-pane-distribution-shape-menu');
+          STATES[which].distShapeOptions = Array.from(distHost.querySelectorAll('.gigma-pane-distribution-shape-option'));
+          STATES[which].distStrength = distHost.querySelector('input.gigma-pane-distribution-strength');
           STATES[which].distInput = distHost.querySelector('input.gigma-pane-distribution-input');
           STATES[which].distRow = distHost.querySelector('.gigma-pane-distribution-row');
           STATES[which].distUnit = distHost.querySelector('.gigma-pane-distribution-unit');
           STATES[which].distClose = distHost.querySelector('.gigma-pane-distribution-close');
+          if (!GIGMA_DISTRIBUTION_SHAPES.includes(STATES[which].distShapeValue)) STATES[which].distShapeValue = 'even';
+          STATES[which].distStrengthValue = normalizeDistributionStrengthRaw(STATES[which].distStrengthValue) || '50';
         }
 
         try{
@@ -31452,10 +31798,54 @@ function openSearch(state){
         }catch(_){ }
 
         try{
+          const distShape = STATES[which] && STATES[which].distShape;
+          const distShapeOptions = STATES[which] && STATES[which].distShapeOptions;
+          const distStrength = STATES[which] && STATES[which].distStrength;
           const distInput = STATES[which] && STATES[which].distInput;
           const distClose = STATES[which] && STATES[which].distClose;
+          try{ installDistributionShapeMenuCloser(); }catch(_){ }
+          if (distShape && !distShape.__gigmaDistributionShapeWired) {
+            distShape.__gigmaDistributionShapeWired = true;
+            distShape.addEventListener('click', (ev)=>{
+              try{ ev.preventDefault(); ev.stopPropagation(); }catch(_){ }
+              const state = STATES[which];
+              if (!state) return;
+              try{ toggleDistributionShapeMenu(state); }catch(_){ }
+              try{ syncDistributionUiBits(state); }catch(_){ }
+            });
+          }
+          if (Array.isArray(distShapeOptions)) distShapeOptions.forEach((opt)=>{
+            try{
+              if (!opt || opt.__gigmaDistributionShapeOptionWired) return;
+              opt.__gigmaDistributionShapeOptionWired = true;
+              opt.addEventListener('click', (ev)=>{
+                try{ ev.preventDefault(); ev.stopPropagation(); }catch(_){ }
+                const state = STATES[which];
+                if (!state) return;
+                const shape = opt && opt.dataset ? (opt.dataset.gigmaDistributionShape || 'even') : 'even';
+                state.distShapeValue = GIGMA_DISTRIBUTION_SHAPES.includes(shape) ? shape : 'even';
+                try{ closeDistributionShapeMenu(state); }catch(_){ }
+                try{ syncDistributionUiBits(state); }catch(_){ }
+                try{ applyDistributionFromState(state); }catch(_){ }
+              });
+            }catch(_){ }
+          });
+          if (distStrength && !distStrength.__gigmaDistributionStrengthWired) {
+            distStrength.__gigmaDistributionStrengthWired = true;
+            distStrength.addEventListener('focus', ()=>{ try{ closeDistributionShapeMenu(STATES[which]); }catch(_){ } });
+            distStrength.addEventListener('input', ()=>{
+              const state = STATES[which];
+              if (!state) return;
+              const next = normalizeDistributionStrengthRaw(distStrength.value);
+              state.distStrengthValue = next || '0';
+              if (distStrength.value !== state.distStrengthValue) distStrength.value = state.distStrengthValue;
+              try{ syncDistributionUiBits(state); }catch(_){ }
+              try{ applyDistributionFromState(state); }catch(_){ }
+            });
+          }
           if (distInput && !distInput.__gigmaDistributionInputWired) {
             distInput.__gigmaDistributionInputWired = true;
+            distInput.addEventListener('focus', ()=>{ try{ closeDistributionShapeMenu(STATES[which]); }catch(_){ } });
             distInput.addEventListener('input', ()=>{
               try{ applyDistributionFromState(STATES[which]); }catch(_){ }
             });
@@ -43023,6 +43413,7 @@ function gigmaClearSelection() {
         document.querySelectorAll('.gigma-selected').forEach(el => { try{ el.classList && el.classList.remove('gigma-selected'); }catch(_){ } });
     }catch(_){}
     window.gigmaSelection = { items: new Set(), anchor: null };
+    try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
 }
 
 // Parent presets (Order mode): before file operations (drag/multi-drag/cut&paste) begin,
@@ -43126,6 +43517,7 @@ function gigmaSetSelection(els, anchorEl) {
     });
     window.gigmaSelection.items = set;
     window.gigmaSelection.anchor = anchorEl || (els && els[0]) || null;
+    try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
 }
 function gigmaToggleSelection(el) {
     const sel = window.gigmaSelection || (window.gigmaSelection = { items: new Set(), anchor: null });
@@ -43143,6 +43535,7 @@ function gigmaToggleSelection(el) {
         });
         if (!sel.anchor) sel.anchor = el;
     }
+    try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
 }
 function gigmaRangeSelect(toEl) {
     const all = gigmaGetAllSelectableEls();
@@ -43239,6 +43632,7 @@ function gigmaRangeSelect(toEl) {
     });
     window.gigmaSelection.items = set;
     window.gigmaSelection.anchor = anchor;
+    try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
 }
 function gigmaBindSelectionHandlers() {
     // In wide multi-view, selectable rows can live in both the left list
