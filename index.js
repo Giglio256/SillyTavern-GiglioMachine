@@ -23079,6 +23079,59 @@ function gigmaAttachBudgetHeaderControlsToRow(row){
         } catch (_eRandDs) {}
       }catch(_){}
     };
+    const applyMirroredBudgetStateToRow = (targetRow, mode, rawValue) => {
+      if (!targetRow || targetRow === row || !targetRow.classList || !targetRow.classList.contains('gigma-row')) return;
+      if (typeof gigmaIsRowReadOnlyUnchained === 'function' && gigmaIsRowReadOnlyUnchained(targetRow)) return;
+      if (!targetRow.querySelector('.gigma-budget-header-controls')) {
+        try { gigmaAttachBudgetHeaderControlsToRow(targetRow); } catch (_eAttachMirroredControls) {}
+      }
+      const targetSelect = targetRow.querySelector('.gigma-budget-header-select');
+      const targetInput = targetRow.querySelector('.gigma-budget-header-value');
+      if (!targetSelect || !targetInput) return;
+
+      targetSelect.value = mode;
+      if (mode === 'default' || mode === 'off') {
+        targetInput.style.display = '';
+        targetInput.style.visibility = 'hidden';
+        targetInput.style.pointerEvents = 'none';
+        targetInput.value = targetInput.value || '0';
+        try { targetInput.removeAttribute('min'); } catch (_eMirroredMinRemove) {}
+        try { targetInput.removeAttribute('max'); } catch (_eMirroredMaxRemove) {}
+      } else {
+        targetInput.style.display = '';
+        targetInput.style.visibility = '';
+        targetInput.style.pointerEvents = '';
+        const range = getBudgetRange(mode);
+        if (range && typeof range.min === 'number') targetInput.min = String(range.min);
+        if (range && typeof range.max === 'number') targetInput.max = String(range.max);
+        targetInput.step = gigmaIsPercentageBudgetMode(mode) ? '0.001' : '1';
+        const normalizedValue = String(gigmaParseBudgetValueForMode(mode, rawValue == null ? targetInput.value || '0' : rawValue));
+        targetInput.value = normalizedValue;
+        if (targetInput.dataset && gigmaIsPercentageBudgetMode(mode)) targetInput.dataset.gigmaPrevValidPct = normalizedValue;
+      }
+
+      try {
+        const targetRandomBox = targetRow.querySelector('.gigma-budget-random-box');
+        if (targetRandomBox) {
+          if (mode === 'default' || mode === 'off') {
+            targetRandomBox.style.visibility = 'hidden';
+            targetRandomBox.style.pointerEvents = 'none';
+          } else {
+            targetRandomBox.style.visibility = '';
+            targetRandomBox.style.pointerEvents = '';
+          }
+        }
+      } catch (_eMirroredRbVis) {}
+
+      try {
+        if (targetRow.dataset) {
+          targetRow.dataset.gigmaBudgetMode = gigmaNormalizeBudgetHeaderMode(mode);
+          const normalizedDatasetValue = (mode === 'default' || mode === 'off') ? 0 : gigmaParseBudgetValueForMode(mode, targetInput.value || '0');
+          targetRow.dataset.gigmaBudgetValue = String(normalizedDatasetValue);
+        }
+      } catch (_eMirroredDataset) {}
+      try { if (typeof targetRow.__gigmaRefreshBudgetPreview === 'function') targetRow.__gigmaRefreshBudgetPreview(); } catch (_eMirroredPreview) {}
+    };
     // Auto-save from per-row budget headers is intentionally disabled; changes are
     // persisted only when the user explicitly saves/quicksaves a preset or uses
     // the Lorebook Budget drawer Save button.
@@ -23214,54 +23267,7 @@ function gigmaAttachBudgetHeaderControlsToRow(row){
               const mode = budgetSelect.value || 'default';
               selectedRows.forEach((r) => {
                 try{
-                  if (!r || r === row || !r.classList || !r.classList.contains('gigma-row')) return;
-                  if (typeof gigmaIsRowReadOnlyUnchained === 'function' && gigmaIsRowReadOnlyUnchained(r)) return;
-                  // Ensure the target row has controls (it should in Budget mode).
-                  if (!r.querySelector('.gigma-budget-header-controls')) {
-                    try{ gigmaAttachBudgetHeaderControlsToRow(r); }catch(_){}
-                  }
-                  const sel = r.querySelector('.gigma-budget-header-select');
-                  const inp = r.querySelector('.gigma-budget-header-value');
-                  if (!sel || !inp) return;
-                  sel.value = mode;
-                  if (mode === 'default' || mode === 'off') {
-                    inp.style.display = '';
-                    inp.style.visibility = 'hidden';
-                    inp.style.pointerEvents = 'none';
-                    inp.value = inp.value || '0';
-                    try{ inp.removeAttribute('min'); }catch(_){}
-                    try{ inp.removeAttribute('max'); }catch(_){}
-                  } else {
-                    inp.style.display = '';
-                    inp.style.visibility = '';
-                    inp.style.pointerEvents = '';
-                    const range = getBudgetRange(mode);
-                    if (range && typeof range.min === 'number') inp.min = String(range.min);
-                    if (range && typeof range.max === 'number') inp.max = String(range.max);
-                  }
-
-                  // Keep the deterministic/random trim box visibility aligned with the numeric input.
-                  try {
-                    const rb = r.querySelector('.gigma-budget-random-box');
-                    if (rb) {
-                      if (mode === 'default' || mode === 'off') {
-                        rb.style.visibility = 'hidden';
-                        rb.style.pointerEvents = 'none';
-                      } else {
-                        rb.style.visibility = '';
-                        rb.style.pointerEvents = '';
-                      }
-                    }
-                  } catch (_eRbVis) {}
-                  // Update dataset cache for the mirrored row.
-                  try{
-                    if (r.dataset){
-                      r.dataset.gigmaBudgetMode = gigmaNormalizeBudgetHeaderMode(mode);
-                      const dv = (mode === 'default' || mode === 'off') ? 0 : gigmaParseBudgetValueForMode(mode, inp.value || '0');
-                      r.dataset.gigmaBudgetValue = String(dv);
-                    }
-                  }catch(_){}
-                  try { if (typeof r.__gigmaRefreshBudgetPreview === 'function') r.__gigmaRefreshBudgetPreview(); } catch (_ePreviewMirrorMode) {}
+                  applyMirroredBudgetStateToRow(r, mode);
                 }catch(_eRow){}
               });
             }
@@ -23328,37 +23334,7 @@ function gigmaAttachBudgetHeaderControlsToRow(row){
               try{
                 selectedRows.forEach((r) => {
                   try{
-                    if (!r || r === row || !r.classList || !r.classList.contains('gigma-row')) return;
-                  if (typeof gigmaIsRowReadOnlyUnchained === 'function' && gigmaIsRowReadOnlyUnchained(r)) return;
-                    if (!r.querySelector('.gigma-budget-header-controls')) {
-                      try{ gigmaAttachBudgetHeaderControlsToRow(r); }catch(_){}
-                    }
-                    const sel = r.querySelector('.gigma-budget-header-select');
-                    const inp = r.querySelector('.gigma-budget-header-value');
-                    if (!sel || !inp) return;
-                    sel.value = mode;
-                    if (mode === 'default' || mode === 'off') {
-                      inp.style.display = '';
-                      inp.style.visibility = 'hidden';
-                      inp.style.pointerEvents = 'none';
-                    } else {
-                      inp.style.display = '';
-                      inp.style.visibility = '';
-                      inp.style.pointerEvents = '';
-                      const range = getBudgetRange(mode);
-                      if (range && typeof range.min === 'number') inp.min = String(range.min);
-                      if (range && typeof range.max === 'number') inp.max = String(range.max);
-                    }
-                    inp.value = raw;
-                    // Update dataset cache for the mirrored row.
-                    try{
-                      if (r.dataset){
-                        r.dataset.gigmaBudgetMode = gigmaNormalizeBudgetHeaderMode(mode);
-                        const dv = (mode === 'default' || mode === 'off') ? 0 : gigmaParseBudgetValueForMode(mode, raw || '0');
-                        r.dataset.gigmaBudgetValue = String(dv);
-                      }
-                    }catch(_){}
-                    try { if (typeof r.__gigmaRefreshBudgetPreview === 'function') r.__gigmaRefreshBudgetPreview(); } catch (_ePreviewMirrorValue) {}
+                    applyMirroredBudgetStateToRow(r, mode, raw);
                   }catch(_eRow2){}
                 });
               }finally{
