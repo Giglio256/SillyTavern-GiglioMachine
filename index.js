@@ -34288,6 +34288,10 @@ function gigmaDuplicateSentenceSplit(text, ignoreCase) {
                 endMark = i;
                 break;
             }
+            if (source[i] === '\n' || source[i] === '\r') {
+                endMark = i - 1;
+                break;
+            }
         }
         if (endMark === -1) break;
         let end = endMark + 1;
