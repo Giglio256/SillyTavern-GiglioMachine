@@ -2342,6 +2342,73 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   }catch(_){}
 })();
 // --- end: GIGMA layout preset tree styling ---
+// --- GIGMA: duplicate sentence custom preset-tree selection styling ---
+(function gigmaDuplicateSentencePresetTreeSelectionStyleOnce(){
+  try{
+    if (document.getElementById('gigma-dedupe-preset-tree-selection-style')) return;
+    const s = document.createElement('style');
+    s.id = 'gigma-dedupe-preset-tree-selection-style';
+    s.textContent = `
+      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]{
+        position:relative;
+      }
+      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-header{
+        padding-left:3.25em;
+      }
+      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-row.gigma-selected,
+      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-folder.gigma-selected{
+        outline:none !important;
+        background:transparent !important;
+        box-shadow:none !important;
+      }
+      #gigma-preset-tree-save-selection{
+        width: var(--gigma-hdr-btn) !important;
+        height: var(--gigma-hdr-btn) !important;
+        max-width: var(--gigma-hdr-btn) !important;
+        line-height: 1 !important;
+        font-size: 0.92em !important;
+        padding: 0 !important;
+        margin-left: 0 !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+        background: rgba(255,255,255,0.08) !important;
+        border: var(--gigma-hdr-border) solid rgba(255,255,255,0.18) !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+        transition: background-color .12s ease-out, border-color .12s ease-out, box-shadow .12s ease-out;
+      }
+      #gigma-preset-tree-save-selection .gigma-global-icon-svg,
+      #gigma-preset-tree-save-selection .gigma-global-icon-svg *{
+        stroke: rgba(220,220,220,0.84) !important;
+      }
+      #gigma-preset-tree-save-selection:hover,
+      #gigma-preset-tree-save-selection:focus-visible{
+        background: rgba(0,160,80,0.5) !important;
+        border-color: rgba(0,200,100,1) !important;
+      }
+      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-select-box{
+        flex:0 0 auto;
+        margin:0;
+        align-self:center;
+        width:1em;
+        height:1em;
+        accent-color: rgba(77,163,255,0.95);
+      }
+      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-folder > .gigma-preset-tree-select-box,
+      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-row > .gigma-preset-tree-select-box{
+        position:relative;
+        top:0.0625em;
+      }
+    `;
+    document.head.appendChild(s);
+  }catch(_){ }
+})();
+
 
 // --- GIGMA: preset tree preview unchained toggle (show/hide & parent 3-state) ---
 (function gigmaAddPresetTreeUnchainedToggleStyles(){
@@ -2937,6 +3004,55 @@ if (!window.gigmaInitPresetTreeViewMode) {
       try{
         var t = ev.target;
         if (!t || !t.closest) return;
+        var previewRootForMode = t.closest('#gigma-preset-tree-preview-root');
+        var isDuplicateSentenceCustomPreview = !!(previewRootForMode && previewRootForMode.getAttribute && previewRootForMode.getAttribute('data-gigma-selection-mode') === 'duplicate-scan');
+        if (isDuplicateSentenceCustomPreview) {
+          try {
+            var loreContentExpander = t.closest('.gigma-lore-content-expander');
+            if (loreContentExpander) {
+              return;
+            }
+
+            var btnSaveSelection = t.closest('#gigma-preset-tree-save-selection');
+            if (btnSaveSelection) {
+              var popupStateSave = gigmaDuplicateSentenceGetCustomPopupState();
+              var sourceRootSave = popupStateSave && popupStateSave.sourceRoot ? popupStateSave.sourceRoot : null;
+              if (sourceRootSave) {
+                var sourceStateSave = gigmaDuplicateSentenceEnsureCustomSelectionState(sourceRootSave);
+                if (sourceStateSave) {
+                  sourceStateSave.customSelectedPreviewKeys = new Set(popupStateSave.workingKeys || []);
+                  sourceStateSave.customSelectedWorldNames = gigmaDuplicateSentenceCustomPopupCollectWorldNames(previewRootForMode, popupStateSave.workingKeys || new Set());
+                  gigmaDuplicateSentenceUpdateScopeControls(sourceRootSave);
+                }
+              }
+              ev.preventDefault();
+              ev.stopPropagation();
+              var dialogSave = (btnSaveSelection.closest && btnSaveSelection.closest('dialog')) || document.querySelector('dialog:has(#gigma-preset-tree-preview-root)');
+              if (dialogSave && typeof dialogSave.close === 'function') dialogSave.close();
+              return;
+            }
+
+            var checkboxTarget = t.closest('.gigma-preset-tree-select-box');
+            if (checkboxTarget) {
+              var itemTarget = checkboxTarget.closest('.gigma-preset-tree-row, .gigma-preset-tree-folder');
+              if (itemTarget) {
+                var popupStateCheckbox = gigmaDuplicateSentenceGetCustomPopupState();
+                var isCtrlCheckbox = !!(ev.ctrlKey || ev.metaKey);
+                var isShiftCheckbox = !!ev.shiftKey;
+                var itemKeyCheckbox = gigmaDuplicateSentencePresetTreeEnsureItemKey(itemTarget);
+                var itemSelectedCheckbox = !!(itemKeyCheckbox && popupStateCheckbox.workingKeys.has(itemKeyCheckbox));
+                if (isShiftCheckbox) {
+                  if (!popupStateCheckbox.anchorKey) gigmaDuplicateSentenceCustomPopupSetSelection(previewRootForMode, [itemTarget], itemTarget);
+                  else gigmaDuplicateSentenceCustomPopupRangeSelect(previewRootForMode, itemTarget);
+                } else {
+                  gigmaDuplicateSentenceCustomPopupToggleSelection(previewRootForMode, itemTarget);
+                }
+                ev.stopPropagation();
+                return;
+              }
+            }
+          } catch (_eDuplicateSentenceCustomPreview) { }
+        }
         // Expand/collapse all controls inside the preview popup header.
         try {
           var btnChained = t.closest('#gigma-preset-tree-chained-toggle');
@@ -3248,6 +3364,22 @@ return;
             }
           }
           if (row) {
+            if (isDuplicateSentenceCustomPreview) {
+              var popupStateRow = gigmaDuplicateSentenceGetCustomPopupState();
+              var isCtrlRow = !!(ev.ctrlKey || ev.metaKey);
+              var isShiftRow = !!ev.shiftKey;
+              var rowKey = gigmaDuplicateSentencePresetTreeEnsureItemKey(row);
+              var rowSelected = !!(rowKey && popupStateRow.workingKeys.has(rowKey));
+              if (isShiftRow) {
+                if (!popupStateRow.anchorKey) gigmaDuplicateSentenceCustomPopupSetSelection(previewRootForMode, [row], row);
+                else gigmaDuplicateSentenceCustomPopupRangeSelect(previewRootForMode, row);
+              } else {
+                gigmaDuplicateSentenceCustomPopupToggleSelection(previewRootForMode, row);
+              }
+              ev.preventDefault();
+              ev.stopPropagation();
+              return;
+            }
             // Treat any click within the row (icon, label, or whitespace)
             // as a row click so the whole row is clickable.
             var inRowIconOrLabel = true;
@@ -33481,6 +33613,2557 @@ function gigmaEscapeHtml(str) {
         return String(str);
     }
 }
+
+function gigmaInstallDuplicateSentenceStylesOnce() {
+    try {
+        if (document.getElementById('gigma-duplicate-sentences-style')) return;
+        const style = document.createElement('style');
+        style.id = 'gigma-duplicate-sentences-style';
+        style.textContent = `
+            .gigma-dedupe-toolbar-host{
+                display:inline-flex;
+                align-items:center;
+                margin-left:0.5em;
+                vertical-align:middle;
+            }
+            #gigma-duplicate-sentences-open.gigma-dedupe-toolbar-button{
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                width:2.35em;
+                min-width:2.35em;
+                height:2.35em;
+                min-height:2.35em;
+                padding:0;
+                border-radius:0.625em;
+            }
+            #gigma-duplicate-sentences-open .gigma-dedupe-toolbar-icon{
+                width:1.15em;
+                height:1.15em;
+                display:block;
+            }
+            #gigma-duplicate-sentences-overlay{
+                position:fixed;
+                inset:0;
+                z-index:100000;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                padding:1em;
+                background:rgba(0,0,0,0.8);
+                backdrop-filter:none;
+                -webkit-backdrop-filter:none;
+            }
+            #gigma-duplicate-sentences-overlay .gigma-dedupe-backdrop{
+                position:absolute;
+                inset:0;
+                background:transparent;
+            }
+            #gigma-duplicate-sentences-overlay .gigma-dedupe-shell{
+                position:relative;
+                z-index:1;
+                width:min(132rem, calc(100vw - 1.5rem));
+                max-width:min(132rem, calc(100vw - 1.5rem));
+                height:min(96vh, 84rem);
+                max-height:min(96vh, 84rem);
+                display:flex;
+                flex-direction:column;
+                border:0.0625em solid rgba(255,255,255,0.14);
+                border-radius:1rem;
+                background:var(--SmartThemeBlurTintColor, #111111);
+                box-shadow:0 1.5em 4.5em rgba(0,0,0,0.54);
+                overflow:hidden;
+                opacity:1;
+            }
+            #gigma-duplicate-sentences-overlay .gigma-dedupe-shell,
+            #gigma-duplicate-sentences-overlay .gigma-dedupe-shell *{
+                backdrop-filter:none !important;
+                -webkit-backdrop-filter:none !important;
+            }
+            #gigma-dedupe-root{
+                width:100%;
+                height:100%;
+                box-sizing:border-box;
+                display:flex;
+                flex-direction:column;
+                gap:0.5em;
+                padding:0.7em;
+                min-height:0;
+                background:transparent;
+                opacity:1;
+            }
+            #gigma-dedupe-root *{
+                box-sizing:border-box;
+            }
+            #gigma-dedupe-root button,
+            #gigma-dedupe-root .menu_button,
+            #gigma-dedupe-root .gigma-dedupe-chip,
+            #gigma-dedupe-root summary,
+            #gigma-dedupe-root .gigma-dedupe-field-label,
+            #gigma-dedupe-root .gigma-dedupe-pane-header{
+                white-space:nowrap;
+            }
+            #gigma-dedupe-root .gigma-dedupe-titlebar{
+                flex:0 0 auto;
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap:0.5em;
+                min-height:0;
+                padding:0.14em 0.08em 0.12em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-titlewrap{
+                min-width:0;
+                display:flex;
+                align-items:center;
+                gap:0.45em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-title{
+                font-size:1.16em;
+                font-weight:700;
+                line-height:1.24;
+                padding:0.08em 0 0.1em;
+                margin:0;
+            }
+            #gigma-dedupe-root .gigma-dedupe-titleinfo{
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                width:1.55em;
+                height:1.55em;
+                border-radius:999em;
+                border:0.0625em solid rgba(255,255,255,0.14);
+                background:rgba(255,255,255,0.05);
+                font-size:0.86em;
+                opacity:0.86;
+                cursor:help;
+            }
+            #gigma-dedupe-root .gigma-dedupe-close{
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                width:2.25em;
+                min-width:2.25em;
+                height:2.25em;
+                min-height:2.25em;
+                padding:0;
+                border-radius:0.7em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-close svg{
+                width:0.95em;
+                height:0.95em;
+                display:block;
+            }
+            #gigma-dedupe-root .gigma-dedupe-controls{
+                flex:0 0 auto;
+                display:flex;
+                flex-wrap:wrap;
+                align-items:flex-end;
+                justify-content:flex-start;
+                gap:0.38em 0.5em;
+                padding:0.36em 0.5em 0.4em;
+                border:0.0625em solid rgba(255,255,255,0.12);
+                border-radius:0.75em;
+                background:rgba(0,0,0,0.46);
+                opacity:1;
+            }
+            #gigma-dedupe-root .gigma-dedupe-field{
+                display:flex;
+                flex-direction:column;
+                gap:0.24em;
+                min-width:0;
+                align-items:flex-start;
+                justify-content:flex-start;
+                margin:0;
+            }
+            #gigma-dedupe-root .gigma-dedupe-field:nth-child(1){
+                flex:0 0 14em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-field:nth-child(2){
+                flex:0 0 9.75em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-field:nth-child(3){
+                flex:0 0 11.5em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-field:nth-child(4){
+                flex:0 0 14.5em;
+                margin:0 0.35em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-field > .text_pole{
+                margin:0;
+                min-height:2.05em;
+                padding:0.34em 0.52em;
+                line-height:1.2;
+            }
+            #gigma-dedupe-root .gigma-dedupe-field-label{
+                font-size:0.78em;
+                opacity:0.75;
+                line-height:1.18;
+                padding:0.1em 0 0.05em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-field-inline{
+                display:inline-flex;
+                align-items:center;
+                gap:0.45em;
+                min-height:2.05em;
+                line-height:1.2;
+            }
+            #gigma-dedupe-root .gigma-dedupe-field-inline span{
+                white-space:nowrap;
+            }
+            #gigma-dedupe-root .gigma-dedupe-actions,
+            #gigma-dedupe-root .gigma-dedupe-detail-toolbar,
+            #gigma-dedupe-root .gigma-dedupe-footer-actions{
+                display:flex;
+                gap:0.45em;
+                min-width:0;
+            }
+            #gigma-dedupe-root .gigma-dedupe-actions,
+            #gigma-dedupe-root .gigma-dedupe-footer-actions{
+                flex-wrap:nowrap;
+                align-items:center;
+                overflow-x:auto;
+                overflow-y:hidden;
+            }
+            #gigma-dedupe-root .gigma-dedupe-detail-toolbar{
+                flex-wrap:wrap;
+                align-items:center;
+            }
+            #gigma-dedupe-root .gigma-dedupe-actions{
+                justify-content:flex-start;
+                align-self:flex-end;
+                margin-left:0;
+            }
+            #gigma-dedupe-root .gigma-dedupe-actions > .menu_button,
+            #gigma-dedupe-root .gigma-dedupe-detail-toolbar > .menu_button,
+            #gigma-dedupe-root .gigma-dedupe-footer-actions > .menu_button{
+                flex:0 0 auto;
+                white-space:nowrap;
+                line-height:1.2;
+                padding:0.42em 0.72em;
+                margin:0.08em 0;
+            }
+            #gigma-dedupe-root .gigma-dedupe-summarybar{
+                flex:0 0 auto;
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap:0.55em;
+                min-height:0;
+                padding:0.2em 0.08em 0.24em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-summary{
+                min-width:0;
+                font-size:0.88em;
+                line-height:1.38;
+                opacity:0.94;
+                padding:0.14em 0;
+                margin:0;
+            }
+            #gigma-dedupe-root .gigma-dedupe-main{
+                flex:1 1 auto;
+                min-height:0;
+                display:grid;
+                grid-template-columns:minmax(31em, 37em) minmax(0, 1fr);
+                gap:0.6em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-pane{
+                min-width:0;
+                min-height:0;
+                display:flex;
+                flex-direction:column;
+                border:0.0625em solid rgba(255,255,255,0.12);
+                border-radius:0.8em;
+                background:rgba(0,0,0,0.46);
+                overflow:hidden;
+                opacity:1;
+            }
+            #gigma-dedupe-root .gigma-dedupe-pane-header{
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+                gap:0.5em;
+                padding:0.5em 0.65em;
+                font-size:0.82em;
+                font-weight:700;
+                letter-spacing:0.01em;
+                line-height:1.22;
+                border-bottom:0.0625em solid rgba(255,255,255,0.1);
+                opacity:0.96;
+                background:rgba(255,255,255,0.03);
+            }
+            #gigma-dedupe-root .gigma-dedupe-list,
+            #gigma-dedupe-root .gigma-dedupe-detail{
+                flex:1 1 auto;
+                min-height:0;
+                overflow:auto;
+            }
+            #gigma-dedupe-root .gigma-dedupe-list{
+                padding:0.42em;
+                display:flex;
+                flex-direction:column;
+                gap:0.42em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-detail{
+                padding:0.62em;
+                display:flex;
+                flex-direction:column;
+                gap:0.5em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-empty{
+                padding:1em;
+                font-size:0.92em;
+                line-height:1.35;
+                opacity:0.76;
+                white-space:normal;
+            }
+            #gigma-dedupe-root .gigma-dedupe-row{
+                display:grid;
+                grid-template-columns:auto minmax(0, 1fr);
+                gap:0.58em;
+                align-items:flex-start;
+                padding:0.56em 0.65em;
+                border:0.0625em solid rgba(255,255,255,0.12);
+                border-radius:0.7em;
+                background:rgba(255,255,255,0.04);
+                cursor:pointer;
+                transition:border-color .12s ease-out, background-color .12s ease-out, transform .12s ease-out;
+                opacity:1;
+            }
+            #gigma-dedupe-root .gigma-dedupe-row:hover{
+                border-color:rgba(255,255,255,0.22);
+                background:rgba(255,255,255,0.07);
+            }
+            #gigma-dedupe-root .gigma-dedupe-row.is-active{
+                border-color:rgba(255,255,255,0.34);
+                background:rgba(255,255,255,0.1);
+            }
+            #gigma-dedupe-root .gigma-dedupe-row.is-selected{
+                box-shadow:inset 0 0 0 0.08em rgba(76,175,80,0.85);
+            }
+            #gigma-dedupe-root .gigma-dedupe-row input[type="checkbox"]{
+                margin-top:0.12em;
+                cursor:pointer;
+            }
+            #gigma-dedupe-root .gigma-dedupe-row-top,
+            #gigma-dedupe-root .gigma-dedupe-row-meta,
+            #gigma-dedupe-root .gigma-dedupe-detail-meta,
+            #gigma-dedupe-root .gigma-dedupe-occurrence-head{
+                display:flex;
+                flex-wrap:wrap;
+                align-items:center;
+                gap:0.4em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-group-head,
+            #gigma-dedupe-root .gigma-dedupe-entry-head{
+                display:flex;
+                flex-wrap:wrap;
+                align-items:baseline;
+                gap:0.32em 0.5em;
+                width:100%;
+            }
+            #gigma-dedupe-root .gigma-dedupe-row-top,
+            #gigma-dedupe-root .gigma-dedupe-row-meta,
+            #gigma-dedupe-root .gigma-dedupe-detail-meta,
+            #gigma-dedupe-root .gigma-dedupe-occurrence-head,
+            #gigma-dedupe-root .gigma-dedupe-group-head,
+            #gigma-dedupe-root .gigma-dedupe-entry-head{
+                font-size:0.8em;
+                opacity:0.9;
+            }
+            #gigma-dedupe-root .gigma-dedupe-book-label,
+            #gigma-dedupe-root .gigma-dedupe-entry-label-text{
+                font-size:0.72em;
+                letter-spacing:0.03em;
+                text-transform:uppercase;
+                opacity:0.58;
+            }
+            #gigma-dedupe-root .gigma-dedupe-book-name,
+            #gigma-dedupe-root .gigma-dedupe-entry-name{
+                min-width:0;
+                font-size:1.04em;
+                font-weight:700;
+                line-height:1.24;
+                opacity:1;
+                white-space:normal;
+                overflow-wrap:anywhere;
+            }
+            #gigma-dedupe-root .gigma-dedupe-entry-name{
+                font-size:1em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-subtle-meta{
+                display:inline-flex;
+                flex-wrap:wrap;
+                align-items:center;
+                gap:0.34em;
+                min-width:0;
+                opacity:0.72;
+            }
+            #gigma-dedupe-root .gigma-dedupe-subtle-meta .gigma-dedupe-chip{
+                background:rgba(255,255,255,0.05);
+                border-color:rgba(255,255,255,0.1);
+            }
+            #gigma-dedupe-root .gigma-dedupe-row-meta{
+                margin-top:0.28em;
+                opacity:0.76;
+            }
+            #gigma-dedupe-root .gigma-dedupe-chip{
+                display:inline-flex;
+                align-items:center;
+                max-width:100%;
+                padding:0.12em 0.46em;
+                border-radius:999em;
+                background:rgba(255,255,255,0.08);
+                border:0.0625em solid rgba(255,255,255,0.12);
+            }
+            #gigma-dedupe-root .gigma-dedupe-row-text,
+            #gigma-dedupe-root .gigma-dedupe-detail-sentence,
+            #gigma-dedupe-root .gigma-dedupe-occurrence-context,
+            #gigma-dedupe-root .gigma-dedupe-occurrence-text{
+                overflow-wrap:anywhere;
+                line-height:1.38;
+                white-space:normal;
+            }
+            #gigma-dedupe-root .gigma-dedupe-row-text{
+                font-size:0.94em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-detail-card,
+            #gigma-dedupe-root .gigma-dedupe-occurrence,
+            #gigma-dedupe-root .gigma-dedupe-group,
+            #gigma-dedupe-root .gigma-dedupe-entry{
+                border:0.0625em solid rgba(255,255,255,0.12);
+                border-radius:0.72em;
+                background:rgba(255,255,255,0.04);
+                opacity:1;
+            }
+            #gigma-dedupe-root .gigma-dedupe-detail-card{
+                padding:0.62em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-detail-label{
+                font-size:0.76em;
+                opacity:0.72;
+                margin-bottom:0.25em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-group-list,
+            #gigma-dedupe-root .gigma-dedupe-entry-list,
+            #gigma-dedupe-root .gigma-dedupe-occurrence-list{
+                display:flex;
+                flex-direction:column;
+                gap:0.45em;
+            }
+            #gigma-dedupe-root details.gigma-dedupe-group,
+            #gigma-dedupe-root details.gigma-dedupe-entry{
+                overflow:hidden;
+            }
+            #gigma-dedupe-root .gigma-dedupe-group > summary,
+            #gigma-dedupe-root .gigma-dedupe-entry > summary{
+                list-style:none;
+                cursor:pointer;
+                display:flex;
+                align-items:center;
+                gap:0.38em;
+                padding:0.5em 0.65em;
+                user-select:none;
+                background:rgba(255,255,255,0.03);
+            }
+            #gigma-dedupe-root .gigma-dedupe-group > summary::-webkit-details-marker,
+            #gigma-dedupe-root .gigma-dedupe-entry > summary::-webkit-details-marker{
+                display:none;
+            }
+            #gigma-dedupe-root .gigma-dedupe-group > summary::before,
+            #gigma-dedupe-root .gigma-dedupe-entry > summary::before{
+                content:'▸';
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                flex:0 0 0.95em;
+                width:0.95em;
+                line-height:1;
+                opacity:0.82;
+                transition:transform .12s ease-out;
+            }
+            #gigma-dedupe-root .gigma-dedupe-group[open] > summary::before,
+            #gigma-dedupe-root .gigma-dedupe-entry[open] > summary::before{
+                transform:rotate(90deg);
+            }
+            #gigma-dedupe-root .gigma-dedupe-group-body,
+            #gigma-dedupe-root .gigma-dedupe-entry-body{
+                padding:0 0.65em 0.65em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-entry-list{
+                padding-top:0.08em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-occurrence{
+                padding:0.56em 0.65em;
+                display:flex;
+                flex-direction:column;
+                gap:0.34em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-occurrence.is-survivor{
+                border-color:rgba(76,175,80,0.8);
+                background:rgba(76,175,80,0.11);
+            }
+            #gigma-dedupe-root .gigma-dedupe-occurrence-context{
+                padding:0.54em 0.62em;
+                border-radius:0.58em;
+                background:rgba(0,0,0,0.34);
+                white-space:pre-wrap;
+                font-family:ui-monospace, SFMono-Regular, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+                font-size:0.86em;
+                line-height:1.42;
+            }
+            #gigma-dedupe-root .gigma-dedupe-entry-content{
+                padding:0.56em 0.62em;
+                border-radius:0.58em;
+                background:rgba(0,0,0,0.34);
+                white-space:pre-wrap;
+                font-family:ui-monospace, SFMono-Regular, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+                font-size:0.86em;
+                line-height:1.42;
+                overflow-wrap:anywhere;
+            }
+            #gigma-dedupe-root .gigma-dedupe-entry-meta{
+                display:flex;
+                flex-wrap:wrap;
+                align-items:center;
+                gap:0.36em;
+                margin-bottom:0.16em;
+                font-size:0.78em;
+                opacity:0.76;
+            }
+            #gigma-dedupe-root .gigma-dedupe-entry-snippets{
+                display:flex;
+                flex-direction:column;
+                gap:0.42em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-occurrence-context mark,
+            #gigma-dedupe-root .gigma-dedupe-context mark{
+                padding:0.05em 0.18em;
+                border-radius:0.3em;
+                background:rgba(255,214,10,0.28);
+                color:inherit;
+            }
+            #gigma-dedupe-root .gigma-dedupe-footer{
+                flex:0 0 auto;
+                display:flex;
+                align-items:center;
+                justify-content:flex-end;
+                gap:0.5em;
+                min-height:0;
+                padding:0.12em 0.04em 0.06em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-footer-actions{
+                justify-content:flex-end;
+                width:100%;
+            }
+            #gigma-dedupe-root .gigma-dedupe-group-head,
+            #gigma-dedupe-root .gigma-dedupe-entry-head{
+                min-width:0;
+                flex:1 1 auto;
+            }
+            #gigma-dedupe-root .gigma-dedupe-group-head > .gigma-dedupe-subtle-meta,
+            #gigma-dedupe-root .gigma-dedupe-entry-head > .gigma-dedupe-subtle-meta{
+                margin-left:auto;
+                justify-content:flex-end;
+            }
+            #gigma-dedupe-root .gigma-dedupe-pane-tools{
+                display:flex;
+                align-items:center;
+                gap:0.4em;
+                flex-wrap:wrap;
+            }
+            @media (max-width: 104rem){
+                #gigma-dedupe-root .gigma-dedupe-actions{
+                    margin-left:0;
+                    align-self:flex-start;
+                }
+            }
+            @media (max-width: 82rem){
+                #gigma-duplicate-sentences-overlay{
+                    padding:0.75rem;
+                }
+                #gigma-duplicate-sentences-overlay .gigma-dedupe-shell{
+                    width:calc(100vw - 1.5rem);
+                    max-width:calc(100vw - 1.5rem);
+                    height:min(96vh, 84rem);
+                    max-height:min(96vh, 84rem);
+                }
+                #gigma-dedupe-root .gigma-dedupe-main{
+                    grid-template-columns:minmax(0, 1fr);
+                }
+            }
+            @media (max-width: 56rem){
+                #gigma-duplicate-sentences-overlay{
+                    padding:0.5rem;
+                }
+                #gigma-duplicate-sentences-overlay .gigma-dedupe-shell{
+                    width:calc(100vw - 1rem);
+                    max-width:calc(100vw - 1rem);
+                    height:calc(100vh - 1rem);
+                    max-height:calc(100vh - 1rem);
+                    border-radius:0.8rem;
+                }
+                #gigma-dedupe-root{
+                    padding:0.65em;
+                }
+                #gigma-dedupe-root .gigma-dedupe-controls{
+                    grid-template-columns:minmax(0, 1fr);
+                }
+                #gigma-dedupe-root .gigma-dedupe-summarybar,
+                #gigma-dedupe-root .gigma-dedupe-footer{
+                    flex-direction:column;
+                    align-items:stretch;
+                }
+                #gigma-dedupe-root .gigma-dedupe-footer-actions,
+                #gigma-dedupe-root .gigma-dedupe-detail-toolbar,
+                #gigma-dedupe-root .gigma-dedupe-actions{
+                    justify-content:flex-start;
+                }
+                #gigma-dedupe-root .gigma-dedupe-actions,
+                #gigma-dedupe-root .gigma-dedupe-footer-actions{
+                    margin-left:0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    } catch (_eInstallDuplicateStyles) { }
+}
+
+function gigmaDuplicateSentenceCurrentLorebookName() {
+    try {
+        if (typeof getCurrentLorebookName === 'function') {
+            const name = getCurrentLorebookName();
+            if (name) return String(name);
+        }
+    } catch (_eCurrentLorebookName) { }
+    return '';
+}
+
+function gigmaDuplicateSentenceNormalize(text, ignoreCase) {
+    let value = String(text || '').replace(/\s+/g, ' ').trim();
+    if (ignoreCase) value = value.toLowerCase();
+    return value;
+}
+
+function gigmaDuplicateSentencePreview(text, limit = 180) {
+    const value = String(text || '').replace(/\s+/g, ' ').trim();
+    if (value.length <= limit) return value;
+    return value.slice(0, Math.max(1, limit - 1)).trimEnd() + '…';
+}
+
+function gigmaDuplicateSentenceEntryLabel(entry) {
+    const comment = String(entry?.comment || '').trim();
+    if (comment) return comment;
+    const keys = Array.isArray(entry?.key) ? entry.key.map(x => String(x || '').trim()).filter(Boolean) : [];
+    if (keys.length) return keys.join(', ');
+    return 'UID ' + String(entry?.uid ?? '');
+}
+
+function gigmaDuplicateSentenceCompareUid(a, b) {
+    const na = Number(a);
+    const nb = Number(b);
+    if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
+    return String(a ?? '').localeCompare(String(b ?? ''), undefined, { numeric: true, sensitivity: 'base' });
+}
+
+function gigmaDuplicateSentenceIsEndChar(ch) {
+    return /[.!?…。！？]/u.test(ch || '');
+}
+
+function gigmaDuplicateSentenceIsClosingChar(ch) {
+    return /["'”’»›)\]\}】』」〉》]/u.test(ch || '');
+}
+
+function gigmaDuplicateSentenceSplit(text, ignoreCase) {
+    const source = String(text || '');
+    const sentences = [];
+    let cursor = 0;
+    while (cursor < source.length) {
+        let start = cursor;
+        while (start < source.length && /\s/u.test(source[start])) start++;
+        if (start >= source.length) break;
+        let endMark = -1;
+        for (let i = start; i < source.length; i++) {
+            if (gigmaDuplicateSentenceIsEndChar(source[i])) {
+                endMark = i;
+                break;
+            }
+        }
+        if (endMark === -1) break;
+        let end = endMark + 1;
+        while (end < source.length && gigmaDuplicateSentenceIsEndChar(source[end])) end++;
+        while (end < source.length && gigmaDuplicateSentenceIsClosingChar(source[end])) end++;
+        const raw = source.slice(start, end);
+        const normalized = gigmaDuplicateSentenceNormalize(raw, ignoreCase);
+        if (normalized) {
+            sentences.push({
+                start,
+                end,
+                raw,
+                normalized,
+                preview: gigmaDuplicateSentencePreview(raw, 220),
+            });
+        }
+        cursor = end;
+    }
+    return sentences;
+}
+
+function gigmaDuplicateSentenceBuildContextParts(text, start, end, radius = 140) {
+    const source = String(text || '');
+    const safeStart = Math.max(0, Number(start) || 0);
+    const safeEnd = Math.max(safeStart, Number(end) || safeStart);
+    const leftStart = Math.max(0, safeStart - radius);
+    const rightEnd = Math.min(source.length, safeEnd + radius);
+    return {
+        before: (leftStart > 0 ? '…' : '') + source.slice(leftStart, safeStart),
+        match: source.slice(safeStart, safeEnd),
+        after: source.slice(safeEnd, rightEnd) + (rightEnd < source.length ? '…' : ''),
+    };
+}
+
+function gigmaDuplicateSentenceContextHtml(parts) {
+    return `${gigmaEscapeHtml(parts?.before || '')}<mark>${gigmaEscapeHtml(parts?.match || '')}</mark>${gigmaEscapeHtml(parts?.after || '')}`;
+}
+
+function gigmaDuplicateSentenceFullTextHtml(text, ranges) {
+    const source = String(text || '');
+    if (!source) return '';
+    const normalizedRanges = Array.isArray(ranges)
+        ? ranges.map(range => ({
+            start: Math.max(0, Number(range?.start) || 0),
+            end: Math.min(source.length, Math.max(0, Number(range?.end) || 0)),
+        })).filter(range => range.end > range.start)
+        : [];
+
+    if (!normalizedRanges.length) return gigmaEscapeHtml(source);
+
+    normalizedRanges.sort((a, b) => a.start - b.start || a.end - b.end);
+    const merged = [];
+    for (const range of normalizedRanges) {
+        const last = merged[merged.length - 1];
+        if (!last || range.start > last.end) {
+            merged.push({ ...range });
+            continue;
+        }
+        if (range.end > last.end) last.end = range.end;
+    }
+
+    let cursor = 0;
+    let html = '';
+    for (const range of merged) {
+        if (range.start > cursor) html += gigmaEscapeHtml(source.slice(cursor, range.start));
+        html += `<mark>${gigmaEscapeHtml(source.slice(range.start, range.end))}</mark>`;
+        cursor = range.end;
+    }
+    if (cursor < source.length) html += gigmaEscapeHtml(source.slice(cursor));
+    return html;
+}
+
+function gigmaDuplicateSentenceGetJoiner(region) {
+    const value = String(region || '');
+    if (!value) return '';
+    if (/\r?\n\s*\r?\n/u.test(value)) return '\n\n';
+    if (/\r?\n/u.test(value)) return '\n';
+    if (/\s/u.test(value)) return ' ';
+    return '';
+}
+
+function gigmaDuplicateSentenceRebuildContent(text, sentences, deletedSentenceIndexes) {
+    const source = String(text || '');
+    if (!source || !Array.isArray(sentences) || !sentences.length || !(deletedSentenceIndexes instanceof Set) || !deletedSentenceIndexes.size) {
+        return source;
+    }
+
+    const kept = [];
+    for (let i = 0; i < sentences.length; i++) {
+        if (!deletedSentenceIndexes.has(i)) kept.push(i);
+    }
+
+    const prefix = source.slice(0, sentences[0].start);
+    const tail = source.slice(sentences[sentences.length - 1].end);
+
+    if (!kept.length) {
+        return prefix + tail;
+    }
+
+    let output = prefix;
+    for (let i = 0; i < kept.length; i++) {
+        const current = sentences[kept[i]];
+        output += source.slice(current.start, current.end);
+        if (i < kept.length - 1) {
+            const next = sentences[kept[i + 1]];
+            output += gigmaDuplicateSentenceGetJoiner(source.slice(current.end, next.start));
+        } else {
+            output += tail;
+        }
+    }
+
+    return output;
+}
+
+function gigmaDuplicateSentenceEnsureCustomSelectionState(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state) return null;
+    if (!(state.customSelectedPreviewKeys instanceof Set)) state.customSelectedPreviewKeys = new Set();
+    if (!(state.customSelectedWorldNames instanceof Set)) state.customSelectedWorldNames = new Set();
+    return state;
+}
+
+function gigmaDuplicateSentenceUpdateScopeControls(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || !root) return;
+    const scopeSelect = root.querySelector('#gigma-dedupe-scope');
+    const customizeButton = root.querySelector('#gigma-dedupe-customize');
+    if (!customizeButton) return;
+    const isCustom = scopeSelect?.value === 'custom';
+    const count = state.customSelectedWorldNames instanceof Set ? state.customSelectedWorldNames.size : 0;
+    customizeButton.style.display = isCustom ? '' : 'none';
+    customizeButton.disabled = !!state.busy;
+    customizeButton.textContent = count ? `Customize (${count})` : 'Customize';
+}
+
+function gigmaDuplicateSentencePresetTreeItemKey(element) {
+    if (!element || !element.classList) return '';
+    const stampedKey = String(element.getAttribute('data-gigma-selection-key') || '').trim();
+    if (stampedKey) return stampedKey;
+    if (element.classList.contains('gigma-preset-tree-row')) {
+        const worldId = String(element.getAttribute('data-world-id') || '').trim();
+        if (worldId) return `row:${worldId}`;
+        const worldName = String(element.getAttribute('data-world-name') || '').trim();
+        if (worldName) return `rowname:${worldName}`;
+    }
+    if (element.classList.contains('gigma-preset-tree-folder')) {
+        const folderId = String(element.getAttribute('data-folder-id') || '').trim();
+        if (folderId) return `folder:${folderId}`;
+    }
+    return '';
+}
+
+function gigmaDuplicateSentencePresetTreeEnsureItemKey(element, fallbackIndex) {
+    if (!element || !element.classList) return '';
+    let key = gigmaDuplicateSentencePresetTreeItemKey(element);
+    if (!key) {
+        const fallback = Number.isFinite(fallbackIndex) ? String(fallbackIndex) : String(element.getAttribute('data-gigma-selection-ordinal') || '').trim();
+        if (fallback) {
+            key = `node:${fallback}`;
+        }
+    }
+    if (key) {
+        element.setAttribute('data-gigma-selection-key', key);
+        if (!element.getAttribute('data-gigma-selection-ordinal') && Number.isFinite(fallbackIndex)) {
+            element.setAttribute('data-gigma-selection-ordinal', String(fallbackIndex));
+        }
+    }
+    return key;
+}
+
+function gigmaDuplicateSentencePresetTreeOwnCheckbox(element) {
+    if (!element || !element.children) return null;
+    for (const child of element.children) {
+        if (child && child.classList && child.classList.contains('gigma-preset-tree-select-box')) return child;
+    }
+    return null;
+}
+
+function gigmaDuplicateSentenceGetCustomPopupState() {
+    if (!window.__gigmaDuplicateSentenceCustomPopupState || typeof window.__gigmaDuplicateSentenceCustomPopupState !== 'object') {
+        window.__gigmaDuplicateSentenceCustomPopupState = {
+            sourceRoot: null,
+            workingKeys: new Set(),
+            anchorKey: '',
+        };
+    }
+    if (!(window.__gigmaDuplicateSentenceCustomPopupState.workingKeys instanceof Set)) {
+        window.__gigmaDuplicateSentenceCustomPopupState.workingKeys = new Set();
+    }
+    return window.__gigmaDuplicateSentenceCustomPopupState;
+}
+
+function gigmaDuplicateSentenceCustomPopupGetAllSelectable(previewRoot) {
+    if (!previewRoot?.querySelectorAll) return [];
+    return Array.from(previewRoot.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder'));
+}
+
+function gigmaDuplicateSentenceCustomPopupCollectWithDescendants(elements) {
+    const out = [];
+    const seen = new Set();
+    for (const element of elements || []) {
+        if (!element || !element.classList || seen.has(element)) continue;
+        seen.add(element);
+        out.push(element);
+        if (element.classList.contains('gigma-preset-tree-folder')) {
+            const descendants = element.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder');
+            descendants.forEach((child) => {
+                if (!child || !child.classList || seen.has(child)) return;
+                seen.add(child);
+                out.push(child);
+            });
+        }
+    }
+    return out;
+}
+
+function gigmaDuplicateSentenceCustomPopupApplyUi(previewRoot) {
+    const popupState = gigmaDuplicateSentenceGetCustomPopupState();
+    if (!previewRoot?.querySelectorAll) return;
+    previewRoot.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder').forEach((element, index) => {
+        const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(element, index);
+        const checked = !!(key && popupState.workingKeys.has(key));
+        if (element.classList && element.classList.contains('gigma-selected')) element.classList.remove('gigma-selected');
+        const checkbox = gigmaDuplicateSentencePresetTreeOwnCheckbox(element);
+        if (checkbox) checkbox.checked = checked;
+    });
+}
+
+function gigmaDuplicateSentenceCustomPopupSetSelection(previewRoot, elements, anchorElement) {
+    const popupState = gigmaDuplicateSentenceGetCustomPopupState();
+    popupState.workingKeys.clear();
+    const targets = gigmaDuplicateSentenceCustomPopupCollectWithDescendants(elements);
+    let fallbackIndex = 0;
+    for (const element of targets) {
+        const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(element, fallbackIndex++);
+        if (key) popupState.workingKeys.add(key);
+    }
+    popupState.anchorKey = gigmaDuplicateSentencePresetTreeEnsureItemKey(anchorElement || elements?.[0] || null) || '';
+    gigmaDuplicateSentenceCustomPopupApplyUi(previewRoot);
+}
+
+function gigmaDuplicateSentenceCustomPopupToggleSelection(previewRoot, element) {
+    const popupState = gigmaDuplicateSentenceGetCustomPopupState();
+    const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(element);
+    if (!key) return;
+    const targets = gigmaDuplicateSentenceCustomPopupCollectWithDescendants([element]);
+    const isSelected = popupState.workingKeys.has(key);
+    for (const target of targets) {
+        const targetKey = gigmaDuplicateSentencePresetTreeEnsureItemKey(target);
+        if (!targetKey) continue;
+        if (isSelected) popupState.workingKeys.delete(targetKey);
+        else popupState.workingKeys.add(targetKey);
+    }
+    popupState.anchorKey = key;
+    gigmaDuplicateSentenceCustomPopupApplyUi(previewRoot);
+}
+
+function gigmaDuplicateSentenceCustomPopupRangeSelect(previewRoot, toElement) {
+    const all = gigmaDuplicateSentenceCustomPopupGetAllSelectable(previewRoot);
+    if (!all.length || !toElement) return;
+    const popupState = gigmaDuplicateSentenceGetCustomPopupState();
+    let anchorElement = all.find((element) => gigmaDuplicateSentencePresetTreeEnsureItemKey(element) === popupState.anchorKey) || toElement;
+    let iAnchor = all.indexOf(anchorElement);
+    let iTo = all.indexOf(toElement);
+    if (iAnchor === -1) {
+        anchorElement = toElement;
+        iAnchor = all.indexOf(anchorElement);
+    }
+    if (iAnchor === -1 || iTo === -1) {
+        gigmaDuplicateSentenceCustomPopupSetSelection(previewRoot, [toElement], toElement);
+        return;
+    }
+    const [from, to] = iAnchor <= iTo ? [iAnchor, iTo] : [iTo, iAnchor];
+    const slice = all.slice(from, to + 1);
+    const result = [];
+    const seen = new Set();
+    const add = (element) => {
+        if (!element || !element.classList || seen.has(element)) return;
+        seen.add(element);
+        result.push(element);
+    };
+    const addDescendants = (folderElement) => {
+        folderElement.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder').forEach((child) => add(child));
+    };
+    slice.forEach((element) => {
+        if (!element || !element.classList) return;
+        const isFolder = element.classList.contains('gigma-preset-tree-folder');
+        const isEndpoint = element === anchorElement || element === toElement;
+        if (isFolder && isEndpoint) {
+            add(element);
+            addDescendants(element);
+            return;
+        }
+        add(element);
+    });
+    gigmaDuplicateSentenceCustomPopupSetSelection(previewRoot, result, anchorElement);
+}
+
+function gigmaDuplicateSentenceCustomPopupCollectWorldNames(previewRoot, workingKeys) {
+    const out = new Set();
+    if (!previewRoot?.querySelectorAll || !(workingKeys instanceof Set)) return out;
+    previewRoot.querySelectorAll('.gigma-preset-tree-row').forEach((row) => {
+        const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(row);
+        if (!key || !workingKeys.has(key)) return;
+        const worldName = String(row.getAttribute('data-world-name') || '').trim();
+        if (worldName) out.add(worldName);
+    });
+    return out;
+}
+
+function gigmaDuplicateSentenceCustomPopupIsTextInput(element) {
+    if (!element || !(element instanceof HTMLElement)) return false;
+    const tag = String(element.tagName || '').toLowerCase();
+    if (tag === 'textarea') return true;
+    if (tag === 'input') {
+        const type = String(element.getAttribute('type') || '').toLowerCase();
+        return !type || ['text', 'search', 'url', 'tel', 'email', 'password', 'number'].includes(type);
+    }
+    if (element.isContentEditable) return true;
+    return false;
+}
+
+function gigmaDuplicateSentenceCustomPopupIsSelectableVisible(element) {
+    if (!element || !element.classList) return false;
+    if (!element.classList.contains('gigma-preset-tree-row') && !element.classList.contains('gigma-preset-tree-folder')) return false;
+    try {
+        if (element.offsetParent === null) {
+            if (!element.getClientRects || element.getClientRects().length === 0) return false;
+        }
+    } catch (_) { }
+    return true;
+}
+
+function gigmaDuplicateSentenceCustomPopupFilterSelectableElements(elements) {
+    const seen = new Set();
+    const out = [];
+    for (const element of elements || []) {
+        if (!gigmaDuplicateSentenceCustomPopupIsSelectableVisible(element)) continue;
+        if (seen.has(element)) continue;
+        seen.add(element);
+        out.push(element);
+    }
+    return out;
+}
+
+function gigmaDuplicateSentenceCustomPopupCollectScopeFromContainer(levelContainer) {
+    if (!levelContainer || !(levelContainer instanceof HTMLElement)) return [];
+    const out = [];
+    const children = levelContainer.children || [];
+    for (let i = 0; i < children.length; i++) {
+        const element = children[i];
+        if (!element || !element.classList) continue;
+        if (!element.classList.contains('gigma-preset-tree-row') && !element.classList.contains('gigma-preset-tree-folder')) continue;
+        out.push(element);
+        try {
+            out.push.apply(out, Array.from(element.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder')));
+        } catch (_) { }
+    }
+    return out;
+}
+
+function gigmaDuplicateSentenceCustomPopupGetHierarchyElements(previewRoot, pointerTarget) {
+    if (!previewRoot || !(pointerTarget instanceof Element)) return [];
+    const treeRoot = (previewRoot.querySelector && previewRoot.querySelector('.gigma-preset-tree')) || previewRoot;
+    if (!treeRoot || !treeRoot.contains(pointerTarget)) return [];
+
+    const folder = pointerTarget.closest('.gigma-preset-tree-folder');
+    if (folder && treeRoot.contains(folder)) {
+        let headerPart = null;
+        try {
+            headerPart = pointerTarget.closest('.gigma-preset-tree-budget, .gigma-preset-tree-icon, .gigma-preset-tree-label');
+        } catch (_) { headerPart = null; }
+        const onFolderHeader = (pointerTarget === folder) || !!(headerPart && headerPart.parentElement === folder);
+        if (onFolderHeader) {
+            let levelContainer = folder.parentElement;
+            if (!levelContainer || !(levelContainer instanceof HTMLElement) || !treeRoot.contains(levelContainer)) {
+                levelContainer = (treeRoot.querySelector && treeRoot.querySelector(':scope > ul')) || treeRoot;
+            }
+            return gigmaDuplicateSentenceCustomPopupFilterSelectableElements(gigmaDuplicateSentenceCustomPopupCollectScopeFromContainer(levelContainer));
+        }
+    }
+
+    let levelContainer = null;
+    const list = pointerTarget.closest('ul');
+    if (list && treeRoot.contains(list)) {
+        levelContainer = list;
+    } else {
+        const row = pointerTarget.closest('.gigma-preset-tree-row');
+        if (row && row.parentElement && treeRoot.contains(row.parentElement)) {
+            levelContainer = row.parentElement;
+        }
+    }
+    if (!levelContainer) {
+        levelContainer = (treeRoot.querySelector && treeRoot.querySelector(':scope > ul')) || treeRoot;
+    }
+    return gigmaDuplicateSentenceCustomPopupFilterSelectableElements(gigmaDuplicateSentenceCustomPopupCollectScopeFromContainer(levelContainer));
+}
+
+(function gigmaInstallDuplicateSentenceCustomPopupSelectAllOnce() {
+    try {
+        if (window.__gigmaDuplicateSentenceCustomPopupSelectAllInstalled) return;
+        window.__gigmaDuplicateSentenceCustomPopupSelectAllInstalled = true;
+        document.addEventListener('keydown', function (event) {
+            try {
+                if (!event) return;
+                const key = String(event.key || '').toLowerCase();
+                const isMod = !!(event.ctrlKey || event.metaKey);
+                if (!isMod || event.altKey || event.shiftKey || key !== 'a') return;
+
+                const activeElement = document.activeElement;
+                const target = event.target;
+                const pointerTarget = (window.__gigmaLastPointerPos && window.__gigmaLastPointerPos.target instanceof Element)
+                    ? window.__gigmaLastPointerPos.target
+                    : null;
+
+                let previewRoot = null;
+                if (activeElement instanceof Element) previewRoot = activeElement.closest('#gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]');
+                if (!previewRoot && target instanceof Element) previewRoot = target.closest('#gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]');
+                if (!previewRoot && pointerTarget) previewRoot = pointerTarget.closest('#gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]');
+                if (!previewRoot) return;
+
+                if (gigmaDuplicateSentenceCustomPopupIsTextInput(activeElement) || gigmaDuplicateSentenceCustomPopupIsTextInput(target)) return;
+
+                let focusTarget = null;
+                if (activeElement instanceof Element && previewRoot.contains(activeElement)) focusTarget = activeElement;
+                else if (target instanceof Element && previewRoot.contains(target)) focusTarget = target;
+                else if (pointerTarget && previewRoot.contains(pointerTarget)) focusTarget = pointerTarget;
+                if (!focusTarget) focusTarget = previewRoot;
+
+                event.preventDefault();
+                if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+                event.stopPropagation();
+
+                let elements = gigmaDuplicateSentenceCustomPopupGetHierarchyElements(previewRoot, focusTarget);
+                if (!elements || !elements.length) {
+                    elements = gigmaDuplicateSentenceCustomPopupFilterSelectableElements(gigmaDuplicateSentenceCustomPopupGetAllSelectable(previewRoot));
+                }
+                gigmaDuplicateSentenceCustomPopupSetSelection(previewRoot, elements || [], (elements && elements[0]) || null);
+            } catch (_) { }
+        }, true);
+    } catch (_) { }
+})();
+
+
+function gigmaResolveDuplicateSentencePresetTreePreview() {
+    let kind = 'child';
+    try {
+        if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
+            const detected = gigmaGetActivePresetKindForLorebookSettings();
+            if (detected === 'parent' || detected === 'child') kind = detected;
+        }
+    } catch (_eKindDetect) { }
+
+    const kindLabel = (kind === 'parent') ? 'Parent preset:' : 'Child preset:';
+    let desiredViewMode = 'order';
+    try {
+        const rootVM = document.documentElement;
+        desiredViewMode = (rootVM && rootVM.classList && rootVM.classList.contains('gigma-budget-mode-active')) ? 'budget' : 'order';
+    } catch (_eViewMode) { }
+
+    let presetNameForHeader = null;
+    try {
+        if (typeof gigmaGetActivePresetNameForLorebookSettings === 'function') presetNameForHeader = gigmaGetActivePresetNameForLorebookSettings(kind);
+    } catch (_ePresetName) {
+        presetNameForHeader = null;
+    }
+    if (!presetNameForHeader) {
+        try {
+            if (typeof gigmaGetLastPresetName === 'function') presetNameForHeader = gigmaGetLastPresetName(kind);
+        } catch (_eLastPresetName) {
+            presetNameForHeader = null;
+        }
+    }
+
+    let storedSnapshot = null;
+    if (presetNameForHeader && typeof gigmaGetPresetStore === 'function') {
+        try {
+            const store = gigmaGetPresetStore(kind) || {};
+            const stored = store[presetNameForHeader];
+            if (stored && typeof stored === 'object') storedSnapshot = JSON.parse(JSON.stringify(stored));
+        } catch (_eStoredSnapshot) {
+            storedSnapshot = null;
+        }
+    }
+
+    const hasLivePresetTree = (() => {
+        try {
+            const modalRoot = document.getElementById('gigma-modal-root');
+            if (!modalRoot) return false;
+            if (document.getElementById('gigma-ordering-list')) return true;
+            return !!modalRoot.querySelector('.gigma-folder[data-folder-id], .gigma-row[data-world-id], .gigma-row[data-world]');
+        } catch (_eLivePresetTree) {
+            return false;
+        }
+    })();
+
+    let snapshot = null;
+    if (hasLivePresetTree) {
+        try {
+            if (typeof gigmaCaptureCurrentLayout === 'function') snapshot = gigmaCaptureCurrentLayout(kind);
+            else if (typeof window !== 'undefined' && typeof window.gigmaCaptureCurrentLayout === 'function') snapshot = window.gigmaCaptureCurrentLayout(kind);
+        } catch (_eSnapshot) {
+            snapshot = null;
+        }
+    }
+
+    const snapshotHasTree = (() => {
+        try {
+            if (!snapshot || typeof snapshot !== 'object') return false;
+            const childrenOrder = (snapshot.childrenOrder && typeof snapshot.childrenOrder === 'object') ? snapshot.childrenOrder : null;
+            if (!childrenOrder) return false;
+            return Object.keys(childrenOrder).some((key) => Array.isArray(childrenOrder[key]) && childrenOrder[key].length > 0);
+        } catch (_eSnapshotHasTree) {
+            return false;
+        }
+    })();
+
+    if ((!snapshot || typeof snapshot !== 'object' || !snapshotHasTree) && storedSnapshot && typeof storedSnapshot === 'object') {
+        snapshot = storedSnapshot;
+    }
+
+    let presetDisplayForHeader = presetNameForHeader;
+    try {
+        if (presetDisplayForHeader) {
+            const storeForHeader = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(kind) || {}) : {};
+            const snapForHeader = storeForHeader ? storeForHeader[presetDisplayForHeader] : null;
+            const nmForHeader = (snapForHeader && typeof snapForHeader.name === 'string') ? snapForHeader.name.trim() : '';
+            if (nmForHeader) presetDisplayForHeader = nmForHeader;
+        }
+    } catch (_eHeaderDisplay) {
+        presetDisplayForHeader = presetNameForHeader;
+    }
+    try {
+        if (typeof gigmaSoftHyphenate === 'function' && typeof presetDisplayForHeader === 'string') {
+            presetDisplayForHeader = gigmaSoftHyphenate(presetDisplayForHeader);
+        }
+    } catch (_eHeaderSoft) { }
+
+    const headerLabel = presetNameForHeader ? (kindLabel + ' ' + presetDisplayForHeader) : kindLabel;
+    return { kind, kindLabel, snapshot, desiredViewMode, presetNameForHeader, headerLabel };
+}
+
+function gigmaInitDuplicateSentenceCustomSelectionPopup(sourceRoot, previewRoot) {
+    const state = gigmaDuplicateSentenceEnsureCustomSelectionState(sourceRoot);
+    if (!state || !previewRoot) return;
+
+    const popupState = gigmaDuplicateSentenceGetCustomPopupState();
+    popupState.sourceRoot = sourceRoot;
+
+    previewRoot.setAttribute('data-gigma-selection-mode', 'duplicate-scan');
+
+    const header = previewRoot.querySelector('.gigma-preset-tree-header');
+    if (header && !previewRoot.querySelector('#gigma-preset-tree-save-selection')) {
+        const saveButton = document.createElement('button');
+        saveButton.id = 'gigma-preset-tree-save-selection';
+        saveButton.className = 'menu_button gigma-global-accept gigma-global-icon';
+        saveButton.type = 'button';
+        saveButton.setAttribute('aria-label', 'Save lorebook selection');
+        saveButton.setAttribute('title', 'Save lorebook selection');
+        saveButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+        header.appendChild(saveButton);
+    }
+
+    previewRoot.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder').forEach((element, index) => {
+        const itemKey = gigmaDuplicateSentencePresetTreeEnsureItemKey(element, index);
+        if (gigmaDuplicateSentencePresetTreeOwnCheckbox(element)) return;
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'gigma-preset-tree-select-box';
+        checkbox.setAttribute('aria-label', 'Select lorebook or folder');
+        checkbox.setAttribute('data-item-key', itemKey);
+        const icon = element.querySelector(':scope > .gigma-preset-tree-icon');
+        if (icon && icon.parentNode === element) element.insertBefore(checkbox, icon);
+        else element.insertBefore(checkbox, element.firstChild);
+    });
+
+    const savedKeys = (state.customSelectedPreviewKeys instanceof Set) ? new Set(state.customSelectedPreviewKeys) : new Set();
+    const savedWorlds = (state.customSelectedWorldNames instanceof Set) ? new Set(state.customSelectedWorldNames) : new Set();
+
+    popupState.workingKeys = new Set();
+    const selectable = gigmaDuplicateSentenceCustomPopupGetAllSelectable(previewRoot);
+    if (savedKeys.size) {
+        selectable.forEach((element, index) => {
+            const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(element, index);
+            if (key && savedKeys.has(key)) popupState.workingKeys.add(key);
+        });
+    } else if (savedWorlds.size) {
+        selectable.forEach((element, index) => {
+            const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(element, index);
+            if (!key) return;
+            if (element.classList.contains('gigma-preset-tree-row')) {
+                const worldName = String(element.getAttribute('data-world-name') || '').trim();
+                if (worldName && savedWorlds.has(worldName)) popupState.workingKeys.add(key);
+            }
+        });
+    }
+    popupState.anchorKey = '';
+    gigmaDuplicateSentenceCustomPopupApplyUi(previewRoot);
+}
+
+async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
+    const state = gigmaDuplicateSentenceEnsureCustomSelectionState(sourceRoot);
+    if (!state) return;
+
+    gigmaInstallDuplicateSentenceStylesOnce();
+    const resolved = gigmaResolveDuplicateSentencePresetTreePreview();
+    const modalTitle = 'Customize lorebook selection';
+    let html = '';
+
+    if (!resolved.snapshot || typeof resolved.snapshot !== 'object') {
+        const initialUnchainedStateEmpty = (resolved.kind === 'parent') ? 'selected' : 'show';
+        html =
+            '<div id="gigma-preset-tree-preview-root" data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
+            '<div class="gigma-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
+            '<div class="gigma-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.kindLabel) + '</div>' +
+            '<div class="gigma-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;"></div>' +
+            '<button id="gigma-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
+            '</div>' +
+            '<div style="opacity:0.85; padding:0.5em;"><p style="margin:0;">No layout data available for custom selection.</p></div>' +
+            '</div>';
+    } else {
+        const initialUnchainedState = (resolved.kind === 'parent') ? 'selected' : 'show';
+        const body = gigmaBuildPresetTreeHtml(resolved.snapshot, { kind: resolved.kind, viewMode: resolved.desiredViewMode, parentPresetName: (resolved.kind === 'parent' ? resolved.presetNameForHeader : null) });
+        html =
+            '<div id="gigma-preset-tree-preview-root"' + (resolved.desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="' + gigmaEscapeHtml(resolved.desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
+            '<div class="gigma-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
+            '<div class="gigma-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.headerLabel) + '</div>' +
+            '<div class="gigma-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
+            '<button id="gigma-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
+            '<button id="gigma-preset-tree-expand-all" class="menu_button gigma-icon-btn" type="button" title="Expand all folders" aria-label="Expand all folders">▼</button>' +
+            '<button id="gigma-preset-tree-collapse-all" class="menu_button gigma-icon-btn" type="button" title="Collapse all folders" aria-label="Collapse all folders">▲</button>' +
+            '<button id="gigma-preset-tree-restore-folders" class="menu_button gigma-icon-btn" type="button" title="Restore folder states" aria-label="Restore folder states">⟲</button>' +
+            '<button id="gigma-preset-tree-viewmode-toggle" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" aria-pressed="' + (resolved.desiredViewMode === 'budget' ? 'true' : 'false') + '" title="Toggle Order/Budget view">' + (resolved.desiredViewMode === 'budget' ? 'Budget' : 'Order') + '</button>' +
+            '</div>' +
+            '<button id="gigma-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
+            '</div>' +
+            body +
+            '<div id="gigma-global-wi-stats-display-preview" class="gigma-global-wi-stats-display"></div>' +
+            '</div>';
+    }
+
+    const afterShow = function(){
+        try{
+            const roots = document.querySelectorAll('#gigma-preset-tree-preview-root');
+            const previewRoot = (roots && roots.length) ? roots[roots.length - 1] : null;
+            if (!previewRoot) return;
+            try{ if (typeof window.gigmaLoadPresetTreePreviewButtonState === 'function') window.gigmaLoadPresetTreePreviewButtonState(previewRoot); }catch(_){ }
+            try{ if (typeof window.gigmaInstallPresetTreePreviewCloseHook === 'function') window.gigmaInstallPresetTreePreviewCloseHook(previewRoot); }catch(_){ }
+            try{ if (typeof window.gigmaInitPresetTreeChainedToggle === 'function') window.gigmaInitPresetTreeChainedToggle(); }catch(_){ }
+            try{ if (typeof window.gigmaInitPresetTreeUnchainedToggle === 'function') window.gigmaInitPresetTreeUnchainedToggle(); }catch(_){ }
+            try{ if (typeof window.gigmaInitPresetTreeDimToggles === 'function') window.gigmaInitPresetTreeDimToggles(); }catch(_){ }
+            try{ if (typeof window.gigmaInitPresetTreeViewMode === 'function') window.gigmaInitPresetTreeViewMode(); }catch(_){ }
+            try{ if (typeof window.gigmaInitPresetTreePreviewLorebookStatsUi === 'function') window.gigmaInitPresetTreePreviewLorebookStatsUi(); }catch(_){ }
+            try{ if (previewRoot && typeof gigmaRefreshPresetTreeBudgetPreviewFields === 'function') gigmaRefreshPresetTreeBudgetPreviewFields(previewRoot); }catch(_){ }
+            try{ if (previewRoot && typeof window.gigmaCapturePresetTreeFolderDefaults === 'function') window.gigmaCapturePresetTreeFolderDefaults(previewRoot); }catch(_){ }
+            gigmaInitDuplicateSentenceCustomSelectionPopup(sourceRoot, previewRoot);
+        }catch(_){ }
+    };
+
+    try {
+        const ctx = (typeof SillyTavern !== 'undefined' && SillyTavern && typeof SillyTavern.getContext === 'function')
+            ? SillyTavern.getContext()
+            : null;
+        const popupApi = ctx && ctx.Popup ? ctx.Popup : null;
+        if (popupApi && popupApi.show && typeof popupApi.show.html === 'function') {
+            popupApi.show.html(modalTitle, html, { okButton: false, cancelButton: true, allowVerticalScrolling: true });
+            requestAnimationFrame(afterShow);
+            return;
+        }
+    } catch (_ePopupApi) { }
+
+    try {
+        const popup = new Popup(html, POPUP_TYPE.TEXT, modalTitle, {
+            okButton: false,
+            cancelButton: true,
+            wide: false,
+            large: false,
+            allowVerticalScrolling: true,
+            onClosing: function () {
+                try{
+                    const roots = document.querySelectorAll('#gigma-preset-tree-preview-root');
+                    const previewRoot = (roots && roots.length) ? roots[roots.length - 1] : null;
+                    if (previewRoot && typeof window.gigmaSavePresetTreePreviewButtonState === 'function') window.gigmaSavePresetTreePreviewButtonState(previewRoot);
+                }catch(_){ }
+                return true;
+            },
+        });
+        popup.show();
+        requestAnimationFrame(afterShow);
+    } catch (_ePopup) {
+        try { toastr.error('Could not open custom lorebook selection.'); } catch (_eToast) { }
+    }
+}
+
+function gigmaBuildDuplicateSentencePopupHtml() {
+    const currentWorld = gigmaDuplicateSentenceCurrentLorebookName();
+    const hasCurrent = !!currentWorld;
+    const infoTitle = 'Scan lorebook entries for repeated sentences, inspect where each one appears, then remove the earlier copies so only the final occurrence survives.';
+    const survivorTitle = 'The final surviving copy is determined by lorebook order, then entry UID order, then sentence order inside each entry.';
+    return `
+        <div id="gigma-dedupe-root" data-current-world="${gigmaEscapeHtml(currentWorld)}">
+            <div class="gigma-dedupe-titlebar">
+                <div class="gigma-dedupe-titlewrap">
+                    <div class="gigma-dedupe-title" title="${gigmaEscapeHtml(infoTitle)}">Duplicate Sentences</div>
+                    <span class="gigma-dedupe-titleinfo" title="${gigmaEscapeHtml(infoTitle)}" aria-label="Duplicate sentence info">i</span>
+                </div>
+                <button id="gigma-dedupe-close" class="menu_button gigma-dedupe-close" type="button" aria-label="Close duplicate sentences" title="Close duplicate sentences">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+                </button>
+            </div>
+            <div class="gigma-dedupe-controls">
+                <label class="gigma-dedupe-field">
+                    <span class="gigma-dedupe-field-label">Scope</span>
+                    <select id="gigma-dedupe-scope" class="text_pole textarea_compact" title="Choose whether to scan the current lorebook, a custom lorebook selection, or all lorebooks.">
+                        ${hasCurrent ? `<option value="current">Current lorebook</option>` : ''}
+                        <option value="custom">Custom</option>
+                        <option value="all" selected>All lorebooks</option>
+                    </select>
+                </label>
+                <label class="gigma-dedupe-field">
+                    <span class="gigma-dedupe-field-label">Minimum characters</span>
+                    <input id="gigma-dedupe-minchars" class="text_pole textarea_compact" type="number" min="1" step="1" value="15" title="Ignore repeated sentences shorter than this length." />
+                </label>
+                <label class="gigma-dedupe-field">
+                    <span class="gigma-dedupe-field-label">Matching</span>
+                    <span class="gigma-dedupe-field-inline" title="Ignore case differences while matching repeated sentences.">
+                        <input id="gigma-dedupe-ignore-case" type="checkbox" />
+                        <span>Ignore case</span>
+                    </span>
+                </label>
+                <label class="gigma-dedupe-field">
+                    <span class="gigma-dedupe-field-label">Entries</span>
+                    <span class="gigma-dedupe-field-inline" title="Scan only enabled lorebook entries.">
+                        <input id="gigma-dedupe-only-enabled" type="checkbox" checked />
+                        <span>Only enabled entries</span>
+                    </span>
+                </label>
+                <div class="gigma-dedupe-actions">
+                    <button id="gigma-dedupe-scan" class="menu_button" type="button" title="${gigmaEscapeHtml(infoTitle)}">Scan</button>
+                    <button id="gigma-dedupe-customize" class="menu_button" type="button" title="Customize lorebook selection" style="display:none;">Customize</button>
+                    <button id="gigma-dedupe-select-all" class="menu_button" type="button" disabled>Select all</button>
+                    <button id="gigma-dedupe-clear" class="menu_button" type="button" disabled>Clear</button>
+                </div>
+            </div>
+            <div class="gigma-dedupe-summarybar">
+                <div id="gigma-dedupe-summary" class="gigma-dedupe-summary">Scanning…</div>
+            </div>
+            <div class="gigma-dedupe-main">
+                <div class="gigma-dedupe-pane">
+                    <div class="gigma-dedupe-pane-header">
+                        <span>Findings</span>
+                    </div>
+                    <div id="gigma-dedupe-list" class="gigma-dedupe-list"></div>
+                </div>
+                <div class="gigma-dedupe-pane">
+                    <div class="gigma-dedupe-pane-header">
+                        <span>Lorebooks and entries</span>
+                    </div>
+                    <div id="gigma-dedupe-detail" class="gigma-dedupe-detail"></div>
+                </div>
+            </div>
+            <div class="gigma-dedupe-footer">
+                <div class="gigma-dedupe-footer-actions">
+                    <button id="gigma-dedupe-apply" class="menu_button" type="button" disabled title="${gigmaEscapeHtml(survivorTitle)}">Remove selected duplicates</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function gigmaEnsureDuplicateSentenceState(root) {
+    if (!root) return null;
+    if (!root.__gigmaDuplicateSentenceState) {
+        root.__gigmaDuplicateSentenceState = {
+            busy: false,
+            results: [],
+            resultIndexByKey: new Map(),
+            selectedKeys: new Set(),
+            detailViewMode: 'excerpt',
+            activeKey: '',
+            lastOptions: null,
+            scanBooks: new Map(),
+            lastSummary: null,
+            lastError: '',
+            customSelectedPreviewKeys: new Set(),
+            customSelectedWorldNames: new Set(),
+            detailGroupedCache: new Map(),
+            detailHtmlCache: new Map(),
+            detailPreloadQueue: [],
+            detailPreloadCursor: 0,
+            detailPreloadHandle: 0,
+            detailPreloadHandleKind: '',
+            detailPreloadToken: 0,
+        };
+    }
+    return root.__gigmaDuplicateSentenceState;
+}
+
+async function gigmaCollectDuplicateSentences(options) {
+    const currentWorld = gigmaDuplicateSentenceCurrentLorebookName();
+    const requestedScope = options?.scope === 'current'
+        ? 'current'
+        : (options?.scope === 'custom' ? 'custom' : 'all');
+    const scope = (requestedScope === 'current' && currentWorld)
+        ? 'current'
+        : requestedScope;
+    const minChars = Math.max(1, Number.parseInt(String(options?.minChars ?? '15'), 10) || 15);
+    const ignoreCase = !!options?.ignoreCase;
+    const onlyEnabled = options?.onlyEnabled !== false;
+    const customWorlds = Array.isArray(options?.customWorlds)
+        ? options.customWorlds.map(name => String(name || '').trim()).filter(Boolean)
+        : [];
+    const worlds = scope === 'current'
+        ? [currentWorld].filter(Boolean)
+        : (scope === 'custom'
+            ? customWorlds
+            : (Array.isArray(world_names) ? world_names.map(name => String(name || '').trim()).filter(Boolean) : []));
+
+    const groups = new Map();
+    const books = new Map();
+    let entriesScanned = 0;
+    let sentencesScanned = 0;
+    let globalOrder = 0;
+
+    for (const worldName of worlds) {
+        const data = await loadWorldInfo(worldName);
+        if (!data || typeof data !== 'object' || !data.entries || typeof data.entries !== 'object') continue;
+        books.set(worldName, data);
+
+        const entries = Object.values(data.entries).sort((a, b) => gigmaDuplicateSentenceCompareUid(a?.uid, b?.uid));
+        for (const entry of entries) {
+            if (onlyEnabled && entry?.disable === true) continue;
+            entriesScanned++;
+            const content = typeof entry?.content === 'string' ? entry.content : '';
+            if (!content.trim()) continue;
+
+            const sentences = gigmaDuplicateSentenceSplit(content, ignoreCase);
+            if (!sentences.length) continue;
+
+            for (let sentenceIndex = 0; sentenceIndex < sentences.length; sentenceIndex++) {
+                const sentence = sentences[sentenceIndex];
+                if (sentence.normalized.length < minChars) continue;
+                sentencesScanned++;
+
+                let group = groups.get(sentence.normalized);
+                if (!group) {
+                    group = {
+                        key: sentence.normalized,
+                        display: String(sentence.raw || '').trim(),
+                        preview: sentence.preview,
+                        occurrences: [],
+                        books: new Set(),
+                        entries: new Set(),
+                    };
+                    groups.set(sentence.normalized, group);
+                }
+
+                const context = gigmaDuplicateSentenceBuildContextParts(content, sentence.start, sentence.end);
+                group.occurrences.push({
+                    world: worldName,
+                    uid: entry.uid,
+                    entryLabel: gigmaDuplicateSentenceEntryLabel(entry),
+                    entryContent: content,
+                    sentenceIndex,
+                    start: sentence.start,
+                    end: sentence.end,
+                    raw: sentence.raw,
+                    preview: sentence.preview,
+                    contextBefore: context.before,
+                    contextMatch: context.match,
+                    contextAfter: context.after,
+                    order: globalOrder++,
+                });
+                group.books.add(worldName);
+                group.entries.add(`${worldName}:${String(entry.uid)}`);
+            }
+        }
+    }
+
+    const results = Array.from(groups.values())
+        .filter(group => group.occurrences.length >= 2)
+        .map(group => {
+            const occurrences = group.occurrences.slice().sort((a, b) => a.order - b.order);
+            const worldOrder = [];
+            const entryOrder = [];
+            const seenWorlds = new Set();
+            const seenEntries = new Set();
+            for (const occurrence of occurrences) {
+                if (!seenWorlds.has(occurrence.world)) {
+                    seenWorlds.add(occurrence.world);
+                    worldOrder.push(occurrence.world);
+                }
+                const entryKey = `${occurrence.world}:${String(occurrence.uid)}`;
+                if (!seenEntries.has(entryKey)) {
+                    seenEntries.add(entryKey);
+                    entryOrder.push(`${occurrence.world} / ${occurrence.entryLabel}`);
+                }
+            }
+            return {
+                key: group.key,
+                display: group.display,
+                preview: gigmaDuplicateSentencePreview(group.display, 220),
+                occurrences,
+                bookCount: group.books.size,
+                entryCount: group.entries.size,
+                removeCount: Math.max(0, occurrences.length - 1),
+                bookPreview: worldOrder.slice(0, 3).join(' • '),
+                entryPreview: entryOrder.slice(0, 2).join(' • '),
+            };
+        })
+        .sort((a, b) => {
+            if (b.removeCount !== a.removeCount) return b.removeCount - a.removeCount;
+            if (b.occurrences.length !== a.occurrences.length) return b.occurrences.length - a.occurrences.length;
+            return a.preview.localeCompare(b.preview, undefined, { sensitivity: 'base' });
+        });
+
+    return {
+        options: { scope, minChars, ignoreCase, customWorlds },
+        books,
+        results,
+        summary: {
+            booksScanned: books.size,
+            entriesScanned,
+            sentencesScanned,
+            findings: results.length,
+        },
+    };
+}
+
+function gigmaDuplicateSentenceRenderSummary(state) {
+    if (state.busy) return 'Scanning duplicate sentences…';
+    if (state.lastError) return state.lastError;
+    if (!state.lastSummary) return 'Scan the current lorebook, a custom lorebook selection, or all lorebooks for duplicate sentences.';
+    const summary = state.lastSummary;
+    if (!state.results.length) {
+        return `No duplicate sentences found across ${summary.booksScanned} lorebooks, ${summary.entriesScanned} entries, and ${summary.sentencesScanned} scanned sentences.`;
+    }
+    const selectedCount = state.selectedKeys.size;
+    const selectedRemovals = state.results.reduce((sum, result) => sum + (state.selectedKeys.has(result.key) ? result.removeCount : 0), 0);
+    return `${summary.findings} duplicate sentences found across ${summary.booksScanned} lorebooks, ${summary.entriesScanned} entries, and ${summary.sentencesScanned} scanned sentences. ${selectedCount} finding${selectedCount === 1 ? '' : 's'} selected, ${selectedRemovals} earlier cop${selectedRemovals === 1 ? 'y' : 'ies'} marked for removal.`;
+}
+
+function gigmaDuplicateSentenceRenderList(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    const list = root?.querySelector?.('#gigma-dedupe-list');
+    if (!state || !list) return;
+
+    if (state.busy && !state.results.length) {
+        list.innerHTML = '<div class="gigma-dedupe-empty">Scanning lorebooks…</div>';
+        return;
+    }
+
+    if (!state.results.length) {
+        list.innerHTML = '<div class="gigma-dedupe-empty">No duplicate sentences to show.</div>';
+        return;
+    }
+
+    list.innerHTML = state.results.map((result, index) => {
+        const selected = state.selectedKeys.has(result.key);
+        const active = state.activeKey === result.key;
+        return `
+            <div class="gigma-dedupe-row${selected ? ' is-selected' : ''}${active ? ' is-active' : ''}" data-gigma-dedupe-index="${index}">
+                <input class="gigma-dedupe-check" data-gigma-dedupe-index="${index}" type="checkbox" ${selected ? 'checked' : ''} />
+                <div class="gigma-dedupe-row-body">
+                    <div class="gigma-dedupe-row-top">
+                        <span class="gigma-dedupe-chip">${result.occurrences.length}× found</span>
+                        <span class="gigma-dedupe-chip">${result.bookCount} lorebook${result.bookCount === 1 ? '' : 's'}</span>
+                        <span class="gigma-dedupe-chip">${result.entryCount} entr${result.entryCount === 1 ? 'y' : 'ies'}</span>
+                        <span class="gigma-dedupe-chip">${result.removeCount} will be removed</span>
+                    </div>
+                    <div class="gigma-dedupe-row-text">${gigmaEscapeHtml(result.preview)}</div>
+                    <div class="gigma-dedupe-row-meta">
+                        ${result.bookPreview ? `<span class="gigma-dedupe-chip">${gigmaEscapeHtml(result.bookPreview)}</span>` : ''}
+                        ${result.entryPreview ? `<span class="gigma-dedupe-chip">${gigmaEscapeHtml(result.entryPreview)}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function gigmaDuplicateSentenceGroupOccurrences(result) {
+    const groups = [];
+    const worldMap = new Map();
+    const survivorOrder = Math.max(0, (result?.occurrences?.length || 1) - 1);
+    for (let index = 0; index < (result?.occurrences?.length || 0); index++) {
+        const occurrence = result.occurrences[index];
+        let worldGroup = worldMap.get(occurrence.world);
+        if (!worldGroup) {
+            worldGroup = {
+                world: occurrence.world,
+                entries: [],
+                entryMap: new Map(),
+            };
+            worldMap.set(occurrence.world, worldGroup);
+            groups.push(worldGroup);
+        }
+        const entryKey = `${occurrence.world}:${String(occurrence.uid)}`;
+        let entryGroup = worldGroup.entryMap.get(entryKey);
+        if (!entryGroup) {
+            entryGroup = {
+                uid: occurrence.uid,
+                entryLabel: occurrence.entryLabel,
+                entryContent: occurrence.entryContent,
+                occurrences: [],
+            };
+            worldGroup.entryMap.set(entryKey, entryGroup);
+            worldGroup.entries.push(entryGroup);
+        }
+        entryGroup.occurrences.push({
+            ...occurrence,
+            occurrenceNumber: index + 1,
+            survivor: index === survivorOrder,
+        });
+    }
+    return groups;
+}
+
+function gigmaDuplicateSentenceEnsureDetailCaches(state) {
+    if (!state) return;
+    if (!(state.resultIndexByKey instanceof Map)) state.resultIndexByKey = new Map();
+    if (!(state.detailGroupedCache instanceof Map)) state.detailGroupedCache = new Map();
+    if (!(state.detailHtmlCache instanceof Map)) state.detailHtmlCache = new Map();
+    if (!Array.isArray(state.detailPreloadQueue)) state.detailPreloadQueue = [];
+    if (!Number.isFinite(state.detailPreloadCursor)) state.detailPreloadCursor = 0;
+    if (!Number.isFinite(state.detailPreloadHandle)) state.detailPreloadHandle = 0;
+    if (typeof state.detailPreloadHandleKind !== 'string') state.detailPreloadHandleKind = '';
+    if (!Number.isFinite(state.detailPreloadToken)) state.detailPreloadToken = 0;
+}
+
+function gigmaDuplicateSentenceResetDetailCaches(state) {
+    if (!state) return;
+    gigmaDuplicateSentenceEnsureDetailCaches(state);
+    state.detailGroupedCache = new Map();
+    state.detailHtmlCache = new Map();
+    state.detailPreloadQueue = [];
+    state.detailPreloadCursor = 0;
+    state.detailPreloadToken = (Number(state.detailPreloadToken) || 0) + 1;
+}
+
+function gigmaDuplicateSentenceDetailCacheKey(resultKey, detailViewMode) {
+    return `${detailViewMode === 'full' ? 'full' : 'excerpt'}:${String(resultKey || '')}`;
+}
+
+function gigmaDuplicateSentenceGetResultByKey(state, resultKey) {
+    if (!state || !resultKey) return null;
+    gigmaDuplicateSentenceEnsureDetailCaches(state);
+    const index = state.resultIndexByKey.get(resultKey);
+    return Number.isInteger(index) ? (state.results[index] || null) : null;
+}
+
+function gigmaDuplicateSentenceGetGroupedOccurrencesCached(state, result) {
+    if (!state || !result) return [];
+    gigmaDuplicateSentenceEnsureDetailCaches(state);
+    if (state.detailGroupedCache.has(result.key)) return state.detailGroupedCache.get(result.key);
+    const grouped = gigmaDuplicateSentenceGroupOccurrences(result);
+    state.detailGroupedCache.set(result.key, grouped);
+    return grouped;
+}
+
+function gigmaBuildDuplicateSentenceDetailHtml(state, result, detailViewMode) {
+    if (!state || !result) return '';
+    gigmaDuplicateSentenceEnsureDetailCaches(state);
+    const mode = detailViewMode === 'full' ? 'full' : 'excerpt';
+    const cacheKey = gigmaDuplicateSentenceDetailCacheKey(result.key, mode);
+    if (state.detailHtmlCache.has(cacheKey)) return state.detailHtmlCache.get(cacheKey) || '';
+
+    const grouped = gigmaDuplicateSentenceGetGroupedOccurrencesCached(state, result);
+    const toggleLabel = mode === 'full' ? 'Show excerpts' : 'Show full entry';
+    const html = `
+        <div class="gigma-dedupe-detail-card">
+            <div class="gigma-dedupe-detail-label">Sentence</div>
+            <div class="gigma-dedupe-detail-sentence">${gigmaEscapeHtml(result.display)}</div>
+        </div>
+        <div class="gigma-dedupe-detail-meta">
+            <span class="gigma-dedupe-chip">${result.occurrences.length} occurrences</span>
+            <span class="gigma-dedupe-chip">${result.entryCount} entries</span>
+            <span class="gigma-dedupe-chip">${result.bookCount} lorebooks</span>
+            <span class="gigma-dedupe-chip">${result.removeCount} will be removed</span>
+        </div>
+        <div class="gigma-dedupe-detail-toolbar">
+            <button id="gigma-dedupe-toggle-entry-view" class="menu_button" type="button">${toggleLabel}</button>
+            <button id="gigma-dedupe-expand-books" class="menu_button" type="button">Expand books</button>
+            <button id="gigma-dedupe-collapse-books" class="menu_button" type="button">Collapse books</button>
+            <button id="gigma-dedupe-expand-entries" class="menu_button" type="button">Expand entries</button>
+            <button id="gigma-dedupe-collapse-entries" class="menu_button" type="button">Collapse entries</button>
+        </div>
+        <div class="gigma-dedupe-group-list">
+            ${grouped.map((worldGroup, worldIndex) => {
+                const worldOccurrences = worldGroup.entries.reduce((sum, entry) => sum + entry.occurrences.length, 0);
+                return `
+                <details class="gigma-dedupe-group" data-gigma-dedupe-scope="book" open>
+                    <summary>
+                        <div class="gigma-dedupe-group-head">
+                            <span class="gigma-dedupe-book-label">Lorebook</span>
+                            <span class="gigma-dedupe-book-name">${gigmaEscapeHtml(worldGroup.world)}</span>
+                            <span class="gigma-dedupe-subtle-meta">
+                                <span class="gigma-dedupe-chip">${worldGroup.entries.length} entr${worldGroup.entries.length === 1 ? 'y' : 'ies'}</span>
+                                <span class="gigma-dedupe-chip">${worldOccurrences} occurrence${worldOccurrences === 1 ? '' : 's'}</span>
+                            </span>
+                        </div>
+                    </summary>
+                    <div class="gigma-dedupe-group-body">
+                        <div class="gigma-dedupe-entry-list">
+                            ${worldGroup.entries.map((entryGroup, entryIndex) => {
+                                const fullEntryHtml = gigmaDuplicateSentenceFullTextHtml(entryGroup.entryContent, entryGroup.occurrences);
+                                const entryMetaHtml = entryGroup.occurrences.map(occurrence => `
+                                    <span class="gigma-dedupe-chip">#${occurrence.occurrenceNumber}</span>
+                                    <span class="gigma-dedupe-chip">sentence ${occurrence.sentenceIndex + 1}</span>
+                                    <span class="gigma-dedupe-chip">chars ${occurrence.start + 1}-${occurrence.end}</span>
+                                    ${occurrence.survivor ? '<span class="gigma-dedupe-chip">survives</span>' : '<span class="gigma-dedupe-chip">will be removed</span>'}
+                                `).join('');
+                                const contentHtml = mode === 'full'
+                                    ? `<div class="gigma-dedupe-entry-content">${fullEntryHtml}</div>`
+                                    : `<div class="gigma-dedupe-entry-snippets">${entryGroup.occurrences.map(occurrence => `
+                                        <div class="gigma-dedupe-occurrence${occurrence.survivor ? ' is-survivor' : ''}">
+                                            <div class="gigma-dedupe-occurrence-head">
+                                                <span class="gigma-dedupe-chip">#${occurrence.occurrenceNumber}</span>
+                                                <span class="gigma-dedupe-chip">sentence ${occurrence.sentenceIndex + 1}</span>
+                                                <span class="gigma-dedupe-chip">chars ${occurrence.start + 1}-${occurrence.end}</span>
+                                                ${occurrence.survivor ? '<span class="gigma-dedupe-chip">survives</span>' : '<span class="gigma-dedupe-chip">will be removed</span>'}
+                                            </div>
+                                            <div class="gigma-dedupe-context">${gigmaDuplicateSentenceContextHtml({ before: occurrence.contextBefore, match: occurrence.contextMatch, after: occurrence.contextAfter })}</div>
+                                        </div>
+                                    `).join('')}</div>`;
+                                return `
+                                <details class="gigma-dedupe-entry" data-gigma-dedupe-scope="entry" ${worldIndex === 0 && entryIndex === 0 ? 'open' : ''}>
+                                    <summary>
+                                        <div class="gigma-dedupe-entry-head">
+                                            <span class="gigma-dedupe-entry-label-text">Entry</span>
+                                            <span class="gigma-dedupe-entry-name">${gigmaEscapeHtml(entryGroup.entryLabel)}</span>
+                                            <span class="gigma-dedupe-subtle-meta">
+                                                <span class="gigma-dedupe-chip">UID ${gigmaEscapeHtml(String(entryGroup.uid))}</span>
+                                                <span class="gigma-dedupe-chip">${entryGroup.occurrences.length} occurrence${entryGroup.occurrences.length === 1 ? '' : 's'}</span>
+                                            </span>
+                                        </div>
+                                    </summary>
+                                    <div class="gigma-dedupe-entry-body">
+                                        <div class="gigma-dedupe-entry-meta">${entryMetaHtml}</div>
+                                        ${contentHtml}
+                                    </div>
+                                </details>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </details>
+                `;
+            }).join('')}
+        </div>
+    `;
+    state.detailHtmlCache.set(cacheKey, html);
+    return html;
+}
+
+function gigmaDuplicateSentenceCancelDetailPreload(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state) return;
+    gigmaDuplicateSentenceEnsureDetailCaches(state);
+    const handle = Number(state.detailPreloadHandle) || 0;
+    if (handle) {
+        try {
+            if (state.detailPreloadHandleKind === 'idle' && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(handle);
+            else clearTimeout(handle);
+        } catch (_eDuplicateSentenceCancelDetailPreload) { }
+    }
+    state.detailPreloadHandle = 0;
+    state.detailPreloadHandleKind = '';
+    state.detailPreloadQueue = [];
+    state.detailPreloadCursor = 0;
+}
+
+function gigmaDuplicateSentenceScheduleDetailPreload(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || state.busy || !root?.isConnected || !state.results.length) return;
+    gigmaDuplicateSentenceEnsureDetailCaches(state);
+    if (state.detailPreloadHandle) return;
+
+    const queue = [];
+    for (let index = 0; index < state.results.length; index++) {
+        const result = state.results[index];
+        if (!result) continue;
+        const excerptKey = gigmaDuplicateSentenceDetailCacheKey(result.key, 'excerpt');
+        if (!state.detailHtmlCache.has(excerptKey)) queue.push({ index, mode: 'excerpt' });
+    }
+    for (let index = 0; index < state.results.length; index++) {
+        const result = state.results[index];
+        if (!result) continue;
+        const fullKey = gigmaDuplicateSentenceDetailCacheKey(result.key, 'full');
+        if (!state.detailHtmlCache.has(fullKey)) queue.push({ index, mode: 'full' });
+    }
+    if (!queue.length) return;
+
+    state.detailPreloadQueue = queue;
+    state.detailPreloadCursor = 0;
+    const token = Number(state.detailPreloadToken) || 0;
+
+    const schedule = () => {
+        if (!root?.isConnected) return;
+        try {
+            if (typeof window.requestIdleCallback === 'function') {
+                state.detailPreloadHandleKind = 'idle';
+                state.detailPreloadHandle = window.requestIdleCallback(run, { timeout: 120 });
+                return;
+            }
+        } catch (_eDuplicateSentenceScheduleIdle) { }
+        state.detailPreloadHandleKind = 'timeout';
+        state.detailPreloadHandle = window.setTimeout(() => run(null), 16);
+    };
+
+    const run = (deadline) => {
+        state.detailPreloadHandle = 0;
+        state.detailPreloadHandleKind = '';
+        if (!root?.isConnected) {
+            gigmaDuplicateSentenceCancelDetailPreload(root);
+            return;
+        }
+        if ((Number(state.detailPreloadToken) || 0) !== token) return;
+        const startedAt = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : Date.now();
+        while (state.detailPreloadCursor < state.detailPreloadQueue.length) {
+            const task = state.detailPreloadQueue[state.detailPreloadCursor++];
+            const result = state.results[task.index];
+            if (result) gigmaBuildDuplicateSentenceDetailHtml(state, result, task.mode);
+            if (deadline && typeof deadline.timeRemaining === 'function') {
+                if (deadline.timeRemaining() < 6) break;
+            } else {
+                const now = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : Date.now();
+                if ((now - startedAt) > 10) break;
+            }
+        }
+        if (state.detailPreloadCursor < state.detailPreloadQueue.length) {
+            schedule();
+            return;
+        }
+        state.detailPreloadQueue = [];
+        state.detailPreloadCursor = 0;
+    };
+
+    try {
+        requestAnimationFrame(() => schedule());
+    } catch (_eDuplicateSentenceScheduleRaf) {
+        schedule();
+    }
+}
+
+function gigmaUpdateDuplicateSentenceActiveRow(root, resultKey, active) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || !root || !resultKey) return;
+    gigmaDuplicateSentenceEnsureDetailCaches(state);
+    const index = state.resultIndexByKey.get(resultKey);
+    if (!Number.isInteger(index)) return;
+    const row = root.querySelector(`.gigma-dedupe-row[data-gigma-dedupe-index="${index}"]`);
+    if (row) row.classList.toggle('is-active', !!active);
+}
+
+function gigmaToggleDuplicateSentenceEntryView(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || state.busy) return;
+    state.detailViewMode = state.detailViewMode === 'full' ? 'excerpt' : 'full';
+    gigmaDuplicateSentenceRenderDetail(root);
+    gigmaDuplicateSentenceScheduleDetailPreload(root);
+}
+
+function gigmaDuplicateSentenceRenderDetail(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    const detail = root?.querySelector?.('#gigma-dedupe-detail');
+    if (!state || !detail) return;
+    gigmaDuplicateSentenceEnsureDetailCaches(state);
+
+    if (state.busy && !state.results.length) {
+        detail.innerHTML = '<div class="gigma-dedupe-empty">Preparing details…</div>';
+        return;
+    }
+
+    const result = gigmaDuplicateSentenceGetResultByKey(state, state.activeKey) || state.results[0];
+    if (!result) {
+        detail.innerHTML = '<div class="gigma-dedupe-empty">Select a finding to inspect the affected lorebooks and entries.</div>';
+        return;
+    }
+
+    state.activeKey = result.key;
+    detail.innerHTML = gigmaBuildDuplicateSentenceDetailHtml(state, result, state.detailViewMode);
+}
+
+function gigmaUpdateDuplicateSentencePopupChrome(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || !root) return;
+
+    const summary = root.querySelector('#gigma-dedupe-summary');
+    const selectAll = root.querySelector('#gigma-dedupe-select-all');
+    const clearButton = root.querySelector('#gigma-dedupe-clear');
+    const applyButton = root.querySelector('#gigma-dedupe-apply');
+    const scanButton = root.querySelector('#gigma-dedupe-scan');
+
+    if (summary) summary.textContent = gigmaDuplicateSentenceRenderSummary(state);
+    if (selectAll) selectAll.disabled = state.busy || !state.results.length;
+    if (clearButton) clearButton.disabled = state.busy || !state.selectedKeys.size;
+    if (applyButton) {
+        applyButton.disabled = state.busy || !state.selectedKeys.size || !state.results.length;
+        applyButton.textContent = state.selectedKeys.size ? `Remove selected duplicates (${state.selectedKeys.size})` : 'Remove selected duplicates';
+    }
+    if (scanButton) scanButton.disabled = state.busy;
+    gigmaDuplicateSentenceUpdateScopeControls(root);
+}
+
+function gigmaUpdateDuplicateSentenceListRow(root, index) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || !root) return;
+    const result = state.results[index];
+    if (!result) return;
+    const row = root.querySelector(`.gigma-dedupe-row[data-gigma-dedupe-index="${index}"]`);
+    if (!row) return;
+    const selected = state.selectedKeys.has(result.key);
+    row.classList.toggle('is-selected', selected);
+    const checkbox = row.querySelector('.gigma-dedupe-check');
+    if (checkbox) checkbox.checked = selected;
+}
+
+function gigmaRenderDuplicateSentencePopup(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || !root) return;
+
+    gigmaUpdateDuplicateSentencePopupChrome(root);
+    gigmaDuplicateSentenceRenderList(root);
+    gigmaDuplicateSentenceRenderDetail(root);
+}
+
+async function gigmaRunDuplicateSentenceScan(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || state.busy || !root) return;
+
+    const scopeSelect = root.querySelector('#gigma-dedupe-scope');
+    const minCharsInput = root.querySelector('#gigma-dedupe-minchars');
+    const ignoreCaseInput = root.querySelector('#gigma-dedupe-ignore-case');
+    const onlyEnabledInput = root.querySelector('#gigma-dedupe-only-enabled');
+
+    const customSelectionState = gigmaDuplicateSentenceEnsureCustomSelectionState(root);
+    const selectedScopeValue = String(scopeSelect?.value || 'all');
+    const nextOptions = {
+        scope: selectedScopeValue === 'current' ? 'current' : (selectedScopeValue === 'custom' ? 'custom' : 'all'),
+        minChars: Math.max(1, Number.parseInt(String(minCharsInput?.value || '15'), 10) || 15),
+        ignoreCase: !!ignoreCaseInput?.checked,
+        onlyEnabled: onlyEnabledInput ? !!onlyEnabledInput.checked : true,
+        customWorlds: Array.from(customSelectionState?.customSelectedWorldNames || []),
+    };
+
+    state.busy = true;
+    state.lastError = '';
+    gigmaDuplicateSentenceCancelDetailPreload(root);
+    if (minCharsInput) minCharsInput.value = String(nextOptions.minChars);
+    gigmaRenderDuplicateSentencePopup(root);
+
+    try {
+        const scan = await gigmaCollectDuplicateSentences(nextOptions);
+        state.results = scan.results;
+        state.resultIndexByKey = new Map(scan.results.map((result, index) => [result.key, index]));
+        state.scanBooks = scan.books;
+        state.lastOptions = scan.options;
+        state.lastSummary = scan.summary;
+        state.selectedKeys = new Set();
+        state.detailViewMode = 'excerpt';
+        state.activeKey = scan.results[0]?.key || '';
+        gigmaDuplicateSentenceResetDetailCaches(state);
+    } catch (error) {
+        console.error('GIGMA duplicate sentence scan failed:', error);
+        state.results = [];
+        state.resultIndexByKey = new Map();
+        state.scanBooks = new Map();
+        state.lastSummary = null;
+        state.selectedKeys = new Set();
+        state.detailViewMode = 'excerpt';
+        state.activeKey = '';
+        gigmaDuplicateSentenceResetDetailCaches(state);
+        state.lastError = 'Could not scan lorebooks for duplicate sentences.';
+    } finally {
+        state.busy = false;
+        gigmaRenderDuplicateSentencePopup(root);
+        gigmaDuplicateSentenceScheduleDetailPreload(root);
+    }
+}
+
+function gigmaRefreshWorldInfoEditorAfterDuplicateRemoval(changedWorlds) {
+    try {
+        const currentWorld = gigmaDuplicateSentenceCurrentLorebookName();
+        if (!currentWorld || !(changedWorlds instanceof Set) || !changedWorlds.has(currentWorld)) return;
+        const select = document.querySelector(SELECTORS.WORLD_EDITOR_SELECT);
+        if (select) {
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    } catch (_eRefreshAfterDuplicateRemoval) { }
+}
+
+async function gigmaApplyDuplicateSentenceRemovals(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || state.busy || !state.selectedKeys.size || !state.results.length) return;
+
+    state.busy = true;
+    state.lastError = '';
+    gigmaRenderDuplicateSentencePopup(root);
+
+    try {
+        const deletions = new Map();
+        for (const result of state.results) {
+            if (!state.selectedKeys.has(result.key)) continue;
+            for (let i = 0; i < result.occurrences.length - 1; i++) {
+                const occurrence = result.occurrences[i];
+                const entryKey = `${occurrence.world}:${String(occurrence.uid)}`;
+                let plan = deletions.get(entryKey);
+                if (!plan) {
+                    plan = {
+                        world: occurrence.world,
+                        uid: occurrence.uid,
+                        sentenceIndexes: new Set(),
+                    };
+                    deletions.set(entryKey, plan);
+                }
+                plan.sentenceIndexes.add(occurrence.sentenceIndex);
+            }
+        }
+
+        let changedEntries = 0;
+        let removedSentences = 0;
+        const changedWorlds = new Set();
+
+        for (const plan of deletions.values()) {
+            const book = state.scanBooks.get(plan.world);
+            if (!book || !book.entries || typeof book.entries !== 'object') continue;
+
+            const entry = book.entries[plan.uid] ?? book.entries[String(plan.uid)];
+            if (!entry || typeof entry.content !== 'string') continue;
+
+            const sentences = gigmaDuplicateSentenceSplit(entry.content, !!state.lastOptions?.ignoreCase);
+            if (!sentences.length) continue;
+
+            const nextContent = gigmaDuplicateSentenceRebuildContent(entry.content, sentences, plan.sentenceIndexes);
+            if (nextContent === entry.content) continue;
+
+            entry.content = nextContent;
+            changedEntries++;
+            removedSentences += plan.sentenceIndexes.size;
+            changedWorlds.add(plan.world);
+        }
+
+        if (!changedWorlds.size) {
+            try { toastr.info('Nothing changed.'); } catch (_eNoDuplicateChanges) { }
+            state.busy = false;
+            gigmaRenderDuplicateSentencePopup(root);
+            return;
+        }
+
+        for (const worldName of changedWorlds) {
+            const data = state.scanBooks.get(worldName);
+            if (!data) continue;
+            await saveWorldInfo(worldName, data, true);
+        }
+
+        gigmaRefreshWorldInfoEditorAfterDuplicateRemoval(changedWorlds);
+
+        try {
+            toastr.success(`Removed ${removedSentences} duplicate sentence${removedSentences === 1 ? '' : 's'} across ${changedEntries} entr${changedEntries === 1 ? 'y' : 'ies'} in ${changedWorlds.size} lorebook${changedWorlds.size === 1 ? '' : 's'}.`);
+        } catch (_eDuplicateSuccessToast) { }
+
+        state.busy = false;
+        await gigmaRunDuplicateSentenceScan(root);
+    } catch (error) {
+        console.error('GIGMA duplicate sentence removal failed:', error);
+        state.busy = false;
+        state.lastError = 'Could not remove the selected duplicate sentences.';
+        gigmaRenderDuplicateSentencePopup(root);
+        try { toastr.error('Could not remove the selected duplicate sentences.'); } catch (_eDuplicateErrorToast) { }
+    }
+}
+
+function gigmaSetDuplicateSentenceSelection(root, index, selected) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || state.busy) return;
+    const result = state.results[index];
+    if (!result) return;
+
+    if (selected) state.selectedKeys.add(result.key);
+    else state.selectedKeys.delete(result.key);
+
+    gigmaUpdateDuplicateSentencePopupChrome(root);
+    gigmaUpdateDuplicateSentenceListRow(root, index);
+}
+
+function gigmaToggleDuplicateSentenceSelection(root, index) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || state.busy) return;
+    const result = state.results[index];
+    if (!result) return;
+    gigmaSetDuplicateSentenceSelection(root, index, !state.selectedKeys.has(result.key));
+}
+
+function gigmaSetDuplicateSentenceActive(root, index) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || state.busy) return;
+    const result = state.results[index];
+    if (!result) return;
+    const previousKey = state.activeKey;
+    state.activeKey = result.key;
+    if (previousKey !== state.activeKey) {
+        gigmaUpdateDuplicateSentenceActiveRow(root, previousKey, false);
+        gigmaUpdateDuplicateSentenceActiveRow(root, state.activeKey, true);
+    }
+    gigmaDuplicateSentenceRenderDetail(root);
+    gigmaDuplicateSentenceScheduleDetailPreload(root);
+}
+
+function gigmaDuplicateSentenceSelectAll(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || state.busy) return;
+    state.selectedKeys = new Set(state.results.map(result => result.key));
+    if (!state.activeKey && state.results[0]) state.activeKey = state.results[0].key;
+    gigmaRenderDuplicateSentencePopup(root);
+}
+
+function gigmaDuplicateSentenceClearSelection(root) {
+    const state = gigmaEnsureDuplicateSentenceState(root);
+    if (!state || state.busy) return;
+    state.selectedKeys.clear();
+    gigmaRenderDuplicateSentencePopup(root);
+}
+
+function gigmaDuplicateSentenceSetAllDetails(root, scope, open) {
+    if (!root) return;
+    root.querySelectorAll(`details[data-gigma-dedupe-scope="${scope}"]`).forEach((el) => {
+        try { el.open = !!open; } catch (_eDuplicateSentenceOpen) { }
+    });
+}
+
+function gigmaCloseDuplicateSentenceOverlay() {
+    try {
+        const overlay = document.getElementById('gigma-duplicate-sentences-overlay');
+        const root = overlay?.querySelector?.('#gigma-dedupe-root') || null;
+        if (root) gigmaDuplicateSentenceCancelDetailPreload(root);
+        if (overlay) overlay.remove();
+    } catch (_eCloseDuplicateSentenceOverlay) { }
+}
+
+function gigmaCloseDuplicateSentenceOverlayFromElement(element) {
+    try {
+        const overlay = element?.closest?.('#gigma-duplicate-sentences-overlay') || document.getElementById('gigma-duplicate-sentences-overlay');
+        const root = overlay?.querySelector?.('#gigma-dedupe-root') || null;
+        if (root) gigmaDuplicateSentenceCancelDetailPreload(root);
+        if (overlay) overlay.remove();
+    } catch (_eCloseDuplicateSentenceOverlayFromElement) { }
+}
+
+function gigmaEnsureDuplicateSentencePopupShell(root) {
+    try {
+        if (!root) return;
+        const overlay = root.closest('#gigma-duplicate-sentences-overlay');
+        const shell = root.closest('.gigma-dedupe-shell');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.opacity = '1';
+        }
+        if (shell) {
+            shell.style.opacity = '1';
+        }
+    } catch (_eDuplicateSentencePopupShell) { }
+}
+
+function gigmaMountDuplicateSentencePopup() {
+    const mount = () => {
+        const roots = document.querySelectorAll('#gigma-dedupe-root');
+        const root = roots && roots.length ? roots[roots.length - 1] : null;
+        if (!root) return;
+        gigmaEnsureDuplicateSentencePopupShell(root);
+        gigmaEnsureDuplicateSentenceState(root);
+        gigmaRenderDuplicateSentencePopup(root);
+        gigmaRunDuplicateSentenceScan(root);
+    };
+
+    try {
+        requestAnimationFrame(() => requestAnimationFrame(mount));
+    } catch (_eMountDuplicateSentencePopup) {
+        setTimeout(mount, 0);
+    }
+}
+
+async function gigmaShowDuplicateSentencePopup() {
+    gigmaInstallDuplicateSentenceStylesOnce();
+    gigmaCloseDuplicateSentenceOverlay();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'gigma-duplicate-sentences-overlay';
+    overlay.innerHTML = `
+        <div class="gigma-dedupe-backdrop" data-gigma-dedupe-backdrop="1"></div>
+        <div class="gigma-dedupe-shell" role="dialog" aria-modal="true" aria-label="Duplicate Sentences">
+            ${gigmaBuildDuplicateSentencePopupHtml()}
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const handleKeydown = (event) => {
+        try {
+            if (event.key !== 'Escape') return;
+            const current = document.getElementById('gigma-duplicate-sentences-overlay');
+            if (!current) {
+                document.removeEventListener('keydown', handleKeydown, true);
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            gigmaCloseDuplicateSentenceOverlay();
+            document.removeEventListener('keydown', handleKeydown, true);
+        } catch (_eDuplicateSentenceKeydown) { }
+    };
+    document.addEventListener('keydown', handleKeydown, true);
+
+    gigmaMountDuplicateSentencePopup();
+}
+
+(function gigmaDuplicateSentencePopupEventsOnce() {
+    try {
+        if (window.__gigmaDuplicateSentencePopupEventsOnce) return;
+        window.__gigmaDuplicateSentencePopupEventsOnce = true;
+
+        const gigmaDuplicateSentenceShieldClosePointerEvent = (event) => {
+            try {
+                const target = event?.target;
+                if (!(target instanceof Element)) return;
+                const closeButton = target.closest('#gigma-dedupe-close');
+                const backdrop = target.closest('[data-gigma-dedupe-backdrop="1"]');
+                if (!closeButton && !backdrop) return;
+                if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+                event.stopPropagation();
+            } catch (_eDuplicateSentenceShieldClosePointerEvent) { }
+        };
+
+        const gigmaDuplicateSentenceHandleCloseClickCapture = (event) => {
+            try {
+                const target = event?.target;
+                if (!(target instanceof Element)) return;
+                const closeButton = target.closest('#gigma-dedupe-close');
+                if (closeButton) {
+                    event.preventDefault();
+                    if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+                    event.stopPropagation();
+                    setTimeout(() => gigmaCloseDuplicateSentenceOverlayFromElement(closeButton), 0);
+                    return;
+                }
+                const backdrop = target.closest('[data-gigma-dedupe-backdrop="1"]');
+                if (backdrop) {
+                    event.preventDefault();
+                    if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+                    event.stopPropagation();
+                    setTimeout(() => gigmaCloseDuplicateSentenceOverlayFromElement(backdrop), 0);
+                    return;
+                }
+            } catch (_eDuplicateSentenceHandleCloseClickCapture) { }
+        };
+
+        document.addEventListener('pointerdown', gigmaDuplicateSentenceShieldClosePointerEvent, true);
+        document.addEventListener('mousedown', gigmaDuplicateSentenceShieldClosePointerEvent, true);
+        document.addEventListener('click', gigmaDuplicateSentenceHandleCloseClickCapture, true);
+
+        document.addEventListener('click', async (event) => {
+            try {
+                const target = event?.target;
+                if (!(target instanceof Element)) return;
+
+                const closeButton = target.closest('#gigma-dedupe-close');
+                if (closeButton) {
+                    event.preventDefault();
+                    if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+                    event.stopPropagation();
+                    return;
+                }
+
+                const backdrop = target.closest('[data-gigma-dedupe-backdrop="1"]');
+                if (backdrop) {
+                    event.preventDefault();
+                    if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+                    event.stopPropagation();
+                    return;
+                }
+
+                const scanButton = target.closest('#gigma-dedupe-scan');
+                if (scanButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = scanButton.closest('#gigma-dedupe-root');
+                    await gigmaRunDuplicateSentenceScan(root);
+                    return;
+                }
+
+                const customizeButton = target.closest('#gigma-dedupe-customize');
+                if (customizeButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = customizeButton.closest('#gigma-dedupe-root');
+                    await gigmaShowDuplicateSentenceCustomSelectionPopup(root);
+                    return;
+                }
+
+                const selectAllButton = target.closest('#gigma-dedupe-select-all');
+                if (selectAllButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = selectAllButton.closest('#gigma-dedupe-root');
+                    gigmaDuplicateSentenceSelectAll(root);
+                    return;
+                }
+
+                const clearButton = target.closest('#gigma-dedupe-clear');
+                if (clearButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = clearButton.closest('#gigma-dedupe-root');
+                    gigmaDuplicateSentenceClearSelection(root);
+                    return;
+                }
+
+                const applyButton = target.closest('#gigma-dedupe-apply');
+                if (applyButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = applyButton.closest('#gigma-dedupe-root');
+                    await gigmaApplyDuplicateSentenceRemovals(root);
+                    return;
+                }
+
+                const toggleEntryViewButton = target.closest('#gigma-dedupe-toggle-entry-view');
+                if (toggleEntryViewButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = toggleEntryViewButton.closest('#gigma-dedupe-root');
+                    gigmaToggleDuplicateSentenceEntryView(root);
+                    return;
+                }
+
+                const expandBooksButton = target.closest('#gigma-dedupe-expand-books');
+                if (expandBooksButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = expandBooksButton.closest('#gigma-dedupe-root');
+                    gigmaDuplicateSentenceSetAllDetails(root, 'book', true);
+                    return;
+                }
+
+                const collapseBooksButton = target.closest('#gigma-dedupe-collapse-books');
+                if (collapseBooksButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = collapseBooksButton.closest('#gigma-dedupe-root');
+                    gigmaDuplicateSentenceSetAllDetails(root, 'book', false);
+                    return;
+                }
+
+                const expandEntriesButton = target.closest('#gigma-dedupe-expand-entries');
+                if (expandEntriesButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = expandEntriesButton.closest('#gigma-dedupe-root');
+                    gigmaDuplicateSentenceSetAllDetails(root, 'entry', true);
+                    return;
+                }
+
+                const collapseEntriesButton = target.closest('#gigma-dedupe-collapse-entries');
+                if (collapseEntriesButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = collapseEntriesButton.closest('#gigma-dedupe-root');
+                    gigmaDuplicateSentenceSetAllDetails(root, 'entry', false);
+                    return;
+                }
+
+                const checkbox = target.closest('.gigma-dedupe-check');
+                if (checkbox) {
+                    event.stopPropagation();
+                    return;
+                }
+
+                const row = target.closest('.gigma-dedupe-row');
+                if (row) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = row.closest('#gigma-dedupe-root');
+                    const index = Number.parseInt(String(row.dataset.gigmaDedupeIndex || row.getAttribute('data-gigma-dedupe-index') || ''), 10);
+                    gigmaSetDuplicateSentenceActive(root, index);
+                }
+            } catch (_eDuplicateSentencePopupClick) { }
+        }, true);
+    } catch (_eDuplicateSentencePopupEventsOnce) { }
+})();
+
+(function gigmaDuplicateSentencePopupChangeEventsOnce() {
+    try {
+        if (window.__gigmaDuplicateSentencePopupChangeEventsOnce) return;
+        window.__gigmaDuplicateSentencePopupChangeEventsOnce = true;
+
+        document.addEventListener('change', (event) => {
+            try {
+                const target = event?.target;
+                if (!(target instanceof HTMLElement)) return;
+                const checkbox = target.closest('.gigma-dedupe-check');
+                if (checkbox) {
+                    const root = checkbox.closest('#gigma-dedupe-root');
+                    const index = Number.parseInt(String(checkbox.dataset.gigmaDedupeIndex || checkbox.getAttribute('data-gigma-dedupe-index') || ''), 10);
+                    gigmaSetDuplicateSentenceSelection(root, index, !!checkbox.checked);
+                    event.stopPropagation();
+                    return;
+                }
+                const scopeSelect = target.closest('#gigma-dedupe-scope');
+                if (!scopeSelect) return;
+                const root = scopeSelect.closest('#gigma-dedupe-root');
+                gigmaDuplicateSentenceUpdateScopeControls(root);
+            } catch (_eDuplicateSentencePopupChange) { }
+        }, true);
+    } catch (_eDuplicateSentencePopupChangeEventsOnce) { }
+})();
+
+function gigmaEnsureDuplicateSentenceToolbarButton() {
+    try {
+        gigmaInstallDuplicateSentenceStylesOnce();
+        const refreshButton = document.getElementById('world_refresh');
+        const editorSelect = document.getElementById('world_editor_select');
+        const fallbackHost = document.getElementById('WorldInfo') || editorSelect?.parentElement || refreshButton?.parentElement || null;
+        const anchor = refreshButton || editorSelect || fallbackHost;
+        if (!anchor) return;
+
+        let host = document.getElementById('gigma-dedupe-toolbar-host');
+        if (!host) {
+            host = document.createElement('span');
+            host.id = 'gigma-dedupe-toolbar-host';
+            host.className = 'gigma-dedupe-toolbar-host';
+            host.innerHTML = '<button id="gigma-duplicate-sentences-open" class="menu_button gigma-dedupe-toolbar-button" type="button" title="Duplicate Sentences" aria-label="Duplicate Sentences"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-dedupe-toolbar-icon"><path d="M8 7.5h8.5M8 12h8.5M8 16.5h6.5M5.75 4.75h9.5a1.5 1.5 0 0 1 1.5 1.5v11.5a1.5 1.5 0 0 1-1.5 1.5h-9.5a1.5 1.5 0 0 1-1.5-1.5V6.25a1.5 1.5 0 0 1 1.5-1.5Zm3-2.5h9a1.5 1.5 0 0 1 1.5 1.5v11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></button>';
+        }
+
+        if (refreshButton && refreshButton.parentElement) {
+            if (host.parentElement !== refreshButton.parentElement || host.previousElementSibling !== refreshButton) {
+                refreshButton.insertAdjacentElement('afterend', host);
+            }
+            return;
+        }
+
+        const parent = editorSelect?.parentElement || fallbackHost;
+        if (parent && host.parentElement !== parent) {
+            parent.appendChild(host);
+        }
+    } catch (_eDuplicateSentenceToolbarButton) { }
+}
+
+(function gigmaDuplicateSentenceToolbarButtonOnce() {
+    try {
+        if (window.__gigmaDuplicateSentenceToolbarButtonOnce) return;
+        window.__gigmaDuplicateSentenceToolbarButtonOnce = true;
+
+        let scheduled = false;
+        const schedule = () => {
+            if (scheduled) return;
+            scheduled = true;
+            const run = () => {
+                scheduled = false;
+                gigmaEnsureDuplicateSentenceToolbarButton();
+            };
+            try { requestAnimationFrame(run); } catch (_eDuplicateSentenceToolbarRaf) { setTimeout(run, 0); }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', schedule, { once: true });
+        } else {
+            schedule();
+        }
+
+        const observer = new MutationObserver(() => schedule());
+        observer.observe(document.documentElement || document.body, { childList: true, subtree: true });
+    } catch (_eDuplicateSentenceToolbarButtonOnce) { }
+})();
+
+window.gigmaShowDuplicateSentencePopup = gigmaShowDuplicateSentencePopup;
 /**
  * Parent Presets: "Unchained lorebooks" UI
  * - Only visible when viewing Parent presets AND in Order mode.
@@ -41942,6 +44625,13 @@ document.addEventListener('click', async (e) => {
             return;
         }
 
+        if (tid === 'gigma-duplicate-sentences-open') {
+            try { if (e && typeof e.preventDefault === 'function') e.preventDefault(); } catch (_) {}
+            try { if (e && typeof e.stopPropagation === 'function') e.stopPropagation(); } catch (_) {}
+            await gigmaShowDuplicateSentencePopup();
+            return;
+        }
+
 if (tid === 'gigma-ordering-load') {
 // GIGMA: In Budget mode, when this button is in the "Reset budget" state,
 // reset budgets for all lorebooks in the current preset to Default and do nothing else.
@@ -42605,6 +45295,7 @@ async function init() {
 
             setupEventHandlers();
             try { gigmaInstallLorebookContentStylesOnce(); } catch (_e) { }
+            gigmaInstallDuplicateSentenceStylesOnce();
             gigmaBlockNativeWorldInfoEntryTokenCounter();
             gigmaBlockNativeWorldInfoEntryInitialTokenCounter();
             addGiglioMachineButton();
