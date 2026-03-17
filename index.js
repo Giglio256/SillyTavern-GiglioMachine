@@ -13277,7 +13277,7 @@ function gigmaInstallLorebookContentStylesOnce() {
 function gigmaSkinLorebookContentToggleButton(btn, titleText) {
     try {
         if (!btn) return;
-        btn.classList.add('gigma-lore-content-toggle-icon');
+        btn.classList.add('gigma-lore-content-toggle-icon', 'gigma-icon-btn');
         if (titleText) {
             btn.title = titleText;
             btn.setAttribute('aria-label', titleText);
