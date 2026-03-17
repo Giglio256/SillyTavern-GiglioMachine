@@ -35066,6 +35066,8 @@ function gigmaEnsureDuplicateSentenceState(root) {
             results: [],
             resultIndexByKey: new Map(),
             selectedKeys: new Set(),
+            selectedRemovalCount: 0,
+            totalRemovalCount: 0,
             detailViewMode: 'excerpt',
             activeKey: '',
             lastOptions: null,
@@ -35226,7 +35228,9 @@ function gigmaDuplicateSentenceRenderSummary(state) {
         return `No duplicate sentences found across ${summary.booksScanned} lorebooks, ${summary.entriesScanned} entries, and ${summary.sentencesScanned} scanned sentences.`;
     }
     const selectedCount = state.selectedKeys.size;
-    const selectedRemovals = state.results.reduce((sum, result) => sum + (state.selectedKeys.has(result.key) ? result.removeCount : 0), 0);
+    const selectedRemovals = Number.isFinite(state.selectedRemovalCount)
+        ? state.selectedRemovalCount
+        : state.results.reduce((sum, result) => sum + (state.selectedKeys.has(result.key) ? result.removeCount : 0), 0);
     return `${summary.findings} duplicate sentences found across ${summary.booksScanned} lorebooks, ${summary.entriesScanned} entries, and ${summary.sentencesScanned} scanned sentences. ${selectedCount} finding${selectedCount === 1 ? '' : 's'} selected, ${selectedRemovals} earlier cop${selectedRemovals === 1 ? 'y' : 'ies'} marked for removal.`;
 }
 
@@ -35606,6 +35610,16 @@ function gigmaUpdateDuplicateSentenceListRow(root, index) {
     if (checkbox) checkbox.checked = selected;
 }
 
+function gigmaUpdateDuplicateSentenceAllListRows(root, selected) {
+    if (!root) return;
+    root.querySelectorAll('.gigma-dedupe-row').forEach((row) => {
+        row.classList.toggle('is-selected', !!selected);
+    });
+    root.querySelectorAll('.gigma-dedupe-check').forEach((checkbox) => {
+        checkbox.checked = !!selected;
+    });
+}
+
 function gigmaRenderDuplicateSentencePopup(root) {
     const state = gigmaEnsureDuplicateSentenceState(root);
     if (!state || !root) return;
@@ -35648,6 +35662,8 @@ async function gigmaRunDuplicateSentenceScan(root) {
         state.lastOptions = scan.options;
         state.lastSummary = scan.summary;
         state.selectedKeys = new Set();
+        state.selectedRemovalCount = 0;
+        state.totalRemovalCount = scan.results.reduce((sum, result) => sum + (Number(result?.removeCount) || 0), 0);
         state.detailViewMode = 'excerpt';
         state.activeKey = scan.results[0]?.key || '';
         gigmaDuplicateSentenceResetDetailCaches(state);
@@ -35658,6 +35674,8 @@ async function gigmaRunDuplicateSentenceScan(root) {
         state.scanBooks = new Map();
         state.lastSummary = null;
         state.selectedKeys = new Set();
+        state.selectedRemovalCount = 0;
+        state.totalRemovalCount = 0;
         state.detailViewMode = 'excerpt';
         state.activeKey = '';
         gigmaDuplicateSentenceResetDetailCaches(state);
@@ -35767,8 +35785,17 @@ function gigmaSetDuplicateSentenceSelection(root, index, selected) {
     const result = state.results[index];
     if (!result) return;
 
-    if (selected) state.selectedKeys.add(result.key);
-    else state.selectedKeys.delete(result.key);
+    const wasSelected = state.selectedKeys.has(result.key);
+    if (selected === wasSelected) return;
+
+    if (selected) {
+        state.selectedKeys.add(result.key);
+        state.selectedRemovalCount += Number(result.removeCount) || 0;
+    } else {
+        state.selectedKeys.delete(result.key);
+        state.selectedRemovalCount -= Number(result.removeCount) || 0;
+    }
+    if (!Number.isFinite(state.selectedRemovalCount) || state.selectedRemovalCount < 0) state.selectedRemovalCount = 0;
 
     gigmaUpdateDuplicateSentencePopupChrome(root);
     gigmaUpdateDuplicateSentenceListRow(root, index);
@@ -35801,15 +35828,32 @@ function gigmaDuplicateSentenceSelectAll(root) {
     const state = gigmaEnsureDuplicateSentenceState(root);
     if (!state || state.busy) return;
     state.selectedKeys = new Set(state.results.map(result => result.key));
-    if (!state.activeKey && state.results[0]) state.activeKey = state.results[0].key;
-    gigmaRenderDuplicateSentencePopup(root);
+    state.selectedRemovalCount = Number.isFinite(state.totalRemovalCount)
+        ? state.totalRemovalCount
+        : state.results.reduce((sum, result) => sum + (Number(result?.removeCount) || 0), 0);
+
+    let activated = false;
+    if (!state.activeKey && state.results[0]) {
+        state.activeKey = state.results[0].key;
+        activated = true;
+    }
+
+    gigmaUpdateDuplicateSentencePopupChrome(root);
+    gigmaUpdateDuplicateSentenceAllListRows(root, true);
+    if (activated) {
+        gigmaUpdateDuplicateSentenceActiveRow(root, state.activeKey, true);
+        gigmaDuplicateSentenceRenderDetail(root);
+    }
 }
 
 function gigmaDuplicateSentenceClearSelection(root) {
     const state = gigmaEnsureDuplicateSentenceState(root);
     if (!state || state.busy) return;
+    if (!state.selectedKeys.size && !state.selectedRemovalCount) return;
     state.selectedKeys.clear();
-    gigmaRenderDuplicateSentencePopup(root);
+    state.selectedRemovalCount = 0;
+    gigmaUpdateDuplicateSentencePopupChrome(root);
+    gigmaUpdateDuplicateSentenceAllListRows(root, false);
 }
 
 function gigmaDuplicateSentenceSetAllDetails(root, scope, open) {
