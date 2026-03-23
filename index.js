@@ -2040,6 +2040,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         min-height: 0;
         overflow-y: auto;
         overflow-x: visible;
+        scrollbar-gutter: stable;
       }
       dialog:has(#gigma-modal-root) .popup-body,
       dialog:has(#gigma-modal-root) .popup-content,
@@ -16617,7 +16618,7 @@ try {
                                 <button id="gigma-child-preset-delete" class="menu_button gigma-icon-btn" type="button" title="Delete" aria-label="Delete"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-trash-can"></i></span></button>
                         </div>
                         <!-- Lorebook grouping toolbar + list --><!-- Root list and folders live in this container (immediately follows toolbar) -->
-                        <div id="gigma-ordering-container" class="MarginTop10" style="border:0.0625em solid #444; padding:0.375em; border-radius:0.375em; display:flex; flex-direction:column; height:calc(100vh - 16.25rem); overflow-y:auto; overflow-x:visible; position:relative;"><div id="gigma-ordering-title" class="gigma-ordering-title">Sorted Lorebooks</div>
+                        <div id="gigma-ordering-container" class="MarginTop10" style="border:0.0625em solid #444; padding:0.375em; border-radius:0.375em; display:flex; flex-direction:column; height:calc(100vh - 16.25rem); overflow-y:auto; overflow-x:visible; position:relative; scrollbar-gutter:stable;"><div id="gigma-ordering-title" class="gigma-ordering-title">Sorted Lorebooks</div>
                         <div id="gigma-toolbar" class="MarginTop10">
                             <div class="gigma-toolbar-group">
                                 <button id="gigma-new-folder" class="menu_button" title="Create folder" aria-label="New Folder"><i class="fa-solid fa-folder" aria-hidden="true"></i></button>
@@ -16625,7 +16626,7 @@ try {
                             </div>
                         </div>
                         
-                            <div id="gigma-ordering-list" style="flex:1 1 auto; min-height:0; overflow:auto;"></div>
+                            <div id="gigma-ordering-list" style="flex:1 1 auto; min-height:0; overflow:auto; scrollbar-gutter:stable;"></div>
                         </div>
                         <div id="gigma-ordering-count-wrap" style="position:relative; height:0; width:100%;">
                             <small id="gigma-ordering-count" style="position:absolute; left:0.375em; top:0.125em; color:#aaa; text-align:left; font-size:80%; line-height:1.2; white-space:nowrap;">Lorebooks: 0</small>
@@ -33947,8 +33948,7 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
             }
             #gigma-dedupe-root .gigma-dedupe-row-top,
             #gigma-dedupe-root .gigma-dedupe-row-meta,
-            #gigma-dedupe-root .gigma-dedupe-detail-meta,
-            #gigma-dedupe-root .gigma-dedupe-occurrence-head{
+            #gigma-dedupe-root .gigma-dedupe-detail-meta{
                 display:flex;
                 flex-wrap:wrap;
                 align-items:center;
@@ -33965,7 +33965,6 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
             #gigma-dedupe-root .gigma-dedupe-row-top,
             #gigma-dedupe-root .gigma-dedupe-row-meta,
             #gigma-dedupe-root .gigma-dedupe-detail-meta,
-            #gigma-dedupe-root .gigma-dedupe-occurrence-head,
             #gigma-dedupe-root .gigma-dedupe-group-head,
             #gigma-dedupe-root .gigma-dedupe-entry-head{
                 font-size:0.8em;
@@ -34122,15 +34121,6 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 line-height:1.42;
                 overflow-wrap:anywhere;
             }
-            #gigma-dedupe-root .gigma-dedupe-entry-meta{
-                display:flex;
-                flex-wrap:wrap;
-                align-items:center;
-                gap:0.36em;
-                margin-bottom:0.16em;
-                font-size:0.78em;
-                opacity:0.76;
-            }
             #gigma-dedupe-root .gigma-dedupe-entry-snippets{
                 display:flex;
                 flex-direction:column;
@@ -34252,11 +34242,10 @@ function gigmaDuplicateSentencePreview(text, limit = 180) {
 }
 
 function gigmaDuplicateSentenceEntryLabel(entry) {
-    const comment = String(entry?.comment || '').trim();
+    const comment = String(entry?.comment ?? '').trim();
     if (comment) return comment;
-    const keys = Array.isArray(entry?.key) ? entry.key.map(x => String(x || '').trim()).filter(Boolean) : [];
-    if (keys.length) return keys.join(', ');
-    return 'UID ' + String(entry?.uid ?? '');
+    const key = Array.isArray(entry?.key) ? entry.key.filter(Boolean).join(', ') : String(entry?.key ?? '').trim();
+    return key;
 }
 
 function gigmaDuplicateSentenceCompareUid(a, b) {
@@ -35307,7 +35296,6 @@ function gigmaDuplicateSentenceGroupOccurrences(result) {
         }
         entryGroup.occurrences.push({
             ...occurrence,
-            occurrenceNumber: index + 1,
             survivor: index === survivorOrder,
         });
     }
@@ -35402,22 +35390,10 @@ function gigmaBuildDuplicateSentenceDetailHtml(state, result, detailViewMode) {
                         <div class="gigma-dedupe-entry-list">
                             ${worldGroup.entries.map((entryGroup, entryIndex) => {
                                 const fullEntryHtml = gigmaDuplicateSentenceFullTextHtml(entryGroup.entryContent, entryGroup.occurrences);
-                                const entryMetaHtml = entryGroup.occurrences.map(occurrence => `
-                                    <span class="gigma-dedupe-chip">#${occurrence.occurrenceNumber}</span>
-                                    <span class="gigma-dedupe-chip">sentence ${occurrence.sentenceIndex + 1}</span>
-                                    <span class="gigma-dedupe-chip">chars ${occurrence.start + 1}-${occurrence.end}</span>
-                                    ${occurrence.survivor ? '<span class="gigma-dedupe-chip">survives</span>' : '<span class="gigma-dedupe-chip">will be removed</span>'}
-                                `).join('');
                                 const contentHtml = mode === 'full'
                                     ? `<div class="gigma-dedupe-entry-content">${fullEntryHtml}</div>`
                                     : `<div class="gigma-dedupe-entry-snippets">${entryGroup.occurrences.map(occurrence => `
                                         <div class="gigma-dedupe-occurrence${occurrence.survivor ? ' is-survivor' : ''}">
-                                            <div class="gigma-dedupe-occurrence-head">
-                                                <span class="gigma-dedupe-chip">#${occurrence.occurrenceNumber}</span>
-                                                <span class="gigma-dedupe-chip">sentence ${occurrence.sentenceIndex + 1}</span>
-                                                <span class="gigma-dedupe-chip">chars ${occurrence.start + 1}-${occurrence.end}</span>
-                                                ${occurrence.survivor ? '<span class="gigma-dedupe-chip">survives</span>' : '<span class="gigma-dedupe-chip">will be removed</span>'}
-                                            </div>
                                             <div class="gigma-dedupe-context">${gigmaDuplicateSentenceContextHtml({ before: occurrence.contextBefore, match: occurrence.contextMatch, after: occurrence.contextAfter })}</div>
                                         </div>
                                     `).join('')}</div>`;
@@ -35427,14 +35403,9 @@ function gigmaBuildDuplicateSentenceDetailHtml(state, result, detailViewMode) {
                                         <div class="gigma-dedupe-entry-head">
                                             <span class="gigma-dedupe-entry-label-text">Entry</span>
                                             <span class="gigma-dedupe-entry-name">${gigmaEscapeHtml(entryGroup.entryLabel)}</span>
-                                            <span class="gigma-dedupe-subtle-meta">
-                                                <span class="gigma-dedupe-chip">UID ${gigmaEscapeHtml(String(entryGroup.uid))}</span>
-                                                <span class="gigma-dedupe-chip">${entryGroup.occurrences.length} occurrence${entryGroup.occurrences.length === 1 ? '' : 's'}</span>
-                                            </span>
                                         </div>
                                     </summary>
                                     <div class="gigma-dedupe-entry-body">
-                                        <div class="gigma-dedupe-entry-meta">${entryMetaHtml}</div>
                                         ${contentHtml}
                                     </div>
                                 </details>
@@ -50086,6 +50057,10 @@ dialog.gigma-wide .gigma-unsorted-pane .gigma-focus-pane-list > .gigma-folder-li
     const css = document.createElement('style');
     css.id = 'gigma-leftcol-rowwidth';
     css.textContent = `
+      /* Always reserve scrollbar gutter so items don't shift when scroll appears/disappears */
+      #gigma-ordering-list{
+        scrollbar-gutter: stable;
+      }
       /* Make root rows span the full left column width in wide view */
       dialog.gigma-wide #gigma-ordering-list{ 
         padding-right: 0 !important; 
