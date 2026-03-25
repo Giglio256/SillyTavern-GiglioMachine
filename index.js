@@ -8482,7 +8482,26 @@ function gigmaRenderGlobalWiStatsDisplayInto(container, place, rootOverride){
         body.appendChild(frag);
 
         container.replaceChildren(head, body);
+        try{
+            if (place === 'preview' || place === 'modal') gigmaApplyGlobalWiStatsColumnCount(container);
+        }catch(_eCols){}
         gigmaQueueStatChipFitModeIn(body);
+    }catch(_e){}
+}
+
+function gigmaApplyGlobalWiStatsColumnCount(container){
+    try{
+        if (!container || !container.isConnected) return;
+        const sample = container.querySelector ? container.querySelector('.gigma-row-stats-section') : null;
+        if (!sample) {
+            try { container.style.removeProperty('--gigma-global-wi-stats-cols'); } catch (_e) { }
+            return;
+        }
+        const minColEm = 9.25;
+        const gapEm = gigmaGetModalLorebookStatsColumnGapEm(sample);
+        const widthEm = gigmaGetModalLorebookStatsLayoutWidthEm(container);
+        const n = Math.max(1, Math.floor((widthEm + gapEm) / (minColEm + gapEm)));
+        container.style.setProperty('--gigma-global-wi-stats-cols', String(n));
     }catch(_e){}
 }
 
@@ -8893,6 +8912,10 @@ function gigmaUpdateModalLorebookStatsColumnCountsAllRows() {
         window.addEventListener('resize', () => {
             try { window.__gigmaModalLorebookStatsTargetCountCache = null; } catch (_e) { }
             try { gigmaUpdateModalLorebookStatsColumnCountsAllRows(); } catch (_e) { }
+            try {
+                const container = document.getElementById('gigma-global-wi-stats-display-modal');
+                if (container) gigmaApplyGlobalWiStatsColumnCount(container);
+            } catch (_e) { }
         }, { passive: true });
     } catch (_e) { }
 })();
@@ -10256,6 +10279,10 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
       #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stats-section + .gigma-row-stats-section{
         margin-top: var(--gigma-global-wi-block-gap);
       }
+      #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stats-section,
+      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stats-section{
+        grid-template-columns: repeat(var(--gigma-global-wi-stats-cols, 1), minmax(9.25em, 1fr));
+      }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stat-chip,
       #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip{
         display:inline-flex;
@@ -10870,6 +10897,11 @@ function gigmaUpdatePresetTreePreviewLorebookStatsColumnCountsAllRows(rootOverri
         window.addEventListener('resize', () => {
             try { window.__gigmaPresetTreePreviewLorebookStatsTargetCountCache = null; } catch (_e) { }
             try { gigmaUpdatePresetTreePreviewLorebookStatsColumnCountsAllRows(); } catch (_e) { }
+            try {
+                const root = gigmaGetLatestPresetTreePreviewRoot();
+                const container = root ? root.querySelector('#gigma-global-wi-stats-display-preview') : null;
+                if (container) gigmaApplyGlobalWiStatsColumnCount(container);
+            } catch (_e) { }
         }, { passive: true });
     } catch (_e) { }
 })();
