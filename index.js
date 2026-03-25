@@ -6676,6 +6676,95 @@ function gigmaGetEmPx(el){
     try{ return parseFloat(getComputedStyle(el).fontSize) || 16; }catch(_e){ return 16; }
 }
 
+function gigmaResetWorldInfoFloatingDropdownPlacement(panelEl){
+    try{
+        if (!panelEl) return;
+        panelEl.style.position = '';
+        panelEl.style.left = '';
+        panelEl.style.right = '';
+        panelEl.style.top = '';
+        panelEl.style.bottom = '';
+        panelEl.style.maxHeight = '';
+        panelEl.style.overflowY = '';
+        panelEl.style.overflowX = '';
+        panelEl.style.zIndex = '';
+    }catch(_e){}
+}
+
+function gigmaApplyWorldInfoFloatingDropdownPlacement(panelEl, anchorEl){
+    try{
+        if (!panelEl || !anchorEl) return;
+
+        const rect = anchorEl.getBoundingClientRect ? anchorEl.getBoundingClientRect() : null;
+        if (!rect) return;
+
+        const em = gigmaGetEmPx(anchorEl);
+        const gapPx = em * 0.25;
+        const safetyPx = em * 0.6;
+        const viewportW = Math.max(document.documentElement?.clientWidth || 0, window?.innerWidth || 0);
+        const viewportH = Math.max(document.documentElement?.clientHeight || 0, window?.innerHeight || 0);
+
+        let preferredSide = '';
+        try{ preferredSide = String(panelEl.dataset.gigmaPreferredHSide || ''); }catch(_ePref){}
+        if (preferredSide !== 'left' && preferredSide !== 'right') {
+            try{
+                const cs = getComputedStyle(panelEl);
+                const left = String(cs && cs.left != null ? cs.left : '').trim();
+                const right = String(cs && cs.right != null ? cs.right : '').trim();
+                preferredSide = (left && left !== 'auto' && (!right || right === 'auto')) ? 'left' : 'right';
+            }catch(_eSide){
+                preferredSide = 'right';
+            }
+            try{ panelEl.dataset.gigmaPreferredHSide = preferredSide; }catch(_ePrefSet){}
+        }
+
+        panelEl.style.position = 'fixed';
+        panelEl.style.bottom = 'auto';
+        panelEl.style.zIndex = '10002';
+        panelEl.style.overflowY = 'auto';
+        panelEl.style.overflowX = 'hidden';
+
+        const top = Math.max(safetyPx, rect.bottom + gapPx);
+        panelEl.style.top = Math.round(top) + 'px';
+
+        const panelWidth = Math.max(
+            panelEl.getBoundingClientRect ? (panelEl.getBoundingClientRect().width || 0) : 0,
+            panelEl.scrollWidth || 0,
+            parseFloat(getComputedStyle(panelEl).minWidth) || 0
+        );
+
+        let left = (preferredSide === 'left') ? rect.left : (rect.right - panelWidth);
+        const minLeft = safetyPx;
+        const maxLeft = Math.max(minLeft, viewportW - panelWidth - safetyPx);
+        left = Math.min(Math.max(left, minLeft), maxLeft);
+
+        panelEl.style.left = Math.round(left) + 'px';
+        panelEl.style.right = 'auto';
+
+        let maxH = viewportH - top - safetyPx;
+        if (!Number.isFinite(maxH)) maxH = 0;
+        panelEl.style.maxHeight = Math.floor(Math.max(0, maxH)) + 'px';
+    }catch(_e){}
+}
+
+function gigmaUpdateWorldInfoStatsFloatingDropdowns(){
+    try{
+        const globalPanel = document.getElementById(SELECTORS.WORLD_INFO_GLOBAL_WI_STATS_PANEL);
+        const globalBtn = document.getElementById(SELECTORS.WORLD_INFO_GLOBAL_WI_STATS_BUTTON);
+        if (globalPanel) {
+            if (EXTENSION_STATE.globalWiStatsWiPanelOpen && globalBtn) gigmaApplyWorldInfoFloatingDropdownPlacement(globalPanel, globalBtn);
+            else gigmaResetWorldInfoFloatingDropdownPlacement(globalPanel);
+        }
+
+        const lorePanel = document.getElementById(SELECTORS.WORLD_INFO_LOREBOOK_STATS_PANEL);
+        const loreBtn = document.getElementById(SELECTORS.WORLD_INFO_LOREBOOK_STATS_BUTTON);
+        if (lorePanel) {
+            if (EXTENSION_STATE.worldInfoLorebookStatsPanelOpen && loreBtn) gigmaApplyWorldInfoFloatingDropdownPlacement(lorePanel, loreBtn);
+            else gigmaResetWorldInfoFloatingDropdownPlacement(lorePanel);
+        }
+    }catch(_e){}
+}
+
 function gigmaApplyDropdownHorizontalFallback(panelEl, anchorEl, clipEl){
     try{
         if (!panelEl || !anchorEl) return;
@@ -6736,6 +6825,10 @@ function gigmaApplyDropdownHorizontalFallback(panelEl, anchorEl, clipEl){
 function gigmaApplyGlobalWiStatsDropdownPlacement(panelEl, btnEl, place){
     try{
         if (!panelEl || !btnEl) return;
+        if (place === 'wi') {
+            gigmaApplyWorldInfoFloatingDropdownPlacement(panelEl, btnEl);
+            return;
+        }
 
         const rect = btnEl.getBoundingClientRect ? btnEl.getBoundingClientRect() : null;
         if (!rect) return;
@@ -7643,7 +7736,9 @@ function gigmaUpdateGlobalWiStatsControlsUi(place){
                 panel.setAttribute('aria-hidden', EXTENSION_STATE.globalWiStatsWiPanelOpen ? 'false' : 'true');
 
                 if (EXTENSION_STATE.globalWiStatsWiPanelOpen && btn) {
-                    try{ gigmaApplyGlobalWiStatsDropdownPlacement(panel, btn, 'wi'); }catch(_ePlaceWi){}
+                    try{ gigmaApplyWorldInfoFloatingDropdownPlacement(panel, btn); }catch(_ePlaceWi){}
+                } else {
+                    gigmaResetWorldInfoFloatingDropdownPlacement(panel);
                 }
             }
 
@@ -11898,26 +11993,9 @@ function gigmaUpdateWorldInfoLorebookStatsDropdownUi(){
         });
 
         if (open && btn) {
-            let clipEl = null;
-            try{ clipEl = document.getElementById('world_popup') || document.querySelector('#world_popup') || null; }catch(_eClip){}
-            if (!clipEl) {
-                try{
-                    let n = panel;
-                    while(n && n !== document.body && n !== document.documentElement){
-                        n = n.parentElement;
-                        if (!n) break;
-                        const cs = getComputedStyle(n);
-                        const ovy = cs ? cs.overflowY : '';
-                        const ovx = cs ? cs.overflowX : '';
-                        if ((ovy && ovy !== 'visible') || (ovx && ovx !== 'visible')) {
-                            clipEl = n;
-                            break;
-                        }
-                    }
-                }catch(_eClipFind){}
-            }
-            if (!clipEl) clipEl = document.documentElement;
-            gigmaApplyDropdownHorizontalFallback(panel, btn, clipEl);
+            gigmaApplyWorldInfoFloatingDropdownPlacement(panel, btn);
+        } else {
+            gigmaResetWorldInfoFloatingDropdownPlacement(panel);
         }
 
         const alignBtn = panel.querySelector('button[data-gigma-wi-lore="align"]');
@@ -15462,22 +15540,15 @@ function addGiglioMachineButton() {
                         }catch(_e){}
                     }, true);
                     window.addEventListener('resize', () => {
-                        try{
-                            if (!EXTENSION_STATE.globalWiStatsWiPanelOpen) return;
-                            const b = document.getElementById(SELECTORS.WORLD_INFO_GLOBAL_WI_STATS_BUTTON);
-                            const p = document.getElementById(SELECTORS.WORLD_INFO_GLOBAL_WI_STATS_PANEL);
-                            if (b && p) gigmaApplyGlobalWiStatsDropdownPlacement(p, b, 'wi');
-                        }catch(_e){}
+                        try{ gigmaUpdateWorldInfoStatsFloatingDropdowns(); }catch(_e){}
                     });
+                    window.addEventListener('scroll', () => {
+                        try{ gigmaUpdateWorldInfoStatsFloatingDropdowns(); }catch(_e){}
+                    }, { passive: true, capture: true });
 
                     try{
                         const onWiLayout = () => {
-                            try{
-                                if (!EXTENSION_STATE.globalWiStatsWiPanelOpen) return;
-                                const b = document.getElementById(SELECTORS.WORLD_INFO_GLOBAL_WI_STATS_BUTTON);
-                                const p = document.getElementById(SELECTORS.WORLD_INFO_GLOBAL_WI_STATS_PANEL);
-                                if (b && p) gigmaApplyGlobalWiStatsDropdownPlacement(p, b, 'wi');
-                            }catch(_e){}
+                            try{ gigmaUpdateWorldInfoStatsFloatingDropdowns(); }catch(_e){}
                         };
 
                         const popup = document.getElementById('world_popup') || (document.querySelector ? document.querySelector('#world_popup') : null);
