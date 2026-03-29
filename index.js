@@ -272,37 +272,37 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         user-select: text !important;
       }
     
-      dialog:has(#gigma-preset-tree-preview-root) {
+      dialog:has(#gigma-layout-preset-tree-preview-root) {
         max-width: 72rem !important;
         width: 72rem !important;
         height: var(--gigma-modal-dialog-height) !important;
 }
       /* Make the preview popup use the full dialog height (like the main modal) */
-      dialog:has(#gigma-preset-tree-preview-root) .popup-body,
-      dialog:has(#gigma-preset-tree-preview-root) .popup-content,
-      dialog:has(#gigma-preset-tree-preview-root) .popup-content-wrapper,
-      dialog:has(#gigma-preset-tree-preview-root){
+      dialog:has(#gigma-layout-preset-tree-preview-root) .popup-body,
+      dialog:has(#gigma-layout-preset-tree-preview-root) .popup-content,
+      dialog:has(#gigma-layout-preset-tree-preview-root) .popup-content-wrapper,
+      dialog:has(#gigma-layout-preset-tree-preview-root){
         overflow: hidden !important;
               }
-      dialog:has(#gigma-preset-tree-preview-root) .popup-body,
-      dialog:has(#gigma-preset-tree-preview-root) .popup-content,
-      dialog:has(#gigma-preset-tree-preview-root) .popup-content-wrapper{
+      dialog:has(#gigma-layout-preset-tree-preview-root) .popup-body,
+      dialog:has(#gigma-layout-preset-tree-preview-root) .popup-content,
+      dialog:has(#gigma-layout-preset-tree-preview-root) .popup-content-wrapper{
         display: flex !important;
         flex-direction: column !important;
         height: 100% !important;
       }
 
-      /* Hide the bottom button row in the preset tree preview */
-      dialog:has(#gigma-preset-tree-preview-root) .popup-buttons,
-      dialog:has(#gigma-preset-tree-preview-root) .popup-controls,
-      dialog:has(#gigma-preset-tree-preview-root) .popup-button-row,
-      dialog:has(#gigma-preset-tree-preview-root) .popup_button_container,
-      dialog:has(#gigma-preset-tree-preview-root) .swal2-actions{
+      /* Hide the bottom button row in the layout preset tree preview */
+      dialog:has(#gigma-layout-preset-tree-preview-root) .popup-buttons,
+      dialog:has(#gigma-layout-preset-tree-preview-root) .popup-controls,
+      dialog:has(#gigma-layout-preset-tree-preview-root) .popup-button-row,
+      dialog:has(#gigma-layout-preset-tree-preview-root) .popup_button_container,
+      dialog:has(#gigma-layout-preset-tree-preview-root) .swal2-actions{
         display: none !important;
       }
 
       /* Preview header close (X) button: scale with the preview font size */
-      #gigma-preset-tree-close{
+      #gigma-layout-preset-tree-close{
         width: var(--gigma-hdr-btn) !important;
         height: var(--gigma-hdr-btn) !important;
         max-width: var(--gigma-hdr-btn) !important;
@@ -323,12 +323,12 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         box-shadow: none !important;
         transition: background-color .12s ease-out, border-color .12s ease-out, box-shadow .12s ease-out;
       }
-      #gigma-preset-tree-close .gigma-global-icon-svg,
-      #gigma-preset-tree-close .gigma-global-icon-svg *{
+      #gigma-layout-preset-tree-close .gigma-global-icon-svg,
+      #gigma-layout-preset-tree-close .gigma-global-icon-svg *{
         stroke: rgba(220,220,220,0.84) !important;
       }
-      #gigma-preset-tree-close:hover,
-      #gigma-preset-tree-close:focus-visible{
+      #gigma-layout-preset-tree-close:hover,
+      #gigma-layout-preset-tree-close:focus-visible{
         background: rgba(255,0,90,0.52) !important;
         border-color: rgba(255,0,90,1) !important;
       }
@@ -340,7 +340,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
 
 
 
-// --- GIGMA: Preset assignment preview popup styling (em-only) ---
+// --- GIGMA: Assignment preset preview popup styling (em-only) ---
 (function gigmaAssignmentPreviewStyleOnce(){
   try{
     if (document.getElementById('gigma-assignment-preview-style')) return;
@@ -1299,13 +1299,13 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   }
 })();
 // --- GIGMA: Preset kind toggle button styling ---
-(function gigmaPresetKindToggleStyleOnce(){
+(function gigmaLayoutPresetKindToggleStyleOnce(){
   try{
-    if (document.getElementById('gigma-preset-kind-toggle-style')) return;
+    if (document.getElementById('gigma-layout-preset-kind-toggle-style')) return;
     const s = document.createElement('style');
-    s.id = 'gigma-preset-kind-toggle-style';
+    s.id = 'gigma-layout-preset-kind-toggle-style';
     s.textContent = `
-      .gigma-preset-separator{
+      .gigma-layout-preset-separator{
         display:inline-block;
         width:0;
         height:1.75em;
@@ -1313,12 +1313,12 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         margin:0 0.25em;
         align-self:center;
       }
-      .gigma-preset-kind-toggle-row{
+      .gigma-layout-preset-kind-toggle-row{
         display:flex;
         justify-content:center;
         margin-top:0.25em;
       }
-      .gigma-preset-select-row{
+      .gigma-layout-or-assignment-preset-select-row{
         display:flex;
         justify-content:center;
         margin-top:0.25em;
@@ -1647,13 +1647,13 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         margin-bottom:0 !important;
       }
 
-.gigma-preset-kind-toggle{
+.gigma-layout-preset-kind-toggle{
         display:inline-block;
         white-space:nowrap;
         margin-left:0; /* remove unnecessary gap next to the Wide/Narrow button */
       }
       /* Lorebook Budget drawer: unify Child/Parent Preset, Preview, and Save button sizing */
-      #gigma-lorebook-drawer-preset-kind-toggle,
+      #gigma-lorebook-drawer-layout-preset-kind-toggle,
       #gigma-lorebook-tree-button,
       #gigma-lorebook-save{
         font-size: calc(var(--mainFontSize) * 0.96) !important;
@@ -1689,7 +1689,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
     const s = document.createElement('style');
     s.id = 'gigma-quicksave-2line-style';
     s.textContent = `      /* Quicksave: bolt-only + double-width icon button (modal preset rows) */
-      .gigma-preset-controls > button.menu_button.gigma-quicksave-btn{
+      .gigma-layout-or-assignment-preset-controls > button.menu_button.gigma-quicksave-btn{
         width: calc(var(--gigma-btn-h, 2.1em) * 1.8) !important;
         min-width: calc(var(--gigma-btn-h, 2.1em) * 1.8) !important;
         max-width: calc(var(--gigma-btn-h, 2.1em) * 1.8) !important;
@@ -1698,7 +1698,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         align-items:center;
         justify-content:center;
       }
-      .gigma-preset-controls .gigma-quicksave-btn .gigma-quicksave-text{
+      .gigma-layout-or-assignment-preset-controls .gigma-quicksave-btn .gigma-quicksave-text{
         display:none !important;
       }`;
     document.head.appendChild(s);
@@ -1713,7 +1713,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
     const s = document.createElement('style');
     s.id = 'gigma-global-settings-style';
     s.textContent = `      dialog:has(#gigma-modal-root),
-        dialog:has(#gigma-preset-tree-preview-root){
+        dialog:has(#gigma-layout-preset-tree-preview-root){
         --gigma-hdr-btn: 2em;
         --gigma-hdr-gap: calc(var(--gigma-hdr-btn) * 0.16);
         --gigma-hdr-pad-x: calc(var(--gigma-hdr-btn) * 0.19);
@@ -2062,21 +2062,21 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
 })();
 // --- end: Global settings section styling ---
 
-/* --- GIGMA: Keep preset assignment section aligned to the preset dropdown width --- */
-(function gigmaPresetAssignmentsWidthOnce(){
+/* --- GIGMA: Keep assignment section aligned to the preset dropdown width --- */
+(function gigmaAssignmentSectionsWidthOnce(){
   try{
-    if (document.getElementById('gigma-preset-assignments-width-style')) return;
+    if (document.getElementById('gigma-assignment-sections-width-style')) return;
     const s = document.createElement('style');
-    s.id = 'gigma-preset-assignments-width-style';
+    s.id = 'gigma-assignment-sections-width-style';
     s.textContent = `
-      #gigma-preset-assignments-container{
+      #gigma-assignment-sections-container{
         width:100%;
         max-width: var(--gigma-ordering-list-width, 40.5rem);
         margin-left:auto;
         margin-right:auto;
         box-sizing:border-box;
       }
-      #gigma-preset-assignments-container .gigma-preset-assignment{
+      #gigma-assignment-sections-container .gigma-assignment-section{
         width:100%;
         box-sizing:border-box;
       }
@@ -2085,51 +2085,51 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   }catch(_){}
 })();
 
-/* --- GIGMA: Preset assignment Select2 chips match Parent Preset (Unchained) styling (except chip hover) --- */
-(function gigmaPresetAssignmentsSelect2StyleOnce(){
+/* --- GIGMA: Assignment section Select2 chips match Parent Preset (Unchained) styling (except chip hover) --- */
+(function gigmaAssignmentSectionsSelect2StyleOnce(){
   try{
-    if (document.getElementById('gigma-preset-assignments-select2-style')) return;
+    if (document.getElementById('gigma-assignment-sections-select2-style')) return;
     const s = document.createElement('style');
-    s.id = 'gigma-preset-assignments-select2-style';
+    s.id = 'gigma-assignment-sections-select2-style';
     s.textContent = `
       /* Ensure Select2 takes the full row width */
-      #gigma-preset-assignments-container .select2-container{
+      #gigma-assignment-sections-container .select2-container{
         width:100% !important;
         max-width:100% !important;
         box-sizing:border-box;
       }
 
       /* Align selected chips like the Parent Preset (Unchained) selector */
-      #gigma-preset-assignments-container .select2-selection--multiple .select2-selection__rendered{
+      #gigma-assignment-sections-container .select2-selection--multiple .select2-selection__rendered{
         text-align:left !important;
       }
-      #gigma-preset-assignments-container .select2-selection--multiple{
+      #gigma-assignment-sections-container .select2-selection--multiple{
         text-align:left !important;
       }
-      #gigma-preset-assignments-container .select2-selection__choice{
+      #gigma-assignment-sections-container .select2-selection__choice{
         margin-left:0 !important;
       }
 
       /* Match the rounded remove (X) hit area */
-      #gigma-preset-assignments-container .select2-selection__choice__remove{
+      #gigma-assignment-sections-container .select2-selection__choice__remove{
         border-radius: 0.25em !important;
       }
 
       /* Difference vs Parent Preset (Unchained): do NOT highlight the whole chip on hover */
-      #gigma-preset-assignments-container .select2-selection__choice{
+      #gigma-assignment-sections-container .select2-selection__choice{
         outline: none !important;
         outline-offset: 0 !important;
         box-shadow: none !important;
       }
       /* Only the remove (X) gets the highlight + outline */
-      #gigma-preset-assignments-container .select2-selection__choice:has(.select2-selection__choice__remove:hover),
-      #gigma-preset-assignments-container .select2-selection__choice:has(.select2-selection__choice__remove:focus-visible){
+      #gigma-assignment-sections-container .select2-selection__choice:has(.select2-selection__choice__remove:hover),
+      #gigma-assignment-sections-container .select2-selection__choice:has(.select2-selection__choice__remove:focus-visible){
         outline: none !important;
         background: unset !important;
         box-shadow: none !important;
       }
-      #gigma-preset-assignments-container .select2-selection__choice__remove:hover,
-      #gigma-preset-assignments-container .select2-selection__choice__remove:focus-visible{
+      #gigma-assignment-sections-container .select2-selection__choice__remove:hover,
+      #gigma-assignment-sections-container .select2-selection__choice__remove:focus-visible{
         outline: none !important;
         background: rgba(255,255,255,0.16) !important;
         box-shadow: inset 0 0 0 0.0625em #ffffff !important;
@@ -2185,14 +2185,14 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   }catch(_){}
 })();
 // --- end: ordering title style ---
-// --- GIGMA: layout preset tree styling (read-only popup view) ---
-(function gigmaPresetTreeStyleOnce(){
+// --- GIGMA: layout layout preset tree styling (read-only popup view) ---
+(function gigmaLayoutPresetTreeStyleOnce(){
   try{
-    if (document.getElementById('gigma-preset-tree-style')) return;
+    if (document.getElementById('gigma-layout-preset-tree-style')) return;
     const s = document.createElement('style');
-    s.id = 'gigma-preset-tree-style';
+    s.id = 'gigma-layout-preset-tree-style';
     s.textContent = `
-      .gigma-preset-tree{
+      .gigma-layout-preset-tree{
         flex:1 1 auto;
         min-height:0;
         height:auto;
@@ -2206,28 +2206,28 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         -moz-user-select:none;
         user-select:none;
       }
-      #gigma-preset-tree-preview-root{
+      #gigma-layout-preset-tree-preview-root{
         display:flex;
         flex-direction:column;
         height:100%;
         min-height:0;
       }
-      #gigma-preset-tree-preview-root .gigma-preset-tree{
+      #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree{
         background:rgba(0,0,0,0.16);
       }
-      .gigma-preset-tree-root-label{
+      .gigma-layout-preset-tree-root-label{
         display:flex;
         align-items:center;
         gap:0.375em;
         font-weight:600;
         margin-bottom:0.25em;
       }
-      .gigma-preset-tree ul{
+      .gigma-layout-preset-tree ul{
         list-style:none;
         margin:0;
         padding-left:0;
       }
-      .gigma-preset-tree li{
+      .gigma-layout-preset-tree li{
         margin:0.125em 0;
         padding-left:0;
         display:flex;
@@ -2235,12 +2235,12 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         gap:0.25em;
         flex-wrap:wrap;
       }
-      .gigma-preset-tree li > ul{
+      .gigma-layout-preset-tree li > ul{
         flex-basis:100%;
         margin-left:1.4em;
         padding-left:0;
       }
-      .gigma-preset-tree-icon{
+      .gigma-layout-preset-tree-icon{
         width:auto;
         min-width:1.1em;
         text-align:center;
@@ -2251,20 +2251,20 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         justify-content:flex-start;
         gap:0.125em;
       }
-      .gigma-preset-tree-icon .gigma-active-world-globe{
+      .gigma-layout-preset-tree-icon .gigma-active-world-globe{
         margin-left:0;
         margin-right:0;
       }
-      .gigma-preset-tree-icon i{
+      .gigma-layout-preset-tree-icon i{
         font-size:0.95em;
         line-height:1;
             }
       /* Make unchained (link-slash) icons 20% smaller in the preset preview */
-      .gigma-preset-tree-icon i.fa-link-slash{
+      .gigma-layout-preset-tree-icon i.fa-link-slash{
         font-size:0.76em;
       }
 
-.gigma-preset-tree-budget{
+.gigma-layout-preset-tree-budget{
   display:none;
   width:8em;
   justify-content:flex-end;
@@ -2274,10 +2274,10 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   opacity:0.88;
   flex-shrink:0;
 }
-#gigma-preset-tree-preview-root.gigma-preview-viewmode-budget .gigma-preset-tree-budget{
+#gigma-layout-preset-tree-preview-root.gigma-preview-viewmode-budget .gigma-layout-preset-tree-budget{
   display:inline-flex;
 }
-.gigma-preset-tree-budget-pill{
+.gigma-layout-preset-tree-budget-pill{
   display:inline-flex;
   align-items:center;
   justify-content:flex-end;
@@ -2290,51 +2290,51 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   letter-spacing:0.0125em;
   white-space:nowrap;
 }
-.gigma-preset-tree-budget-pill.gigma-budget-random-pill{
+.gigma-layout-preset-tree-budget-pill.gigma-budget-random-pill{
   justify-content:center;
   padding:0.0625em 0.375em;
 }
 
-.gigma-preset-tree-budget-pill.gigma-budget-off{
+.gigma-layout-preset-tree-budget-pill.gigma-budget-off{
   opacity:0.75;
 }
 
-      .gigma-preset-tree-label{
+      .gigma-layout-preset-tree-label{
         flex:1;
         text-align:left;
         hyphens: manual;
         word-break: break-word;
         overflow-wrap: break-word;
       }
-      .gigma-preset-tree-folder > .gigma-preset-tree-label,
-      .gigma-preset-tree-folder > .gigma-preset-tree-icon{
+      .gigma-layout-preset-tree-folder > .gigma-layout-preset-tree-label,
+      .gigma-layout-preset-tree-folder > .gigma-layout-preset-tree-icon{
         font-weight:600;
       }
-      .gigma-preset-tree-row,
-      .gigma-preset-tree-folder{
+      .gigma-layout-preset-tree-row,
+      .gigma-layout-preset-tree-folder{
         cursor:pointer;
       }
       /* Preview list: square blue highlight + outline for selected items */
-      #gigma-preset-tree-preview-root .gigma-preset-tree-row.gigma-selected,
-      #gigma-preset-tree-preview-root .gigma-preset-tree-folder.gigma-selected{
+      #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row.gigma-selected,
+      #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-folder.gigma-selected{
         outline: 0.125em solid rgba(77,163,255,0.9) !important;
         outline-offset: 0em;
         background: rgba(77,163,255,0.10) !important;
         border-radius: 0em !important;
       }
-      .gigma-preset-tree-row > .gigma-preset-tree-label,
-      .gigma-preset-tree-row > .gigma-preset-tree-icon,
-      .gigma-preset-tree-folder > .gigma-preset-tree-label,
-      .gigma-preset-tree-folder > .gigma-preset-tree-icon{
+      .gigma-layout-preset-tree-row > .gigma-layout-preset-tree-label,
+      .gigma-layout-preset-tree-row > .gigma-layout-preset-tree-icon,
+      .gigma-layout-preset-tree-folder > .gigma-layout-preset-tree-label,
+      .gigma-layout-preset-tree-folder > .gigma-layout-preset-tree-icon{
         cursor:inherit;
       }
-      .gigma-preset-tree-folder-empty > .gigma-preset-tree-label{
+      .gigma-layout-preset-tree-folder-empty > .gigma-layout-preset-tree-label{
         cursor:default;
       }
-      .gigma-preset-tree-folder-collapsed > ul{
+      .gigma-layout-preset-tree-folder-collapsed > ul{
         display:none;
       }
-      .gigma-preset-tree-empty{
+      .gigma-layout-preset-tree-empty{
         padding:0.5em;
         opacity:0.8;
       }
@@ -2342,27 +2342,27 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
     document.head.appendChild(s);
   }catch(_){}
 })();
-// --- end: GIGMA layout preset tree styling ---
-// --- GIGMA: duplicate sentence custom preset-tree selection styling ---
-(function gigmaDuplicateSentencePresetTreeSelectionStyleOnce(){
+// --- end: GIGMA layout layout preset tree styling ---
+// --- GIGMA: duplicate sentence custom layout-preset-tree selection styling ---
+(function gigmaDuplicateSentenceLayoutPresetTreeSelectionStyleOnce(){
   try{
-    if (document.getElementById('gigma-dedupe-preset-tree-selection-style')) return;
+    if (document.getElementById('gigma-dedupe-layout-preset-tree-selection-style')) return;
     const s = document.createElement('style');
-    s.id = 'gigma-dedupe-preset-tree-selection-style';
+    s.id = 'gigma-dedupe-layout-preset-tree-selection-style';
     s.textContent = `
-      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]{
+      #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]{
         position:relative;
       }
-      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-header{
+      #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-header{
         padding-left:3.25em;
       }
-      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-row.gigma-selected,
-      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-folder.gigma-selected{
+      #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-row.gigma-selected,
+      #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-folder.gigma-selected{
         outline:none !important;
         background:transparent !important;
         box-shadow:none !important;
       }
-      #gigma-preset-tree-save-selection{
+      #gigma-layout-preset-tree-save-selection{
         width: var(--gigma-hdr-btn) !important;
         height: var(--gigma-hdr-btn) !important;
         max-width: var(--gigma-hdr-btn) !important;
@@ -2383,16 +2383,16 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         box-shadow: none !important;
         transition: background-color .12s ease-out, border-color .12s ease-out, box-shadow .12s ease-out;
       }
-      #gigma-preset-tree-save-selection .gigma-global-icon-svg,
-      #gigma-preset-tree-save-selection .gigma-global-icon-svg *{
+      #gigma-layout-preset-tree-save-selection .gigma-global-icon-svg,
+      #gigma-layout-preset-tree-save-selection .gigma-global-icon-svg *{
         stroke: rgba(220,220,220,0.84) !important;
       }
-      #gigma-preset-tree-save-selection:hover,
-      #gigma-preset-tree-save-selection:focus-visible{
+      #gigma-layout-preset-tree-save-selection:hover,
+      #gigma-layout-preset-tree-save-selection:focus-visible{
         background: rgba(0,160,80,0.5) !important;
         border-color: rgba(0,200,100,1) !important;
       }
-      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-select-box{
+      #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-select-box{
         flex:0 0 auto;
         margin:0;
         align-self:center;
@@ -2400,8 +2400,8 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         height:1em;
         accent-color: rgba(77,163,255,0.95);
       }
-      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-folder > .gigma-preset-tree-select-box,
-      #gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-preset-tree-row > .gigma-preset-tree-select-box{
+      #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-folder > .gigma-layout-preset-tree-select-box,
+      #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-row > .gigma-layout-preset-tree-select-box{
         position:relative;
         top:0.0625em;
       }
@@ -2411,18 +2411,18 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
 })();
 
 
-// --- GIGMA: preset tree preview unchained toggle (show/hide & parent 3-state) ---
-(function gigmaAddPresetTreeUnchainedToggleStyles(){
+// --- GIGMA: layout preset tree preview unchained toggle (show/hide & parent 3-state) ---
+(function gigmaAddLayoutPresetTreeUnchainedToggleStyles(){
     try{
-        if (document.getElementById('gigma-preset-tree-unchained-style')) return;
+        if (document.getElementById('gigma-layout-preset-tree-unchained-style')) return;
         const s = document.createElement('style');
-        s.id = 'gigma-preset-tree-unchained-style';
+        s.id = 'gigma-layout-preset-tree-unchained-style';
         s.textContent = `
             /* Unchained toggle button badge */
-            #gigma-preset-tree-unchained-toggle{
+            #gigma-layout-preset-tree-unchained-toggle{
                 position: relative;
             }
-            #gigma-preset-tree-unchained-toggle[data-badge]:after{
+            #gigma-layout-preset-tree-unchained-toggle[data-badge]:after{
                 content: attr(data-badge);
                 position: absolute;
                 right: 0.07em;
@@ -2434,43 +2434,43 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
                 background: rgba(0,0,0,0.45);
             }
             /* Visual state differences */
-            #gigma-preset-tree-unchained-toggle.gigma-unchained-hide{
+            #gigma-layout-preset-tree-unchained-toggle.gigma-unchained-hide{
                 opacity: 0.55;
                 filter: grayscale(1);
             }
 
             /* Chained toggle states (no badge) */
-            #gigma-preset-tree-chained-toggle.gigma-chained-hide{
+            #gigma-layout-preset-tree-chained-toggle.gigma-chained-hide{
                 opacity: 0.55;
                 filter: grayscale(1);
             }
 
             /* Filtering rules: unchained */
-            #gigma-preset-tree-preview-root.gigma-preview-unchained-hide .gigma-preset-tree-row-unchained{
+            #gigma-layout-preset-tree-preview-root.gigma-preview-unchained-hide .gigma-layout-preset-tree-row-unchained{
                 display: none !important;
             }
-            #gigma-preset-tree-preview-root.gigma-preview-unchained-selected .gigma-preset-tree-row-unchained:not(.gigma-preset-tree-row-unchained-selected){
+            #gigma-layout-preset-tree-preview-root.gigma-preview-unchained-selected .gigma-layout-preset-tree-row-unchained:not(.gigma-layout-preset-tree-row-unchained-selected){
                 display: none !important;
             }
-            #gigma-preset-tree-preview-root.gigma-preview-unchained-unselected .gigma-preset-tree-row-unchained-selected{
+            #gigma-layout-preset-tree-preview-root.gigma-preview-unchained-unselected .gigma-layout-preset-tree-row-unchained-selected{
                 display: none !important;
             }
 
             /* Filtering rules: chained */
-            #gigma-preset-tree-preview-root.gigma-preview-chained-hide .gigma-preset-tree-row-chained{
+            #gigma-layout-preset-tree-preview-root.gigma-preview-chained-hide .gigma-layout-preset-tree-row-chained{
                 display: none !important;
             }
 
             /* Parent preset mode separation: order-mode vs budget-mode unchained rows */
-            #gigma-preset-tree-preview-root.gigma-preview-viewmode-budget .gigma-preset-tree-row-orderonly{
+            #gigma-layout-preset-tree-preview-root.gigma-preview-viewmode-budget .gigma-layout-preset-tree-row-orderonly{
                 display: none !important;
             }
-            #gigma-preset-tree-preview-root:not(.gigma-preview-viewmode-budget) .gigma-preset-tree-row-budgetonly{
+            #gigma-layout-preset-tree-preview-root:not(.gigma-preview-viewmode-budget) .gigma-layout-preset-tree-row-budgetonly{
                 display: none !important;
             }
 
             /* Parent unchained origin tag (optional helper) */
-            .gigma-preset-tree-unchained-origin{
+            .gigma-layout-preset-tree-unchained-origin{
                 display:inline-flex;
                 align-items:center;
                 gap:0.1875em;
@@ -2482,15 +2482,15 @@ font-size: 0.82em;
                 background: rgba(255,255,255,0.06);
             }
             /* Preview: dim (grey out) chained/unchained lorebooks independently */
-            #gigma-preset-tree-preview-root[data-dim-unchained="1"] .gigma-preset-tree-row-unchained > *,
-            #gigma-preset-tree-preview-root[data-dim-chained="1"] .gigma-preset-tree-row-chained > *{
+            #gigma-layout-preset-tree-preview-root[data-dim-unchained="1"] .gigma-layout-preset-tree-row-unchained > *,
+            #gigma-layout-preset-tree-preview-root[data-dim-chained="1"] .gigma-layout-preset-tree-row-chained > *{
                 opacity: 0.55 !important;
                 filter: grayscale(1) !important;
             }
 
             /* Preview: filled circle buttons */
-            #gigma-preset-tree-chained-dim-toggle,
-            #gigma-preset-tree-unchained-dim-toggle{
+            #gigma-layout-preset-tree-chained-dim-toggle,
+            #gigma-layout-preset-tree-unchained-dim-toggle{
                 position: relative;
             }
             .gigma-preview-circle-btn .gigma-preview-circle{
@@ -2507,7 +2507,7 @@ font-size: 0.82em;
             }
 
             /* Preview header: unify raw button sizes (do not touch the close X button) */
-            dialog:has(#gigma-preset-tree-preview-root) .gigma-preset-tree-header-right button.menu_button:not(#gigma-preset-tree-close){
+            dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-layout-preset-tree-header-right button.menu_button:not(#gigma-layout-preset-tree-close){
                 height: var(--gigma-hdr-btn) !important;
                 min-height: var(--gigma-hdr-btn) !important;
                 line-height: 1 !important;
@@ -2519,35 +2519,35 @@ font-size: 0.82em;
                 align-items: center !important;
                 justify-content: center !important;
             }
-            dialog:has(#gigma-preset-tree-preview-root) .gigma-preset-tree-header-right button.gigma-icon-btn:not(#gigma-preset-tree-close){
+            dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-layout-preset-tree-header-right button.gigma-icon-btn:not(#gigma-layout-preset-tree-close){
                 width: var(--gigma-hdr-btn) !important;
                 max-width: var(--gigma-hdr-btn) !important;
                 padding: 0 !important;
             }
-            dialog:has(#gigma-preset-tree-preview-root) #gigma-preset-tree-search{
+            dialog:has(#gigma-layout-preset-tree-preview-root) #gigma-layout-preset-tree-search{
                 width: calc(var(--gigma-hdr-btn) * 2) !important;
                 min-width: calc(var(--gigma-hdr-btn) * 2) !important;
                 max-width: calc(var(--gigma-hdr-btn) * 2) !important;
             }
 
-            dialog:has(#gigma-preset-tree-preview-root) #gigma-preset-tree-global-wi-stats{
+            dialog:has(#gigma-layout-preset-tree-preview-root) #gigma-layout-preset-tree-global-wi-stats{
                 width: calc(var(--gigma-hdr-btn) * 1.5) !important;
                 min-width: calc(var(--gigma-hdr-btn) * 1.5) !important;
                 max-width: calc(var(--gigma-hdr-btn) * 1.5) !important;
             }
 
-            dialog:has(#gigma-preset-tree-preview-root) #gigma-preset-tree-viewmode-toggle{
+            dialog:has(#gigma-layout-preset-tree-preview-root) #gigma-layout-preset-tree-viewmode-toggle{
                 padding: 0 0.75em !important;
             }
-            dialog:has(#gigma-preset-tree-preview-root) #gigma-preset-tree-restore-folders{
+            dialog:has(#gigma-layout-preset-tree-preview-root) #gigma-layout-preset-tree-restore-folders{
                 font-size: 1.08em !important;
             }
 
             /* Preview: right-align Global WI stats button at the far right edge (same row, same height) */
-            dialog:has(#gigma-preset-tree-preview-root) .gigma-preset-tree-header-right{
+            dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-layout-preset-tree-header-right{
                 position: relative;
             }
-            dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host{
+            dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-preview-gwi-host{
                 position: absolute;
                 right: 0;
                 top: 0;
@@ -2561,17 +2561,17 @@ font-size: 0.82em;
         document.head.appendChild(s);
     }catch(_){}
 })();
-// --- end GIGMA: preset tree preview unchained toggle ---
-// --- GIGMA: preset tree interactions (expand/collapse folders in preview) ---
-(function gigmaPresetTreeInteractionsOnce(){
+// --- end GIGMA: layout preset tree preview unchained toggle ---
+// --- GIGMA: layout preset tree interactions (expand/collapse folders in preview) ---
+(function gigmaLayoutPresetTreeInteractionsOnce(){
   try{
-    if (window.__gigmaPresetTreeInteractionsInstalled) return;
-    window.__gigmaPresetTreeInteractionsInstalled = true;
+    if (window.__gigmaLayoutPresetTreeInteractionsInstalled) return;
+    window.__gigmaLayoutPresetTreeInteractionsInstalled = true;
 
     // GIGMA: Persist preview header button states per preset-kind + viewmode.
     // This intentionally excludes scroll position (scroll is always derived from the main modal).
-    if (!window.gigmaGetPresetTreePreviewStateKey) {
-      window.gigmaGetPresetTreePreviewStateKey = function(rootEl, kindOverride, viewModeOverride){
+    if (!window.gigmaGetLayoutPresetTreePreviewStateKey) {
+      window.gigmaGetLayoutPresetTreePreviewStateKey = function(rootEl, kindOverride, viewModeOverride){
         try{
           var kind = kindOverride || (rootEl && rootEl.getAttribute && rootEl.getAttribute('data-preset-kind')) || 'child';
           kind = (kind === 'parent') ? 'parent' : 'child';
@@ -2583,16 +2583,16 @@ font-size: 0.82em;
       };
     }
 
-    if (!window.gigmaSavePresetTreePreviewButtonState) {
-      window.gigmaSavePresetTreePreviewButtonState = function(rootEl){
+    if (!window.gigmaSaveLayoutPresetTreePreviewButtonState) {
+      window.gigmaSaveLayoutPresetTreePreviewButtonState = function(rootEl){
         try{
           if (!rootEl || !rootEl.getAttribute) return;
           var kind = rootEl.getAttribute('data-preset-kind') || 'child';
           kind = (kind === 'parent') ? 'parent' : 'child';
           var vm = rootEl.getAttribute('data-preview-viewmode') || (rootEl.classList && rootEl.classList.contains('gigma-preview-viewmode-budget') ? 'budget' : 'order');
           vm = (vm === 'budget') ? 'budget' : 'order';
-          var key = (typeof window.gigmaGetPresetTreePreviewStateKey === 'function')
-            ? window.gigmaGetPresetTreePreviewStateKey(rootEl, kind, vm)
+          var key = (typeof window.gigmaGetLayoutPresetTreePreviewStateKey === 'function')
+            ? window.gigmaGetLayoutPresetTreePreviewStateKey(rootEl, kind, vm)
             : ('gigma_preset_tree_preview_btn_state_v1:' + kind + ':' + vm);
 
           var chained = rootEl.getAttribute('data-chained-state') || 'show';
@@ -2614,16 +2614,16 @@ font-size: 0.82em;
       };
     }
 
-    if (!window.gigmaLoadPresetTreePreviewButtonState) {
-      window.gigmaLoadPresetTreePreviewButtonState = function(rootEl){
+    if (!window.gigmaLoadLayoutPresetTreePreviewButtonState) {
+      window.gigmaLoadLayoutPresetTreePreviewButtonState = function(rootEl){
         try{
           if (!rootEl || !rootEl.getAttribute) return false;
           var kind = rootEl.getAttribute('data-preset-kind') || 'child';
           kind = (kind === 'parent') ? 'parent' : 'child';
           var vm = rootEl.getAttribute('data-preview-viewmode') || (rootEl.classList && rootEl.classList.contains('gigma-preview-viewmode-budget') ? 'budget' : 'order');
           vm = (vm === 'budget') ? 'budget' : 'order';
-          var key = (typeof window.gigmaGetPresetTreePreviewStateKey === 'function')
-            ? window.gigmaGetPresetTreePreviewStateKey(rootEl, kind, vm)
+          var key = (typeof window.gigmaGetLayoutPresetTreePreviewStateKey === 'function')
+            ? window.gigmaGetLayoutPresetTreePreviewStateKey(rootEl, kind, vm)
             : ('gigma_preset_tree_preview_btn_state_v1:' + kind + ':' + vm);
 
           var raw = null;
@@ -2652,20 +2652,20 @@ font-size: 0.82em;
           try{ rootEl.setAttribute('data-dim-unchained', dimU); }catch(_){ }
 
           try{
-            var bC = rootEl.querySelector('#gigma-preset-tree-chained-toggle');
-            if (bC && chained && typeof window.gigmaApplyPresetTreeChainedState === 'function') window.gigmaApplyPresetTreeChainedState(rootEl, bC, chained);
+            var bC = rootEl.querySelector('#gigma-layout-preset-tree-chained-toggle');
+            if (bC && chained && typeof window.gigmaApplyLayoutPresetTreeChainedState === 'function') window.gigmaApplyLayoutPresetTreeChainedState(rootEl, bC, chained);
           }catch(_){}
           try{
-            var bU = rootEl.querySelector('#gigma-preset-tree-unchained-toggle');
-            if (bU && unchained && typeof window.gigmaApplyPresetTreeUnchainedState === 'function') window.gigmaApplyPresetTreeUnchainedState(rootEl, bU, kind, unchained);
+            var bU = rootEl.querySelector('#gigma-layout-preset-tree-unchained-toggle');
+            if (bU && unchained && typeof window.gigmaApplyLayoutPresetTreeUnchainedState === 'function') window.gigmaApplyLayoutPresetTreeUnchainedState(rootEl, bU, kind, unchained);
           }catch(_){}
           try{
-            var bCD = rootEl.querySelector('#gigma-preset-tree-chained-dim-toggle');
-            if (bCD && typeof window.gigmaApplyPresetTreeDimState === 'function') window.gigmaApplyPresetTreeDimState(rootEl, bCD, 'chained', dimC === '1');
+            var bCD = rootEl.querySelector('#gigma-layout-preset-tree-chained-dim-toggle');
+            if (bCD && typeof window.gigmaApplyLayoutPresetTreeDimState === 'function') window.gigmaApplyLayoutPresetTreeDimState(rootEl, bCD, 'chained', dimC === '1');
           }catch(_){}
           try{
-            var bUD = rootEl.querySelector('#gigma-preset-tree-unchained-dim-toggle');
-            if (bUD && typeof window.gigmaApplyPresetTreeDimState === 'function') window.gigmaApplyPresetTreeDimState(rootEl, bUD, 'unchained', dimU === '1');
+            var bUD = rootEl.querySelector('#gigma-layout-preset-tree-unchained-dim-toggle');
+            if (bUD && typeof window.gigmaApplyLayoutPresetTreeDimState === 'function') window.gigmaApplyLayoutPresetTreeDimState(rootEl, bUD, 'unchained', dimU === '1');
           }catch(_){}
 
           return true;
@@ -2674,14 +2674,14 @@ font-size: 0.82em;
       };
     }
 
-    if (!window.gigmaInstallPresetTreePreviewCloseHook) {
-      window.gigmaInstallPresetTreePreviewCloseHook = function(rootEl){
+    if (!window.gigmaInstallLayoutPresetTreePreviewCloseHook) {
+      window.gigmaInstallLayoutPresetTreePreviewCloseHook = function(rootEl){
         try{
           if (!rootEl) return;
           var dlg = null;
           try{ dlg = (rootEl.closest && rootEl.closest('dialog')) || null; }catch(_){ dlg = null; }
           if (!dlg) {
-            try{ dlg = document.querySelector('dialog:has(#gigma-preset-tree-preview-root)'); }catch(_){ dlg = null; }
+            try{ dlg = document.querySelector('dialog:has(#gigma-layout-preset-tree-preview-root)'); }catch(_){ dlg = null; }
           }
           if (!dlg) return;
 
@@ -2691,9 +2691,9 @@ font-size: 0.82em;
           var handler = function(){
             try{
               var r = null;
-              try{ r = dlg.querySelector('#gigma-preset-tree-preview-root'); }catch(_){ r = null; }
+              try{ r = dlg.querySelector('#gigma-layout-preset-tree-preview-root'); }catch(_){ r = null; }
               if (!r) r = rootEl;
-              if (r && typeof window.gigmaSavePresetTreePreviewButtonState === 'function') window.gigmaSavePresetTreePreviewButtonState(r);
+              if (r && typeof window.gigmaSaveLayoutPresetTreePreviewButtonState === 'function') window.gigmaSaveLayoutPresetTreePreviewButtonState(r);
             }catch(_){}
           };
 
@@ -2703,8 +2703,8 @@ font-size: 0.82em;
       };
     }
 
-    if (!window.gigmaApplyPresetTreeChainedState) {
-      window.gigmaApplyPresetTreeChainedState = function(rootEl, btnEl, state){
+    if (!window.gigmaApplyLayoutPresetTreeChainedState) {
+      window.gigmaApplyLayoutPresetTreeChainedState = function(rootEl, btnEl, state){
         try{
           if (!rootEl || !btnEl) return;
           try{
@@ -2729,8 +2729,8 @@ font-size: 0.82em;
       };
     }
 
-    if (!window.gigmaApplyPresetTreeUnchainedState) {
-      window.gigmaApplyPresetTreeUnchainedState = function(rootEl, btnEl, presetKind, state){
+    if (!window.gigmaApplyLayoutPresetTreeUnchainedState) {
+      window.gigmaApplyLayoutPresetTreeUnchainedState = function(rootEl, btnEl, presetKind, state){
         try{
           if (!rootEl || !btnEl) return;
           try{
@@ -2791,8 +2791,8 @@ font-size: 0.82em;
       };
     }
 
-    if (!window.gigmaApplyPresetTreeDimState) {
-      window.gigmaApplyPresetTreeDimState = function(rootEl, btnEl, which, dimOn){
+    if (!window.gigmaApplyLayoutPresetTreeDimState) {
+      window.gigmaApplyLayoutPresetTreeDimState = function(rootEl, btnEl, which, dimOn){
         try{
           if (!rootEl || !btnEl) return;
           var k = (which === 'chained') ? 'chained' : 'unchained';
@@ -2805,40 +2805,40 @@ font-size: 0.82em;
       };
     }
 
-    if (!window.gigmaInitPresetTreeDimToggles) {
-      window.gigmaInitPresetTreeDimToggles = function(){
+    if (!window.gigmaInitLayoutPresetTreeDimToggles) {
+      window.gigmaInitLayoutPresetTreeDimToggles = function(){
         try{
-          var roots = document.querySelectorAll('#gigma-preset-tree-preview-root');
+          var roots = document.querySelectorAll('#gigma-layout-preset-tree-preview-root');
           var root = (roots && roots.length) ? roots[roots.length - 1] : null;
           if (!root) return;
           var kind = root.getAttribute('data-preset-kind') || 'child';
 
-          var btnC = root.querySelector('#gigma-preset-tree-chained-dim-toggle');
+          var btnC = root.querySelector('#gigma-layout-preset-tree-chained-dim-toggle');
           if (btnC) {
             var stC = root.getAttribute('data-dim-chained');
             if (stC !== '1' && stC !== '0') stC = '0';
             try{ root.setAttribute('data-dim-chained', stC); }catch(_){}
-            if (typeof window.gigmaApplyPresetTreeDimState === 'function') window.gigmaApplyPresetTreeDimState(root, btnC, 'chained', stC === '1');
+            if (typeof window.gigmaApplyLayoutPresetTreeDimState === 'function') window.gigmaApplyLayoutPresetTreeDimState(root, btnC, 'chained', stC === '1');
           }
 
-          var btnU = root.querySelector('#gigma-preset-tree-unchained-dim-toggle');
+          var btnU = root.querySelector('#gigma-layout-preset-tree-unchained-dim-toggle');
           if (btnU) {
             var stU = root.getAttribute('data-dim-unchained');
             if (stU !== '1' && stU !== '0') stU = (kind === 'parent') ? '1' : '0';
             try{ root.setAttribute('data-dim-unchained', stU); }catch(_){}
-            if (typeof window.gigmaApplyPresetTreeDimState === 'function') window.gigmaApplyPresetTreeDimState(root, btnU, 'unchained', stU === '1');
+            if (typeof window.gigmaApplyLayoutPresetTreeDimState === 'function') window.gigmaApplyLayoutPresetTreeDimState(root, btnU, 'unchained', stU === '1');
           }
         }catch(_){}
       };
     }
 
-if (!window.gigmaInitPresetTreeChainedToggle) {
-      window.gigmaInitPresetTreeChainedToggle = function(){
+if (!window.gigmaInitLayoutPresetTreeChainedToggle) {
+      window.gigmaInitLayoutPresetTreeChainedToggle = function(){
         try{
-          var roots = document.querySelectorAll('#gigma-preset-tree-preview-root');
+          var roots = document.querySelectorAll('#gigma-layout-preset-tree-preview-root');
           var root = (roots && roots.length) ? roots[roots.length - 1] : null;
           if (!root) return;
-          var btn = root.querySelector('#gigma-preset-tree-chained-toggle');
+          var btn = root.querySelector('#gigma-layout-preset-tree-chained-toggle');
           if (!btn) return;
           var st = root.getAttribute('data-chained-state') || '';
           if (!st) {
@@ -2846,20 +2846,20 @@ if (!window.gigmaInitPresetTreeChainedToggle) {
             try{ root.setAttribute('data-chained-state', st); }catch(_){}
           }
           if (st !== 'show' && st !== 'hide') st = 'show';
-          if (typeof window.gigmaApplyPresetTreeChainedState === 'function') {
-            window.gigmaApplyPresetTreeChainedState(root, btn, st);
+          if (typeof window.gigmaApplyLayoutPresetTreeChainedState === 'function') {
+            window.gigmaApplyLayoutPresetTreeChainedState(root, btn, st);
           }
         }catch(_){}
       };
     }
 
-    if (!window.gigmaInitPresetTreeUnchainedToggle) {
-      window.gigmaInitPresetTreeUnchainedToggle = function(){
+    if (!window.gigmaInitLayoutPresetTreeUnchainedToggle) {
+      window.gigmaInitLayoutPresetTreeUnchainedToggle = function(){
         try{
-          var roots = document.querySelectorAll('#gigma-preset-tree-preview-root');
+          var roots = document.querySelectorAll('#gigma-layout-preset-tree-preview-root');
           var root = (roots && roots.length) ? roots[roots.length - 1] : null;
           if (!root) return;
-          var btn = root.querySelector('#gigma-preset-tree-unchained-toggle');
+          var btn = root.querySelector('#gigma-layout-preset-tree-unchained-toggle');
           if (!btn) return;
           var kind = root.getAttribute('data-preset-kind') || 'child';
           var st = root.getAttribute('data-unchained-state') || '';
@@ -2872,8 +2872,8 @@ if (!window.gigmaInitPresetTreeChainedToggle) {
           } else {
             if (st !== 'hide' && st !== 'show') st = 'show';
           }
-          if (typeof window.gigmaApplyPresetTreeUnchainedState === 'function') {
-            window.gigmaApplyPresetTreeUnchainedState(root, btn, kind, st);
+          if (typeof window.gigmaApplyLayoutPresetTreeUnchainedState === 'function') {
+            window.gigmaApplyLayoutPresetTreeUnchainedState(root, btn, kind, st);
           }
         }catch(_){}
       };
@@ -2883,13 +2883,13 @@ if (!window.gigmaInitPresetTreeChainedToggle) {
         if (!document.getElementById('gigma-viewmode-toggle-css')) {
           var s=document.createElement('style');
           s.id='gigma-viewmode-toggle-css';
-          s.textContent='#gigma-preset-tree-viewmode-toggle{min-width:0!important;}';
+          s.textContent='#gigma-layout-preset-tree-viewmode-toggle{min-width:0!important;}';
           document.head.appendChild(s);
         }
       }catch(_){}
     })();
-    if (!window.gigmaFitPresetTreeViewModeToggle) {
-      window.gigmaFitPresetTreeViewModeToggle = function(btn){
+    if (!window.gigmaFitLayoutPresetTreeViewModeToggle) {
+      window.gigmaFitLayoutPresetTreeViewModeToggle = function(btn){
         try{
           if (!btn) return;
           var W = 'calc(6ch + 1.25em)';
@@ -2904,13 +2904,13 @@ if (!window.gigmaInitPresetTreeChainedToggle) {
       };
     }
     
-if (!window.gigmaSyncPresetTreeRowChainingForViewMode) {
-  window.gigmaSyncPresetTreeRowChainingForViewMode = function(previewRoot, viewMode){
+if (!window.gigmaSyncLayoutPresetTreeRowChainingForViewMode) {
+  window.gigmaSyncLayoutPresetTreeRowChainingForViewMode = function(previewRoot, viewMode){
     try{
       if (!previewRoot || !previewRoot.querySelectorAll) return;
       var m = (viewMode === 'budget') ? 'budget' : 'order';
       var attrName = (m === 'budget') ? 'data-gigma-unchained-budget' : 'data-gigma-unchained-order';
-      var rows = previewRoot.querySelectorAll('.gigma-preset-tree-row');
+      var rows = previewRoot.querySelectorAll('.gigma-layout-preset-tree-row');
       for (var i = 0; i < rows.length; i++){
         var row = rows[i];
         if (!row || !row.classList || !row.getAttribute) continue;
@@ -2918,14 +2918,14 @@ if (!window.gigmaSyncPresetTreeRowChainingForViewMode) {
         if (v == null) continue;
         var isUnchained = (String(v) === '1' || String(v).toLowerCase() === 'true');
         if (isUnchained){
-          row.classList.add('gigma-preset-tree-row-unchained');
-          row.classList.remove('gigma-preset-tree-row-chained');
+          row.classList.add('gigma-layout-preset-tree-row-unchained');
+          row.classList.remove('gigma-layout-preset-tree-row-chained');
         }else{
-          row.classList.add('gigma-preset-tree-row-chained');
-          row.classList.remove('gigma-preset-tree-row-unchained');
+          row.classList.add('gigma-layout-preset-tree-row-chained');
+          row.classList.remove('gigma-layout-preset-tree-row-unchained');
         }
         try{
-          var iconHost = row.querySelector('.gigma-preset-tree-icon');
+          var iconHost = row.querySelector('.gigma-layout-preset-tree-icon');
           if (iconHost){
             var extraIcons = '';
             try{
@@ -2944,14 +2944,14 @@ if (!window.gigmaSyncPresetTreeRowChainingForViewMode) {
   };
 }
 
-if (!window.gigmaInitPresetTreeViewMode) {
-      window.gigmaInitPresetTreeViewMode = function(){
+if (!window.gigmaInitLayoutPresetTreeViewMode) {
+      window.gigmaInitLayoutPresetTreeViewMode = function(){
         try{
-          var roots = document.querySelectorAll('#gigma-preset-tree-preview-root');
+          var roots = document.querySelectorAll('#gigma-layout-preset-tree-preview-root');
           var root = (roots && roots.length) ? roots[roots.length - 1] : null;
           if (!root) return;
-          var sel = root.querySelector('#gigma-preset-tree-viewmode');
-          var btn = root.querySelector('#gigma-preset-tree-viewmode-toggle');
+          var sel = root.querySelector('#gigma-layout-preset-tree-viewmode');
+          var btn = root.querySelector('#gigma-layout-preset-tree-viewmode-toggle');
           var v = 'order';
           if (sel) v = (sel.value === 'budget') ? 'budget' : 'order';
           else v = (root.classList && root.classList.contains('gigma-preview-viewmode-budget')) ? 'budget' : 'order';
@@ -2961,30 +2961,30 @@ if (!window.gigmaInitPresetTreeViewMode) {
             try{
               btn.setAttribute('aria-pressed', v === 'budget' ? 'true' : 'false');
               btn.textContent = (v === 'budget') ? 'Budget' : 'Order';
-              if (typeof window.gigmaFitPresetTreeViewModeToggle === 'function') window.gigmaFitPresetTreeViewModeToggle(btn);
+              if (typeof window.gigmaFitLayoutPresetTreeViewModeToggle === 'function') window.gigmaFitLayoutPresetTreeViewModeToggle(btn);
               if (btn.dataset) btn.dataset.gigmaPreviewViewmode = v;
             }catch(_){}
           }
-          try{ if (typeof window.gigmaSyncPresetTreeRowChainingForViewMode === 'function') window.gigmaSyncPresetTreeRowChainingForViewMode(root, v); }catch(_){ }
+          try{ if (typeof window.gigmaSyncLayoutPresetTreeRowChainingForViewMode === 'function') window.gigmaSyncLayoutPresetTreeRowChainingForViewMode(root, v); }catch(_){ }
 
         }catch(_){}
       };
     }
 
-    if (!window.gigmaCapturePresetTreeFolderDefaults) {
-      window.gigmaCapturePresetTreeFolderDefaults = function(root){
+    if (!window.gigmaCaptureLayoutPresetTreeFolderDefaults) {
+      window.gigmaCaptureLayoutPresetTreeFolderDefaults = function(root){
         try{
           if (!root || !root.querySelectorAll) return;
-          var folders = Array.prototype.slice.call(root.querySelectorAll('.gigma-preset-tree-folder'));
+          var folders = Array.prototype.slice.call(root.querySelectorAll('.gigma-layout-preset-tree-folder'));
           var snap = { __hasSnapshot: true };
           folders.forEach(function(f){
             try{
               var fid = f.getAttribute('data-folder-id') || '';
               if (!fid) return;
-              snap[fid] = f.classList.contains('gigma-preset-tree-folder-collapsed');
+              snap[fid] = f.classList.contains('gigma-layout-preset-tree-folder-collapsed');
             }catch(_){}
           });
-          window.__gigmaPresetTreeFolderDefaultSnapshot = snap;
+          window.__gigmaLayoutPresetTreeFolderDefaultSnapshot = snap;
         }catch(_){}
       };
     }
@@ -2993,10 +2993,10 @@ if (!window.gigmaInitPresetTreeViewMode) {
       try{
         var t = ev.target;
         if (!t || !t.closest) return;
-        var sel = t.closest('#gigma-preset-tree-viewmode');
+        var sel = t.closest('#gigma-layout-preset-tree-viewmode');
         if (!sel) return;
         try{
-          if (typeof window.gigmaInitPresetTreeViewMode === 'function') window.gigmaInitPresetTreeViewMode();
+          if (typeof window.gigmaInitLayoutPresetTreeViewMode === 'function') window.gigmaInitLayoutPresetTreeViewMode();
         }catch(_){}
       }catch(_){}
     });
@@ -3005,7 +3005,7 @@ if (!window.gigmaInitPresetTreeViewMode) {
       try{
         var t = ev.target;
         if (!t || !t.closest) return;
-        var previewRootForMode = t.closest('#gigma-preset-tree-preview-root');
+        var previewRootForMode = t.closest('#gigma-layout-preset-tree-preview-root');
         var isDuplicateSentenceCustomPreview = !!(previewRootForMode && previewRootForMode.getAttribute && previewRootForMode.getAttribute('data-gigma-selection-mode') === 'duplicate-scan');
         if (isDuplicateSentenceCustomPreview) {
           try {
@@ -3014,7 +3014,7 @@ if (!window.gigmaInitPresetTreeViewMode) {
               return;
             }
 
-            var btnSaveSelection = t.closest('#gigma-preset-tree-save-selection');
+            var btnSaveSelection = t.closest('#gigma-layout-preset-tree-save-selection');
             if (btnSaveSelection) {
               var popupStateSave = gigmaDuplicateSentenceGetCustomPopupState();
               var sourceRootSave = popupStateSave && popupStateSave.sourceRoot ? popupStateSave.sourceRoot : null;
@@ -3028,19 +3028,19 @@ if (!window.gigmaInitPresetTreeViewMode) {
               }
               ev.preventDefault();
               ev.stopPropagation();
-              var dialogSave = (btnSaveSelection.closest && btnSaveSelection.closest('dialog')) || document.querySelector('dialog:has(#gigma-preset-tree-preview-root)');
+              var dialogSave = (btnSaveSelection.closest && btnSaveSelection.closest('dialog')) || document.querySelector('dialog:has(#gigma-layout-preset-tree-preview-root)');
               if (dialogSave && typeof dialogSave.close === 'function') dialogSave.close();
               return;
             }
 
-            var checkboxTarget = t.closest('.gigma-preset-tree-select-box');
+            var checkboxTarget = t.closest('.gigma-layout-preset-tree-select-box');
             if (checkboxTarget) {
-              var itemTarget = checkboxTarget.closest('.gigma-preset-tree-row, .gigma-preset-tree-folder');
+              var itemTarget = checkboxTarget.closest('.gigma-layout-preset-tree-row, .gigma-layout-preset-tree-folder');
               if (itemTarget) {
                 var popupStateCheckbox = gigmaDuplicateSentenceGetCustomPopupState();
                 var isCtrlCheckbox = !!(ev.ctrlKey || ev.metaKey);
                 var isShiftCheckbox = !!ev.shiftKey;
-                var itemKeyCheckbox = gigmaDuplicateSentencePresetTreeEnsureItemKey(itemTarget);
+                var itemKeyCheckbox = gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(itemTarget);
                 var itemSelectedCheckbox = !!(itemKeyCheckbox && popupStateCheckbox.workingKeys.has(itemKeyCheckbox));
                 if (isShiftCheckbox) {
                   if (!popupStateCheckbox.anchorKey) gigmaDuplicateSentenceCustomPopupSetSelection(previewRootForMode, [itemTarget], itemTarget);
@@ -3056,19 +3056,19 @@ if (!window.gigmaInitPresetTreeViewMode) {
         }
         // Expand/collapse all controls inside the preview popup header.
         try {
-          var btnChained = t.closest('#gigma-preset-tree-chained-toggle');
-          var btnUnchained = t.closest('#gigma-preset-tree-unchained-toggle');
-          var btnChainedDim = t.closest('#gigma-preset-tree-chained-dim-toggle');
-          var btnUnchainedDim = t.closest('#gigma-preset-tree-unchained-dim-toggle');
-          var btnExpand = t.closest('#gigma-preset-tree-expand-all');
-          var btnCollapse = t.closest('#gigma-preset-tree-collapse-all');
-          var btnRestore = t.closest('#gigma-preset-tree-restore-folders');
-          var btnViewMode = t.closest('#gigma-preset-tree-viewmode-toggle');
-          var btnReset = t.closest('#gigma-preset-tree-reset');
-          var btnClose = t.closest('#gigma-preset-tree-close');
+          var btnChained = t.closest('#gigma-layout-preset-tree-chained-toggle');
+          var btnUnchained = t.closest('#gigma-layout-preset-tree-unchained-toggle');
+          var btnChainedDim = t.closest('#gigma-layout-preset-tree-chained-dim-toggle');
+          var btnUnchainedDim = t.closest('#gigma-layout-preset-tree-unchained-dim-toggle');
+          var btnExpand = t.closest('#gigma-layout-preset-tree-expand-all');
+          var btnCollapse = t.closest('#gigma-layout-preset-tree-collapse-all');
+          var btnRestore = t.closest('#gigma-layout-preset-tree-restore-folders');
+          var btnViewMode = t.closest('#gigma-layout-preset-tree-viewmode-toggle');
+          var btnReset = t.closest('#gigma-layout-preset-tree-reset');
+          var btnClose = t.closest('#gigma-layout-preset-tree-close');
           if (btnClose) {
-              try{ var __r = btnClose.closest && btnClose.closest('#gigma-preset-tree-preview-root'); if (__r && typeof window.gigmaSavePresetTreePreviewButtonState === 'function') window.gigmaSavePresetTreePreviewButtonState(__r); }catch(_s){}
-            var dialog = (btnClose.closest && btnClose.closest('dialog')) || document.querySelector('dialog:has(#gigma-preset-tree-preview-root)');
+              try{ var __r = btnClose.closest && btnClose.closest('#gigma-layout-preset-tree-preview-root'); if (__r && typeof window.gigmaSaveLayoutPresetTreePreviewButtonState === 'function') window.gigmaSaveLayoutPresetTreePreviewButtonState(__r); }catch(_s){}
+            var dialog = (btnClose.closest && btnClose.closest('dialog')) || document.querySelector('dialog:has(#gigma-layout-preset-tree-preview-root)');
             var cancelBtn = null;
             if (dialog && dialog.querySelector) {
               var footer =
@@ -3095,7 +3095,7 @@ return;
           }
 
           if (btnReset) {
-            var rootR = btnReset.closest('#gigma-preset-tree-preview-root');
+            var rootR = btnReset.closest('#gigma-layout-preset-tree-preview-root');
             if (!rootR) return;
             var kindR = rootR.getAttribute('data-preset-kind') || 'child';
 
@@ -3107,23 +3107,23 @@ return;
             // Clear persisted preview button state for the *current* viewmode only.
             try{
               var kindKey = (kindR === 'parent') ? 'parent' : 'child';
-              var k = (typeof window.gigmaGetPresetTreePreviewStateKey === 'function')
-                ? window.gigmaGetPresetTreePreviewStateKey(rootR, kindKey, vmR)
+              var k = (typeof window.gigmaGetLayoutPresetTreePreviewStateKey === 'function')
+                ? window.gigmaGetLayoutPresetTreePreviewStateKey(rootR, kindKey, vmR)
                 : ('gigma_preset_tree_preview_btn_state_v1:' + kindKey + ':' + vmR);
               try{ localStorage.removeItem(k); }catch(_){}
             }catch(_){}
 
             // Keep the viewmode toggle UI in sync (do NOT force-switch viewmodes on reset).
             try{
-              var btnVM = rootR.querySelector('#gigma-preset-tree-viewmode-toggle');
+              var btnVM = rootR.querySelector('#gigma-layout-preset-tree-viewmode-toggle');
               if (btnVM) {
                 btnVM.setAttribute('aria-pressed', vmR === 'budget' ? 'true' : 'false');
                 btnVM.textContent = (vmR === 'budget') ? 'Budget' : 'Order';
-                if (typeof window.gigmaFitPresetTreeViewModeToggle === 'function') window.gigmaFitPresetTreeViewModeToggle(btnVM);
+                if (typeof window.gigmaFitLayoutPresetTreeViewModeToggle === 'function') window.gigmaFitLayoutPresetTreeViewModeToggle(btnVM);
                 if (btnVM.dataset) btnVM.dataset.gigmaPreviewViewmode = vmR;
               }
             }catch(_){}
-            try{ if (typeof window.gigmaSyncPresetTreeRowChainingForViewMode === 'function') window.gigmaSyncPresetTreeRowChainingForViewMode(rootR, vmR); }catch(_){}
+            try{ if (typeof window.gigmaSyncLayoutPresetTreeRowChainingForViewMode === 'function') window.gigmaSyncLayoutPresetTreeRowChainingForViewMode(rootR, vmR); }catch(_){}
 
             var defC = rootR.getAttribute('data-default-chained-state') || 'show';
             if (defC !== 'show' && defC !== 'hide') defC = 'show';
@@ -3146,37 +3146,37 @@ return;
             try{ rootR.setAttribute('data-dim-unchained', defUD); }catch(_){}
 
             try{
-              var bC = rootR.querySelector('#gigma-preset-tree-chained-toggle');
-              if (bC && typeof window.gigmaApplyPresetTreeChainedState === 'function') window.gigmaApplyPresetTreeChainedState(rootR, bC, defC);
+              var bC = rootR.querySelector('#gigma-layout-preset-tree-chained-toggle');
+              if (bC && typeof window.gigmaApplyLayoutPresetTreeChainedState === 'function') window.gigmaApplyLayoutPresetTreeChainedState(rootR, bC, defC);
             }catch(_){}
             try{
-              var bU = rootR.querySelector('#gigma-preset-tree-unchained-toggle');
-              if (bU && typeof window.gigmaApplyPresetTreeUnchainedState === 'function') window.gigmaApplyPresetTreeUnchainedState(rootR, bU, kindR, defU);
+              var bU = rootR.querySelector('#gigma-layout-preset-tree-unchained-toggle');
+              if (bU && typeof window.gigmaApplyLayoutPresetTreeUnchainedState === 'function') window.gigmaApplyLayoutPresetTreeUnchainedState(rootR, bU, kindR, defU);
             }catch(_){}
             try{
-              var bCD = rootR.querySelector('#gigma-preset-tree-chained-dim-toggle');
-              if (bCD && typeof window.gigmaApplyPresetTreeDimState === 'function') window.gigmaApplyPresetTreeDimState(rootR, bCD, 'chained', defCD === '1');
+              var bCD = rootR.querySelector('#gigma-layout-preset-tree-chained-dim-toggle');
+              if (bCD && typeof window.gigmaApplyLayoutPresetTreeDimState === 'function') window.gigmaApplyLayoutPresetTreeDimState(rootR, bCD, 'chained', defCD === '1');
             }catch(_){}
             try{
-              var bUD = rootR.querySelector('#gigma-preset-tree-unchained-dim-toggle');
-              if (bUD && typeof window.gigmaApplyPresetTreeDimState === 'function') window.gigmaApplyPresetTreeDimState(rootR, bUD, 'unchained', defUD === '1');
+              var bUD = rootR.querySelector('#gigma-layout-preset-tree-unchained-dim-toggle');
+              if (bUD && typeof window.gigmaApplyLayoutPresetTreeDimState === 'function') window.gigmaApplyLayoutPresetTreeDimState(rootR, bUD, 'unchained', defUD === '1');
             }catch(_){}
 
             try{
-              var snap = window.__gigmaPresetTreeFolderDefaultSnapshot;
+              var snap = window.__gigmaLayoutPresetTreeFolderDefaultSnapshot;
               if (snap && snap.__hasSnapshot) {
-                var folders = Array.prototype.slice.call(rootR.querySelectorAll('.gigma-preset-tree-folder'));
+                var folders = Array.prototype.slice.call(rootR.querySelectorAll('.gigma-layout-preset-tree-folder'));
                 folders.forEach(function(f){
                   try{
                     var fid = f.getAttribute('data-folder-id') || '';
                     if (!fid) return;
                     var wasCollapsed = !!snap[fid];
-                    if (wasCollapsed) f.classList.add('gigma-preset-tree-folder-collapsed');
-                    else f.classList.remove('gigma-preset-tree-folder-collapsed');
+                    if (wasCollapsed) f.classList.add('gigma-layout-preset-tree-folder-collapsed');
+                    else f.classList.remove('gigma-layout-preset-tree-folder-collapsed');
                   }catch(_){}
                 });
               }
-              window.__gigmaPresetTreeFolderStateSnapshot = null;
+              window.__gigmaLayoutPresetTreeFolderStateSnapshot = null;
             }catch(_){}
 
             ev.preventDefault();
@@ -3185,38 +3185,38 @@ return;
           }
 
           if (btnChainedDim) {
-            var rootCD = btnChainedDim.closest('#gigma-preset-tree-preview-root');
+            var rootCD = btnChainedDim.closest('#gigma-layout-preset-tree-preview-root');
             if (!rootCD) return;
             var curCD = (rootCD.getAttribute('data-dim-chained') === '1');
             var nextCD = !curCD;
             try{ rootCD.setAttribute('data-dim-chained', nextCD ? '1' : '0'); }catch(_){}
-            try{ if (typeof window.gigmaApplyPresetTreeDimState === 'function') window.gigmaApplyPresetTreeDimState(rootCD, btnChainedDim, 'chained', nextCD); }catch(_){}
+            try{ if (typeof window.gigmaApplyLayoutPresetTreeDimState === 'function') window.gigmaApplyLayoutPresetTreeDimState(rootCD, btnChainedDim, 'chained', nextCD); }catch(_){}
             ev.preventDefault();
             ev.stopPropagation();
             return;
           }
           if (btnUnchainedDim) {
-            var rootUD = btnUnchainedDim.closest('#gigma-preset-tree-preview-root');
+            var rootUD = btnUnchainedDim.closest('#gigma-layout-preset-tree-preview-root');
             if (!rootUD) return;
             var curUD = (rootUD.getAttribute('data-dim-unchained') === '1');
             var nextUD = !curUD;
             try{ rootUD.setAttribute('data-dim-unchained', nextUD ? '1' : '0'); }catch(_){}
-            try{ if (typeof window.gigmaApplyPresetTreeDimState === 'function') window.gigmaApplyPresetTreeDimState(rootUD, btnUnchainedDim, 'unchained', nextUD); }catch(_){}
+            try{ if (typeof window.gigmaApplyLayoutPresetTreeDimState === 'function') window.gigmaApplyLayoutPresetTreeDimState(rootUD, btnUnchainedDim, 'unchained', nextUD); }catch(_){}
             ev.preventDefault();
             ev.stopPropagation();
             return;
           }
 
           if (btnViewMode) {
-            var rootVM = btnViewMode.closest('#gigma-preset-tree-preview-root');
+            var rootVM = btnViewMode.closest('#gigma-layout-preset-tree-preview-root');
             if (!rootVM) return;
 
             // Save per-viewmode preview header button states before swapping viewmode.
-            try{ if (typeof window.gigmaSavePresetTreePreviewButtonState === 'function') window.gigmaSavePresetTreePreviewButtonState(rootVM); }catch(_){ }
+            try{ if (typeof window.gigmaSaveLayoutPresetTreePreviewButtonState === 'function') window.gigmaSaveLayoutPresetTreePreviewButtonState(rootVM); }catch(_){ }
 
             // Capture pixel-perfect scroll anchor BEFORE the viewmode swap (row heights can change in Budget mode).
             var vmAnchor = null;
-            try{ if (typeof gigmaCapturePresetTreePreviewScrollAnchor === 'function') vmAnchor = gigmaCapturePresetTreePreviewScrollAnchor(rootVM); }catch(_){}
+            try{ if (typeof gigmaCaptureLayoutPresetTreePreviewScrollAnchor === 'function') vmAnchor = gigmaCaptureLayoutPresetTreePreviewScrollAnchor(rootVM); }catch(_){}
 
             var nextVM = (rootVM.classList && rootVM.classList.contains('gigma-preview-viewmode-budget')) ? 'order' : 'budget';
             if (rootVM.classList) rootVM.classList.toggle('gigma-preview-viewmode-budget', nextVM === 'budget');
@@ -3224,31 +3224,31 @@ return;
             try{
               btnViewMode.setAttribute('aria-pressed', nextVM === 'budget' ? 'true' : 'false');
               btnViewMode.textContent = (nextVM === 'budget') ? 'Budget' : 'Order';
-              if (typeof window.gigmaFitPresetTreeViewModeToggle === 'function') window.gigmaFitPresetTreeViewModeToggle(btnViewMode);
+              if (typeof window.gigmaFitLayoutPresetTreeViewModeToggle === 'function') window.gigmaFitLayoutPresetTreeViewModeToggle(btnViewMode);
               if (btnViewMode.dataset) btnViewMode.dataset.gigmaPreviewViewmode = nextVM;
 
-            try{ if (typeof window.gigmaSyncPresetTreeRowChainingForViewMode === 'function') window.gigmaSyncPresetTreeRowChainingForViewMode(rootVM, nextVM); }catch(_){ }
+            try{ if (typeof window.gigmaSyncLayoutPresetTreeRowChainingForViewMode === 'function') window.gigmaSyncLayoutPresetTreeRowChainingForViewMode(rootVM, nextVM); }catch(_){ }
             }catch(_){}
 
             // Restore scroll anchor inside the *new* layout.
-            try{ if (typeof gigmaRestorePresetTreePreviewScrollAnchor === 'function') gigmaRestorePresetTreePreviewScrollAnchor(vmAnchor, rootVM); }catch(_){}
+            try{ if (typeof gigmaRestoreLayoutPresetTreePreviewScrollAnchor === 'function') gigmaRestoreLayoutPresetTreePreviewScrollAnchor(vmAnchor, rootVM); }catch(_){}
 
             // Load per-viewmode preview header button states after swapping viewmode.
-            try{ if (typeof window.gigmaLoadPresetTreePreviewButtonState === 'function') window.gigmaLoadPresetTreePreviewButtonState(rootVM); }catch(_){ }
+            try{ if (typeof window.gigmaLoadLayoutPresetTreePreviewButtonState === 'function') window.gigmaLoadLayoutPresetTreePreviewButtonState(rootVM); }catch(_){ }
 
             ev.preventDefault();
             ev.stopPropagation();
             return;
           }
           if (btnChained) {
-            var rootC = btnChained.closest('#gigma-preset-tree-preview-root');
+            var rootC = btnChained.closest('#gigma-layout-preset-tree-preview-root');
             if (!rootC) return;
             var stC = rootC.getAttribute('data-chained-state') || '';
             stC = (stC === 'hide') ? 'show' : 'hide';
             try{ rootC.setAttribute('data-chained-state', stC); }catch(_){}
             try{
-              if (typeof window.gigmaApplyPresetTreeChainedState === 'function') {
-                window.gigmaApplyPresetTreeChainedState(rootC, btnChained, stC);
+              if (typeof window.gigmaApplyLayoutPresetTreeChainedState === 'function') {
+                window.gigmaApplyLayoutPresetTreeChainedState(rootC, btnChained, stC);
               }
             }catch(_){}
             ev.preventDefault();
@@ -3256,7 +3256,7 @@ return;
             return;
           }
           if (btnUnchained) {
-            var rootU = btnUnchained.closest('#gigma-preset-tree-preview-root');
+            var rootU = btnUnchained.closest('#gigma-layout-preset-tree-preview-root');
             if (!rootU) return;
             var kindU = rootU.getAttribute('data-preset-kind') || 'child';
             var stU = rootU.getAttribute('data-unchained-state') || '';
@@ -3267,8 +3267,8 @@ return;
             }
             try{ rootU.setAttribute('data-unchained-state', stU); }catch(_){}
             try{
-              if (typeof window.gigmaApplyPresetTreeUnchainedState === 'function') {
-                window.gigmaApplyPresetTreeUnchainedState(rootU, btnUnchained, kindU, stU);
+              if (typeof window.gigmaApplyLayoutPresetTreeUnchainedState === 'function') {
+                window.gigmaApplyLayoutPresetTreeUnchainedState(rootU, btnUnchained, kindU, stU);
               }
             }catch(_){}
             ev.preventDefault();
@@ -3276,71 +3276,71 @@ return;
             return;
           }
           if (btnExpand || btnCollapse || btnRestore) {
-            var root = (btnExpand || btnCollapse || btnRestore).closest('#gigma-preset-tree-preview-root');
+            var root = (btnExpand || btnCollapse || btnRestore).closest('#gigma-layout-preset-tree-preview-root');
             if (!root) return;
-            var folders = Array.prototype.slice.call(root.querySelectorAll('.gigma-preset-tree-folder'));
-            if (!window.__gigmaPresetTreeFolderStateSnapshot) {
-              window.__gigmaPresetTreeFolderStateSnapshot = {};
+            var folders = Array.prototype.slice.call(root.querySelectorAll('.gigma-layout-preset-tree-folder'));
+            if (!window.__gigmaLayoutPresetTreeFolderStateSnapshot) {
+              window.__gigmaLayoutPresetTreeFolderStateSnapshot = {};
             }
-            if ((btnExpand || btnCollapse) && !window.__gigmaPresetTreeFolderStateSnapshot.__hasSnapshot) {
+            if ((btnExpand || btnCollapse) && !window.__gigmaLayoutPresetTreeFolderStateSnapshot.__hasSnapshot) {
               folders.forEach(function(f){
                 try{
                   var fid = f.getAttribute('data-folder-id') || '';
                   if (!fid) return;
-                  window.__gigmaPresetTreeFolderStateSnapshot[fid] = f.classList.contains('gigma-preset-tree-folder-collapsed');
+                  window.__gigmaLayoutPresetTreeFolderStateSnapshot[fid] = f.classList.contains('gigma-layout-preset-tree-folder-collapsed');
                 }catch(_){ }
               });
-              window.__gigmaPresetTreeFolderStateSnapshot.__hasSnapshot = true;
+              window.__gigmaLayoutPresetTreeFolderStateSnapshot.__hasSnapshot = true;
             }
             if (btnExpand) {
               folders.forEach(function(f){
                 try{
-                  if (f.classList.contains('gigma-preset-tree-folder-empty')) return;
-                  f.classList.remove('gigma-preset-tree-folder-collapsed');
+                  if (f.classList.contains('gigma-layout-preset-tree-folder-empty')) return;
+                  f.classList.remove('gigma-layout-preset-tree-folder-collapsed');
                 }catch(_){ }
               });
             } else if (btnCollapse) {
               folders.forEach(function(f){
                 try{
-                  if (f.classList.contains('gigma-preset-tree-folder-empty')) return;
-                  f.classList.add('gigma-preset-tree-folder-collapsed');
+                  if (f.classList.contains('gigma-layout-preset-tree-folder-empty')) return;
+                  f.classList.add('gigma-layout-preset-tree-folder-collapsed');
                 }catch(_){ }
               });
             } else if (btnRestore) {
-              if (window.__gigmaPresetTreeFolderStateSnapshot && window.__gigmaPresetTreeFolderStateSnapshot.__hasSnapshot) {
+              if (window.__gigmaLayoutPresetTreeFolderStateSnapshot && window.__gigmaLayoutPresetTreeFolderStateSnapshot.__hasSnapshot) {
                 folders.forEach(function(f){
                   try{
                     var fid = f.getAttribute('data-folder-id') || '';
                     if (!fid) return;
-                    var wasCollapsed = !!window.__gigmaPresetTreeFolderStateSnapshot[fid];
-                    if (wasCollapsed) f.classList.add('gigma-preset-tree-folder-collapsed');
-                    else f.classList.remove('gigma-preset-tree-folder-collapsed');
+                    var wasCollapsed = !!window.__gigmaLayoutPresetTreeFolderStateSnapshot[fid];
+                    if (wasCollapsed) f.classList.add('gigma-layout-preset-tree-folder-collapsed');
+                    else f.classList.remove('gigma-layout-preset-tree-folder-collapsed');
                   }catch(_){ }
                 });
               }
-              window.__gigmaPresetTreeFolderStateSnapshot = null;
+              window.__gigmaLayoutPresetTreeFolderStateSnapshot = null;
             }
             ev.preventDefault();
             ev.stopPropagation();
             return;
           }
         } catch(_eBtns) {}
-        // First, handle clicks on lorebook rows in the preset tree preview.
+        // First, handle clicks on lorebook rows in the layout preset tree preview.
         try {
           var row = null;
           // If the event target is inside a row, use that row directly.
-          var directRow = t.closest('.gigma-preset-tree-row');
+          var directRow = t.closest('.gigma-layout-preset-tree-row');
           if (directRow) {
             row = directRow;
           } else {
             // Otherwise, resolve the row purely by vertical position within the
-            // nearest preset tree container so that clicks in the left-indent
+            // nearest layout preset tree container so that clicks in the left-indent
             // area of an open folder still select the lorebook row whose
             // vertical band the cursor is in.
-            var treeRoot = t.closest('.gigma-preset-tree');
+            var treeRoot = t.closest('.gigma-layout-preset-tree');
             if (treeRoot && treeRoot.querySelectorAll) {
               var clickY = ev.clientY;
-              var rows = treeRoot.querySelectorAll('.gigma-preset-tree-row');
+              var rows = treeRoot.querySelectorAll('.gigma-layout-preset-tree-row');
               var best = null;
               var bestDist = Infinity;
               for (var i = 0; i < rows.length; i++) {
@@ -3369,7 +3369,7 @@ return;
               var popupStateRow = gigmaDuplicateSentenceGetCustomPopupState();
               var isCtrlRow = !!(ev.ctrlKey || ev.metaKey);
               var isShiftRow = !!ev.shiftKey;
-              var rowKey = gigmaDuplicateSentencePresetTreeEnsureItemKey(row);
+              var rowKey = gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(row);
               var rowSelected = !!(rowKey && popupStateRow.workingKeys.has(rowKey));
               if (isShiftRow) {
                 if (!popupStateRow.anchorKey) gigmaDuplicateSentenceCustomPopupSetSelection(previewRootForMode, [row], row);
@@ -3391,12 +3391,12 @@ return;
               if (!name && worldIdAttr && window.gigmaNameByWorldId && typeof window.gigmaNameByWorldId === 'object') {
                 name = window.gigmaNameByWorldId[worldIdAttr] || '';
               }
-              // Depending on where the preset tree preview was opened from,
+              // Depending on where the layout preset tree preview was opened from,
               // either apply the selection immediately (ordering modal) or
               // defer it until the preview window is closed (Lorebook Budget drawer).
               var origin = '';
               try {
-                origin = window.__gigmaLastPresetTreeOrigin || '';
+                origin = window.__gigmaLastLayoutPresetTreeOrigin || '';
               } catch (_eOriginRead) {
                 origin = '';
               }
@@ -3449,10 +3449,10 @@ return;
                   }
                 } catch(_eSelectRow){}
               }
-              // Remember the last lorebook clicked in the preset tree so that we
+              // Remember the last lorebook clicked in the layout preset tree so that we
               // can re-apply the selection after the preview window closes.
               try{
-                window.__gigmaLastPresetTreeSelection = {
+                window.__gigmaLastLayoutPresetTreeSelection = {
                   name: name || worldNameAttr || '',
                   worldId: worldIdAttr || ''
                 };
@@ -3464,17 +3464,17 @@ return;
         } catch(_eRow){}
         // Allow clicks on either the folder label or the folder icon (or any
         // descendants inside those elements) to toggle expand/collapse.
-        var folder = t.closest('.gigma-preset-tree-folder');
+        var folder = t.closest('.gigma-layout-preset-tree-folder');
         if (!folder) return;
         // Treat any click within the folder row (icon, label, or whitespace)
         // as a folder click so the whole row is clickable.
         var inLabelOrIcon = true;
         if (!inLabelOrIcon) return;
-        if (folder.classList && folder.classList.contains('gigma-preset-tree-folder-empty')) return;
+        if (folder.classList && folder.classList.contains('gigma-layout-preset-tree-folder-empty')) return;
         ev.preventDefault();
         ev.stopPropagation();
-        var wasCollapsed = !!(folder.classList && folder.classList.contains('gigma-preset-tree-folder-collapsed'));
-        folder.classList.toggle('gigma-preset-tree-folder-collapsed');
+        var wasCollapsed = !!(folder.classList && folder.classList.contains('gigma-layout-preset-tree-folder-collapsed'));
+        folder.classList.toggle('gigma-layout-preset-tree-folder-collapsed');
         // Same hidden-measurement fix pattern as the modal: when expanding, descendants may
         // still have stats columns computed from hidden (0-width) layout, so re-apply columns
         // after the folder becomes visible.
@@ -3482,14 +3482,14 @@ return;
           if (wasCollapsed && typeof requestAnimationFrame === 'function') {
             requestAnimationFrame(function(){
               try{
-                var rows = folder.querySelectorAll ? folder.querySelectorAll('.gigma-preset-tree-row[data-world-name]') : [];
+                var rows = folder.querySelectorAll ? folder.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name]') : [];
                 for (var i = 0; i < rows.length; i++) {
                   var row = rows[i];
-                  var host = (typeof gigmaEnsurePresetTreePreviewRowStatsHost === 'function')
-                    ? gigmaEnsurePresetTreePreviewRowStatsHost(row)
-                    : (row.querySelector ? row.querySelector(':scope > .gigma-preset-tree-row-stats') : null);
-                  if (host && typeof gigmaApplyPresetTreePreviewLorebookStatsColumnCount === 'function') {
-                    gigmaApplyPresetTreePreviewLorebookStatsColumnCount(host);
+                  var host = (typeof gigmaEnsureLayoutPresetTreePreviewRowStatsHost === 'function')
+                    ? gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row)
+                    : (row.querySelector ? row.querySelector(':scope > .gigma-layout-preset-tree-row-stats') : null);
+                  if (host && typeof gigmaApplyLayoutPresetTreePreviewLorebookStatsColumnCount === 'function') {
+                    gigmaApplyLayoutPresetTreePreviewLorebookStatsColumnCount(host);
                   }
                 }
               }catch(_){}
@@ -3500,7 +3500,7 @@ return;
     }, true);
   }catch(_){}
 })();
-// --- end: GIGMA preset tree interactions ---
+// --- end: GIGMA layout preset tree interactions ---
 // --- GIGMA: Hide legacy Lorebook Budget Settings section inside GIGMA modal ---
 (function gigmaHideLegacyLorebookSpecificSectionOnce(){
   try{
@@ -4871,7 +4871,7 @@ async function gigmaSelectLorebookInDropdown(worldName) {
                 select.disabled = false;
                 // Trigger the same change pipeline as if the user had manually
                 // changed the lorebook inside the Lorebook Budget drawer,
-                // so that settings from the current preset (and per-lorebook
+                // so that settings from the current layout preset (and per-lorebook
                 // fallbacks) are applied consistently when the selection is
                 // driven from World Info or right-click.
                 try {
@@ -5001,7 +5001,7 @@ const EXTENSION_STATE = {
     modalLorebookStatsSessionId: '',
     modalLorebookStatsLocalStorageKeys: null
 ,
-// Global WI statistics (two independent placements: modal + preset-tree preview)
+// Global WI statistics (two independent placements: modal + layout-preset-tree preview)
 globalWiStatsModalEnabled: gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.globalWiStatsModalEnabled, true),
 globalWiStatsModalShowEntries: gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.globalWiStatsModalShowEntries, true),
 globalWiStatsModalShowTokens: gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.globalWiStatsModalShowTokens, true),
@@ -5246,7 +5246,7 @@ const GIGMA_MODAL_STATS_KEY_SET = new Set(GIGMA_MODAL_STATS_CATEGORIES.map(c => 
 const GIGMA_MODAL_STATS_NON_RAW_HIDDEN_KEYS = new Set();
 
 
-// === GIGMA: Global WI statistics (total across the active preset) ===
+// === GIGMA: Global WI statistics (total across the active layout preset) ===
 const GIGMA_GLOBAL_WI_STATS_CONTEXT_OPTIONS = [
     { key: 'fullContext', label: 'Context', menuHtml: '<i class="fa-solid fa-expand"></i> Context' },
     { key: 'usableContext', label: 'Usable', menuHtml: '<i class="fa-solid fa-bars-progress"></i> Usable' },
@@ -6915,7 +6915,7 @@ function gigmaApplyGlobalWiStatsDropdownPlacement(panelEl, btnEl, place){
         let clipBottom = clipRect.bottom;
         if (place === 'preview') {
             try{
-                const root = (btnEl && btnEl.closest) ? btnEl.closest('#gigma-preset-tree-preview-root') : null;
+                const root = (btnEl && btnEl.closest) ? btnEl.closest('#gigma-layout-preset-tree-preview-root') : null;
                 const chips = root ? root.querySelector('#gigma-global-wi-stats-display-preview') : null;
                 if (chips && chips.getBoundingClientRect) {
                     const cr = chips.getBoundingClientRect();
@@ -7184,7 +7184,7 @@ function gigmaSetWorldInfoStatsSectionCollapsed(sectionKey, collapsed){
 function gigmaGetLorebookStatsDisplayCollapsed(place){
     try{
         if (place === 'preview') {
-            const state = gigmaGetPresetTreePreviewLorebookStatsState();
+            const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
             return !!(state && state.collapsed);
         }
         return !!EXTENSION_STATE.modalLorebookStatsCollapsed;
@@ -7197,9 +7197,9 @@ function gigmaSetLorebookStatsDisplayCollapsed(place, collapsed){
     try{
         const next = !!collapsed;
         if (place === 'preview') {
-            const state = gigmaGetPresetTreePreviewLorebookStatsState();
+            const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
             if (state && typeof state === 'object') state.collapsed = next;
-            gigmaPersistPresetTreePreviewLorebookStatsState();
+            gigmaPersistLayoutPresetTreePreviewLorebookStatsState();
         } else {
             EXTENSION_STATE.modalLorebookStatsCollapsed = next;
             gigmaPersistModalLorebookStatsSettings();
@@ -7215,7 +7215,7 @@ function gigmaGetStatsCollapseButtonVisible(place, kind){
             return !!EXTENSION_STATE.globalWiStatsModalShowCollapseButton;
         }
         if (place === 'preview') {
-            const state = gigmaGetPresetTreePreviewLorebookStatsState();
+            const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
             return !!(state && state.showCollapseButton !== false);
         }
         if (place === 'wi') return !!EXTENSION_STATE.worldInfoLorebookStatsShowCollapseButton;
@@ -7236,9 +7236,9 @@ function gigmaSetStatsCollapseButtonVisible(place, kind, visible){
             return;
         }
         if (place === 'preview') {
-            const state = gigmaGetPresetTreePreviewLorebookStatsState();
+            const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
             if (state && typeof state === 'object') state.showCollapseButton = next;
-            gigmaPersistPresetTreePreviewLorebookStatsState();
+            gigmaPersistLayoutPresetTreePreviewLorebookStatsState();
             return;
         }
         if (place === 'wi') {
@@ -7635,7 +7635,7 @@ function gigmaBuildGlobalWiStatsPanel(panel, place){
 function gigmaUpdateGlobalWiStatsControlsUi(place){
     try{
         if (place === 'preview') {
-            const root = gigmaGetLatestPresetTreePreviewRoot();
+            const root = gigmaGetLatestLayoutPresetTreePreviewRoot();
             const panels = root ? Array.from(root.querySelectorAll('.gigma-global-wi-stats-panel')) : [];
             const set = gigmaGetGlobalWiStatsOptionSet('preview');
 
@@ -7676,11 +7676,11 @@ function gigmaUpdateGlobalWiStatsControlsUi(place){
 
             // Button aria-expanded
             if (root) {
-                const btn = root.querySelector('#gigma-preset-tree-global-wi-stats');
-                const collapseBtn = root.querySelector('#gigma-preset-tree-global-wi-stats-collapse');
+                const btn = root.querySelector('#gigma-layout-preset-tree-global-wi-stats');
+                const collapseBtn = root.querySelector('#gigma-layout-preset-tree-global-wi-stats-collapse');
                 if (btn) btn.setAttribute('aria-expanded', EXTENSION_STATE.globalWiStatsPreviewPanelOpen ? 'true' : 'false');
                 gigmaSyncStatsButtonPairUi(btn, collapseBtn, !!EXTENSION_STATE.globalWiStatsPreviewEnabled, !gigmaGetGlobalWiStatsDisplayCollapsed('preview'), 'Global WI Statistics', gigmaGetStatsCollapseButtonVisible('preview', 'global'));
-                const panel = root.querySelector('#gigma-preset-tree-global-wi-stats-panel');
+                const panel = root.querySelector('#gigma-layout-preset-tree-global-wi-stats-panel');
                 if (panel) {
                     panel.classList.toggle('gigma-hidden', !EXTENSION_STATE.globalWiStatsPreviewPanelOpen);
                     panel.setAttribute('aria-hidden', EXTENSION_STATE.globalWiStatsPreviewPanelOpen ? 'false' : 'true');
@@ -7945,14 +7945,14 @@ function gigmaGetCurrentPresetOrderBudgetChainedUnchainedCounts(){
             return out;
         }
 
-        const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(kind) || {}) : {};
+        const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore(kind) || {}) : {};
         const preset = (store && typeof store === 'object' && Object.prototype.hasOwnProperty.call(store, presetId)) ? store[presetId] : null;
 
         if (kind === 'parent'){
             out.order.chained = total;
             out.budget.chained = total;
 
-            const childStore = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+            const childStore = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
             const inheritingOrder = new Set();
             const inheritingBudget = new Set();
             try{
@@ -8478,19 +8478,19 @@ function gigmaRenderGlobalWiStatsDisplayInto(container, place, rootOverride){
         }
 
 
-        const root = rootOverride || (isPreview ? gigmaGetLatestPresetTreePreviewRoot() : document.getElementById('gigma-ordering-container'));
+        const root = rootOverride || (isPreview ? gigmaGetLatestLayoutPresetTreePreviewRoot() : document.getElementById('gigma-ordering-container'));
         let worldNames = [];
         let unchainedSet = new Set();
         let folderCount = 0;
 
         if (isPreview) {
             if (root && root.querySelectorAll) {
-                const rows = Array.from(root.querySelectorAll('.gigma-preset-tree-row[data-world-name]') || []);
+                const rows = Array.from(root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name]') || []);
                 worldNames = rows.map(r => (r.getAttribute('data-world-name') || '').trim()).filter(Boolean);
-                const unch = rows.filter(r => r.classList && r.classList.contains('gigma-preset-tree-row-unchained'))
+                const unch = rows.filter(r => r.classList && r.classList.contains('gigma-layout-preset-tree-row-unchained'))
                                  .map(r => (r.getAttribute('data-world-name') || '').trim()).filter(Boolean);
                 unchainedSet = new Set(unch);
-                folderCount = (root.querySelectorAll('.gigma-preset-tree-folder') || []).length;
+                folderCount = (root.querySelectorAll('.gigma-layout-preset-tree-folder') || []).length;
             }
         } else {
             const scope = document.getElementById('gigma-ordering-container') || document.getElementById('gigma-modal-root') || document;
@@ -8609,13 +8609,13 @@ function gigmaQueueGlobalWiStatsUpdate(place){
         window[key] = setTimeout(() => {
             try{
                 if (place === 'preview') {
-                    const root = gigmaGetLatestPresetTreePreviewRoot();
+                    const root = gigmaGetLatestLayoutPresetTreePreviewRoot();
                     const container = root ? root.querySelector('#gigma-global-wi-stats-display-preview') : null;
                     gigmaRenderGlobalWiStatsDisplayInto(container, 'preview', root || undefined);
                     try{
                         if (root && EXTENSION_STATE.globalWiStatsPreviewPanelOpen) {
-                            const btn = root.querySelector('#gigma-preset-tree-global-wi-stats');
-                            const panel = root.querySelector('#gigma-preset-tree-global-wi-stats-panel');
+                            const btn = root.querySelector('#gigma-layout-preset-tree-global-wi-stats');
+                            const panel = root.querySelector('#gigma-layout-preset-tree-global-wi-stats-panel');
                             if (btn && panel) gigmaApplyGlobalWiStatsDropdownPlacement(panel, btn, 'preview');
                         }
                     }catch(_ePlc){}
@@ -9055,7 +9055,7 @@ function gigmaRenderLorebookStatsSectionInto(el, stats, sectionKey) {
 function gigmaRenderLorebookStatsInto(el, rawStats, worldName) {
     if (!el) return;
     const enabled = !!EXTENSION_STATE.modalLorebookStatsEnabled;
-    const collapsed = !!((el.closest && el.closest('#gigma-preset-tree-preview-root'))
+    const collapsed = !!((el.closest && el.closest('#gigma-layout-preset-tree-preview-root'))
         ? gigmaGetLorebookStatsDisplayCollapsed('preview')
         : gigmaGetLorebookStatsDisplayCollapsed('modal'));
 
@@ -9720,43 +9720,43 @@ const ensure = (toolbarSelector, suffix) => {
 // --- GIGMA: Preset tree preview lorebook stats (independent controls, shared chips renderer) ---
 const GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY = 'gigma_preset_tree_preview_lorebook_stats_v1';
 
-(function gigmaPresetTreePreviewLorebookStatsStyleOnce() {
+(function gigmaLayoutPresetTreePreviewLorebookStatsStyleOnce() {
     try {
-        if (document.getElementById('gigma-preset-tree-preview-lorebook-stats-style')) return;
+        if (document.getElementById('gigma-layout-preset-tree-preview-lorebook-stats-style')) return;
         const s = document.createElement('style');
-        s.id = 'gigma-preset-tree-preview-lorebook-stats-style';
+        s.id = 'gigma-layout-preset-tree-preview-lorebook-stats-style';
         s.textContent = `
-#gigma-preset-tree-preview-root .gigma-preset-tree-row{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row{
   display:grid;
   grid-template-columns:auto auto minmax(0, 1fr);
   align-items:start;
   column-gap:0.25em;
   row-gap:0.22em;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row > ul{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row > ul{
   grid-column:1 / -1;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row > .gigma-preset-tree-budget{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row > .gigma-layout-preset-tree-budget{
   grid-column:1;
   grid-row:1;
   align-self:start;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row > .gigma-preset-tree-icon{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row > .gigma-layout-preset-tree-icon{
   grid-column:2;
   grid-row:1;
   align-self:start;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row > .gigma-preset-tree-label{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row > .gigma-layout-preset-tree-label{
   grid-column:3;
   grid-row:1;
   min-width:0;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row > .gigma-preset-tree-row-stats{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row > .gigma-layout-preset-tree-row-stats{
   grid-column:3;
   grid-row:2;
   min-width:0;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row-stats.gigma-row-stats{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row-stats.gigma-row-stats{
   min-width:0;
   display:flex;
   flex-direction:column;
@@ -9766,16 +9766,16 @@ const GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY = 'gigma_preset_tree_previ
   font-size:0.82em;
   opacity:0.96;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row-stats.gigma-hidden{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row-stats.gigma-hidden{
   display:none !important;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row-stats .gigma-row-stats-section{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row-stats .gigma-row-stats-section{
   min-width:0;
   display:grid;
   grid-template-columns: repeat(var(--gigma-row-stats-cols, 1), minmax(5em, 1fr));
   gap:0.2em 0.3em;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row-stats .gigma-row-stat-chip{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row-stats .gigma-row-stat-chip{
   display:inline-flex;
   align-items:center;
   justify-content:flex-start;
@@ -9792,7 +9792,7 @@ const GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY = 'gigma_preset_tree_previ
   white-space:nowrap;
   text-align:left;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row-stats .gigma-row-stat-chip-main{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row-stats .gigma-row-stat-chip-main{
   display:flex;
   align-items:center;
   justify-content:flex-start;
@@ -9802,7 +9802,7 @@ const GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY = 'gigma_preset_tree_previ
   margin-right:auto;
   text-align:left;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row-stats .gigma-row-stat-chip-fit-target{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row-stats .gigma-row-stat-chip-fit-target{
   display:block;
   flex:1 1 auto;
   min-width:0;
@@ -9810,11 +9810,11 @@ const GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY = 'gigma_preset_tree_previ
   white-space:nowrap;
   text-overflow:clip;
   text-align:left;
-}#gigma-preset-tree-preview-root .gigma-preset-tree-row-stats .gigma-row-stat-chip-value{
+}#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row-stats .gigma-row-stat-chip-value{
   flex:0 0 auto;
   margin-left:0.22em;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row-stats .gigma-row-stat-chip-icon{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row-stats .gigma-row-stat-chip-icon{
   flex:0 0 auto;
   width:auto;
   height:auto;
@@ -9822,31 +9822,31 @@ const GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY = 'gigma_preset_tree_previ
   margin-left:0 !important;
   margin-right:0.24em !important;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row-stats .gigma-row-stat-chip-section-label{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row-stats .gigma-row-stat-chip-section-label{
   font-weight:600;
   background:rgba(255,255,255,0.11);
   border-color:rgba(255,255,255,0.24);
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-stats-controls{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-stats-controls{
   position:relative;
   display:inline-flex;
   align-items:center;
   gap:0.375em;
   flex-wrap:wrap;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-stats-controls > button.menu_button{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-stats-controls > button.menu_button{
   flex:0 0 auto;
 }
-#gigma-preset-tree-preview-root :is(#gigma-preset-tree-stats-toggle,
-                                   #gigma-preset-tree-stats-entries,
-                                   #gigma-preset-tree-stats-tokens,
-                                   #gigma-preset-tree-stats-section-raw,
-                                   #gigma-preset-tree-stats-section-activated,
-                                   #gigma-preset-tree-stats-section-included)[aria-pressed="false"]{
+#gigma-layout-preset-tree-preview-root :is(#gigma-layout-preset-tree-stats-toggle,
+                                   #gigma-layout-preset-tree-stats-entries,
+                                   #gigma-layout-preset-tree-stats-tokens,
+                                   #gigma-layout-preset-tree-stats-section-raw,
+                                   #gigma-layout-preset-tree-stats-section-activated,
+                                   #gigma-layout-preset-tree-stats-section-included)[aria-pressed="false"]{
   opacity:0.55;
   filter:grayscale(1);
 }
-#gigma-preset-tree-preview-root .gigma-modal-stats-panel{
+#gigma-layout-preset-tree-preview-root .gigma-modal-stats-panel{
   position:absolute;
   right:0;
   top:calc(100% + 0.25em);
@@ -9862,21 +9862,21 @@ const GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY = 'gigma_preset_tree_previ
   overflow-x: hidden;
   box-shadow: 0 0.25em 1em rgba(0,0,0,0.6);
 }
-#gigma-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-list{
+#gigma-layout-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-list{
   display:flex;
   flex-direction:column;
   gap:0.2em;
 }
-#gigma-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions{
+#gigma-layout-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions{
   display:flex;
   gap:0.25em;
   margin-bottom:0.4em;
 }
-#gigma-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions button.menu_button{
+#gigma-layout-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions button.menu_button{
   padding-left:0.45em;
   padding-right:0.45em;
 }
-#gigma-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-item{
+#gigma-layout-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-item{
   display:flex;
   align-items:center;
   gap:0.5em;
@@ -9884,7 +9884,7 @@ const GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY = 'gigma_preset_tree_previ
   user-select:none;
   padding:0.12em 0;
 }
-#gigma-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-item input{
+#gigma-layout-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-item input{
   cursor:pointer;
 }
 `;
@@ -9900,7 +9900,7 @@ const GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY = 'gigma_preset_tree_previ
         s.id = 'gigma-stats-chip-button-contrast-bridge-style';
         s.textContent = `
 #gigma-modal-root,
-#gigma-preset-tree-preview-root,
+#gigma-layout-preset-tree-preview-root,
 #gigma-world-info-budgetsection{
   --gigma-chip-btn-bg: rgba(255,255,255,0.04);
   --gigma-chip-btn-border: rgba(255,255,255,0.16);
@@ -9930,21 +9930,21 @@ const GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY = 'gigma_preset_tree_previ
 #gigma-modal-root :is(#gigma-toolbar, #gigma-toolbar-right) > .gigma-modal-stats-controls > button.menu_button,
 #gigma-modal-root :is(#gigma-toolbar, #gigma-toolbar-right) > .gigma-toolbar-group > button.menu_button,
 #gigma-modal-root :is(#gigma-toolbar, #gigma-toolbar-right) > .gigma-toolbar-group > .gigma-modal-stats-controls > button.menu_button,
-#gigma-modal-root :is(#gigma-preset-controls-parent, #gigma-preset-controls-child, #gigma-assignment-preset-controls) button.menu_button,
+#gigma-modal-root :is(#gigma-layout-preset-controls-parent, #gigma-layout-preset-controls-child, #gigma-assignment-preset-controls) button.menu_button,
 #gigma-modal-root .gigma-folder-header button.menu_button,
-#gigma-modal-root .gigma-preset-assignment button.menu_button,
+#gigma-modal-root .gigma-assignment-section button.menu_button,
 #gigma-modal-root .gigma-inherit-switch-btn,
-#gigma-modal-root #gigma-preset-assignment-add,
+#gigma-modal-root #gigma-assignment-section-add,
 #gigma-modal-root #gigma-ordering-preview,
 #gigma-modal-root #gigma-ordering-load,
 #gigma-modal-root :is(#gigma-modal-settings-toggle,#gigma-modal-lore-content-toggle,#gigma-modal-ordering-refresh,#gigma-modal-global-wi-stats,#gigma-modal-global-wi-stats-collapse),
 #gigma-modal-root #gigma-assignment-preview-button,
-#gigma-modal-root #gigma-preset-kind-toggle,
-#gigma-modal-root .gigma-preset-kind-toggle-row .gigma-preset-kind-toggle,
+#gigma-modal-root #gigma-layout-preset-kind-toggle,
+#gigma-modal-root .gigma-layout-preset-kind-toggle-row .gigma-layout-preset-kind-toggle,
 #gigma-modal-root .gigma-pane-search-qualifier,
-dialog:has(#gigma-preset-tree-preview-root) .gigma-preset-tree-header-right > button.menu_button:not(#gigma-preset-tree-close),
-dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.menu_button,
-#gigma-preset-tree-preview-root .gigma-preset-tree-stats-controls > button.menu_button,
+dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-layout-preset-tree-header-right > button.menu_button:not(#gigma-layout-preset-tree-close),
+dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-preview-gwi-host > button.menu_button,
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-stats-controls > button.menu_button,
 #gigma-world-info-budgetsection button.menu_button{
   border-color: var(--gigma-chip-btn-border) !important;
   background: var(--gigma-chip-btn-bg) !important;
@@ -9958,16 +9958,16 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
 #gigma-modal-root :is(#gigma-toolbar, #gigma-toolbar-right) > .gigma-toolbar-group > button.menu_button:focus-visible,
 #gigma-modal-root :is(#gigma-toolbar, #gigma-toolbar-right) > .gigma-toolbar-group > .gigma-modal-stats-controls > button.menu_button:hover,
 #gigma-modal-root :is(#gigma-toolbar, #gigma-toolbar-right) > .gigma-toolbar-group > .gigma-modal-stats-controls > button.menu_button:focus-visible,
-#gigma-modal-root :is(#gigma-preset-controls-parent, #gigma-preset-controls-child, #gigma-assignment-preset-controls) button.menu_button:hover,
-#gigma-modal-root :is(#gigma-preset-controls-parent, #gigma-preset-controls-child, #gigma-assignment-preset-controls) button.menu_button:focus-visible,
+#gigma-modal-root :is(#gigma-layout-preset-controls-parent, #gigma-layout-preset-controls-child, #gigma-assignment-preset-controls) button.menu_button:hover,
+#gigma-modal-root :is(#gigma-layout-preset-controls-parent, #gigma-layout-preset-controls-child, #gigma-assignment-preset-controls) button.menu_button:focus-visible,
 #gigma-modal-root .gigma-folder-header button.menu_button:hover,
 #gigma-modal-root .gigma-folder-header button.menu_button:focus-visible,
-#gigma-modal-root .gigma-preset-assignment button.menu_button:hover,
-#gigma-modal-root .gigma-preset-assignment button.menu_button:focus-visible,
+#gigma-modal-root .gigma-assignment-section button.menu_button:hover,
+#gigma-modal-root .gigma-assignment-section button.menu_button:focus-visible,
 #gigma-modal-root .gigma-inherit-switch-btn:hover,
 #gigma-modal-root .gigma-inherit-switch-btn:focus-visible,
-#gigma-modal-root #gigma-preset-assignment-add:hover,
-#gigma-modal-root #gigma-preset-assignment-add:focus-visible,
+#gigma-modal-root #gigma-assignment-section-add:hover,
+#gigma-modal-root #gigma-assignment-section-add:focus-visible,
 #gigma-modal-root #gigma-ordering-preview:hover,
 #gigma-modal-root #gigma-ordering-preview:focus-visible,
 #gigma-modal-root #gigma-ordering-load:hover,
@@ -9976,18 +9976,18 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
 #gigma-modal-root :is(#gigma-modal-settings-toggle,#gigma-modal-lore-content-toggle,#gigma-modal-ordering-refresh,#gigma-modal-global-wi-stats,#gigma-modal-global-wi-stats-collapse):focus-visible,
 #gigma-modal-root #gigma-assignment-preview-button:hover,
 #gigma-modal-root #gigma-assignment-preview-button:focus-visible,
-#gigma-modal-root #gigma-preset-kind-toggle:hover,
-#gigma-modal-root #gigma-preset-kind-toggle:focus-visible,
-#gigma-modal-root .gigma-preset-kind-toggle-row .gigma-preset-kind-toggle:hover,
-#gigma-modal-root .gigma-preset-kind-toggle-row .gigma-preset-kind-toggle:focus-visible,
+#gigma-modal-root #gigma-layout-preset-kind-toggle:hover,
+#gigma-modal-root #gigma-layout-preset-kind-toggle:focus-visible,
+#gigma-modal-root .gigma-layout-preset-kind-toggle-row .gigma-layout-preset-kind-toggle:hover,
+#gigma-modal-root .gigma-layout-preset-kind-toggle-row .gigma-layout-preset-kind-toggle:focus-visible,
 #gigma-modal-root .gigma-pane-search-qualifier:hover,
 #gigma-modal-root .gigma-pane-search-qualifier:focus-visible,
-dialog:has(#gigma-preset-tree-preview-root) .gigma-preset-tree-header-right > button.menu_button:not(#gigma-preset-tree-close):hover,
-dialog:has(#gigma-preset-tree-preview-root) .gigma-preset-tree-header-right > button.menu_button:not(#gigma-preset-tree-close):focus-visible,
-dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.menu_button:hover,
-dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.menu_button:focus-visible,
-#gigma-preset-tree-preview-root .gigma-preset-tree-stats-controls > button.menu_button:hover,
-#gigma-preset-tree-preview-root .gigma-preset-tree-stats-controls > button.menu_button:focus-visible,
+dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-layout-preset-tree-header-right > button.menu_button:not(#gigma-layout-preset-tree-close):hover,
+dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-layout-preset-tree-header-right > button.menu_button:not(#gigma-layout-preset-tree-close):focus-visible,
+dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-preview-gwi-host > button.menu_button:hover,
+dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-preview-gwi-host > button.menu_button:focus-visible,
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-stats-controls > button.menu_button:hover,
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-stats-controls > button.menu_button:focus-visible,
 #gigma-world-info-budgetsection button.menu_button:hover,
 #gigma-world-info-budgetsection button.menu_button:focus-visible{
   border-color: var(--gigma-chip-btn-border-hover) !important;
@@ -9999,9 +9999,9 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
 #gigma-modal-root :is(#gigma-modal-stats-section-raw, #gigma-modal-stats-section-raw-right,
                      #gigma-modal-stats-section-activated, #gigma-modal-stats-section-activated-right,
                      #gigma-modal-stats-section-included, #gigma-modal-stats-section-included-right),
-#gigma-preset-tree-preview-root :is(#gigma-preset-tree-stats-section-raw,
-                                   #gigma-preset-tree-stats-section-activated,
-                                   #gigma-preset-tree-stats-section-included){
+#gigma-layout-preset-tree-preview-root :is(#gigma-layout-preset-tree-stats-section-raw,
+                                   #gigma-layout-preset-tree-stats-section-activated,
+                                   #gigma-layout-preset-tree-stats-section-included){
   background: rgba(255,255,255,0.065) !important;
   border-color: rgba(255,255,255,0.19) !important;
 }
@@ -10011,12 +10011,12 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
 #gigma-modal-root :is(#gigma-modal-stats-section-raw, #gigma-modal-stats-section-raw-right,
                      #gigma-modal-stats-section-activated, #gigma-modal-stats-section-activated-right,
                      #gigma-modal-stats-section-included, #gigma-modal-stats-section-included-right):focus-visible,
-#gigma-preset-tree-preview-root :is(#gigma-preset-tree-stats-section-raw,
-                                   #gigma-preset-tree-stats-section-activated,
-                                   #gigma-preset-tree-stats-section-included):hover,
-#gigma-preset-tree-preview-root :is(#gigma-preset-tree-stats-section-raw,
-                                   #gigma-preset-tree-stats-section-activated,
-                                   #gigma-preset-tree-stats-section-included):focus-visible{
+#gigma-layout-preset-tree-preview-root :is(#gigma-layout-preset-tree-stats-section-raw,
+                                   #gigma-layout-preset-tree-stats-section-activated,
+                                   #gigma-layout-preset-tree-stats-section-included):hover,
+#gigma-layout-preset-tree-preview-root :is(#gigma-layout-preset-tree-stats-section-raw,
+                                   #gigma-layout-preset-tree-stats-section-activated,
+                                   #gigma-layout-preset-tree-stats-section-included):focus-visible{
   background: rgba(255,255,255,0.085) !important;
   border-color: rgba(255,255,255,0.22) !important;
 }
@@ -10051,7 +10051,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
     } catch (_e) { }
 
 
-// --- GIGMA: Global WI statistics styling (modal + preset-tree preview) ---
+// --- GIGMA: Global WI statistics styling (modal + layout-preset-tree preview) ---
 (function gigmaGlobalWiStatsStyleOnce(){
   try{
     if (document.getElementById('gigma-global-wi-stats-style')) return;
@@ -10065,7 +10065,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
 
       /* Icon-only button (globe-with-stats) */
       #gigma-modal-root .gigma-global-wi-stats-btn,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-btn,
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-btn,
       #gigma-worldinfo-gwi-host .gigma-global-wi-stats-btn{
         width: 2.05em !important;
         min-width: 2.05em !important;
@@ -10075,14 +10075,14 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
         justify-content: center !important;
       }
       #gigma-modal-root .gigma-lorebook-stats-btn,
-      #gigma-preset-tree-preview-root .gigma-lorebook-stats-btn,
+      #gigma-layout-preset-tree-preview-root .gigma-lorebook-stats-btn,
       #gigma-worldinfo-gwi-host .gigma-lorebook-stats-btn{
         width: calc(var(--gigma-toolbar-btn-h, var(--gigma-hdr-btn, 2.25em)) * 1.5) !important;
         min-width: calc(var(--gigma-toolbar-btn-h, var(--gigma-hdr-btn, 2.25em)) * 1.5) !important;
         max-width: calc(var(--gigma-toolbar-btn-h, var(--gigma-hdr-btn, 2.25em)) * 1.5) !important;
       }
       #gigma-modal-root :is(.gigma-global-wi-stats-btn,.gigma-lorebook-stats-btn)[data-gigma-stats-enabled="false"],
-      #gigma-preset-tree-preview-root :is(.gigma-global-wi-stats-btn,.gigma-lorebook-stats-btn)[data-gigma-stats-enabled="false"],
+      #gigma-layout-preset-tree-preview-root :is(.gigma-global-wi-stats-btn,.gigma-lorebook-stats-btn)[data-gigma-stats-enabled="false"],
       #gigma-worldinfo-gwi-host :is(.gigma-global-wi-stats-btn,.gigma-lorebook-stats-btn)[data-gigma-stats-enabled="false"]{
         opacity:0.55;
         filter:grayscale(1);
@@ -10189,18 +10189,18 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
 
 
       /* Preview: overlay Global WI stats button (bottom-right of the lorebook list area, above the chips) */
-      #gigma-preset-tree-preview-root .gigma-preset-tree-display-wrap{
+      #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-display-wrap{
         flex: 1 1 auto;
         min-height: 0;
         position: relative;
       }
-      #gigma-preset-tree-preview-root .gigma-preset-tree-display-wrap > .gigma-preset-tree{
+      #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-display-wrap > .gigma-layout-preset-tree{
         height: 100%;
         overflow: auto;
         padding-bottom: 2.9em; /* keep last rows clear of the overlay button */
         box-sizing: border-box;
       }
-      #gigma-preset-tree-preview-root .gigma-gwi-overlay-host{
+      #gigma-layout-preset-tree-preview-root .gigma-gwi-overlay-host{
         position: absolute;
         right: 0.6em;
         bottom: 0.6em;
@@ -10211,7 +10211,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
         gap: 0.25em;
       }
       /* Preview dropdown must always open upward */
-      #gigma-preset-tree-preview-root .gigma-gwi-overlay-host .gigma-modal-stats-panel{
+      #gigma-layout-preset-tree-preview-root .gigma-gwi-overlay-host .gigma-modal-stats-panel{
         top: auto !important;
         bottom: calc(100% + 0.25em) !important;
         right: 0 !important;
@@ -10344,7 +10344,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
 
       /* Global WI statistics display area */
       #gigma-modal-root .gigma-global-wi-stats-display,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display{
         --gigma-global-wi-block-gap:${GIGMA_GLOBAL_WI_STATS_BLOCK_GAP_EM};
         border-radius: 0.5em;
         border: 0.0625em solid rgba(255,255,255,0.10);
@@ -10355,31 +10355,31 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
       #gigma-modal-root .gigma-global-wi-stats-display{
         margin-top: 0.5em;
       }
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display{
         margin-top: 0.55em;
         flex: 0 0 auto;
       }
       #gigma-modal-root .gigma-global-wi-stats-display.gigma-hidden,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display.gigma-hidden{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display.gigma-hidden{
         display:none !important;
       }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stats-section,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stats-section{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stats-section{
         display:grid;
         grid-template-columns: repeat(auto-fit, minmax(9.25em, 1fr));
         gap: 0.25em 0.35em;
         min-width:0;
       }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stats-section + .gigma-row-stats-section,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stats-section + .gigma-row-stats-section{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stats-section + .gigma-row-stats-section{
         margin-top: var(--gigma-global-wi-block-gap);
       }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stats-section,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stats-section{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stats-section{
         grid-template-columns: repeat(var(--gigma-global-wi-stats-cols, 1), minmax(9.25em, 1fr));
       }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stat-chip,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip{
         display:inline-flex;
         align-items:center;
         justify-content:flex-start;
@@ -10397,7 +10397,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
         text-align:left;
       }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stat-chip-main,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-main{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-main{
         display:flex;
         align-items:center;
         justify-content:flex-start;
@@ -10408,7 +10408,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
         text-align:left;
       }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stat-chip-fit-target,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-fit-target{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-fit-target{
         display:block;
         flex:1 1 auto;
         min-width:0;
@@ -10417,12 +10417,12 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
         text-overflow:clip;
         text-align:left;
       }      #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stat-chip-value,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-value{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-value{
         flex:0 0 auto;
         margin-left:0.14em;
       }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stat-chip-icon,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-icon{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-icon{
         flex:0 0 auto;
         width:auto;
         height:auto;
@@ -10431,7 +10431,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
         margin-right:0.24em !important;
       }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stat-chip-section-label,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-section-label{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-section-label{
         justify-content:flex-start;
         gap:0;
         font-weight:600;
@@ -10439,19 +10439,19 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
         border-color:rgba(255,255,255,0.24);
       }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-global-wi-chip-label,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-chip-label{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-chip-label{
         overflow:hidden;
         text-overflow:clip;
         min-width:0;
       }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-global-wi-chip-value,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-chip-value{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-chip-value{
         flex:0 0 auto;
         font-weight:650;
         opacity:0.95;
       }
       #gigma-modal-root .gigma-global-wi-stats-note,
-      #gigma-preset-tree-preview-root .gigma-global-wi-stats-note{
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-note{
         margin-top: 0.45em;
         font-size: 0.82em;
         opacity: 0.78;
@@ -10468,7 +10468,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
     s.id = 'gigma-stats-collapse-buttons-style';
     s.textContent = `
 #gigma-modal-root .gigma-global-wi-stats-display .gigma-global-wi-stats-display-head,
-#gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-stats-display-head{
+#gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-stats-display-head{
   display:flex;
   align-items:center;
   justify-content:center;
@@ -10479,7 +10479,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
   margin:0 0 0.35em 0;
 }
 #gigma-modal-root .gigma-global-wi-stats-display .gigma-global-wi-stats-display-title,
-#gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-stats-display-title{
+#gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-stats-display-title{
   min-width:0;
   width:100%;
   font-weight:600;
@@ -10487,13 +10487,13 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
   text-align:center;
 }
 #gigma-modal-root .gigma-global-wi-stats-display .gigma-global-wi-stats-display-body,
-#gigma-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-stats-display-body{
+#gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-stats-display-body{
   display:flex;
   flex-direction:column;
   gap:0.25em;
 }
 #gigma-modal-root .gigma-stats-collapse-btn,
-#gigma-preset-tree-preview-root .gigma-stats-collapse-btn,
+#gigma-layout-preset-tree-preview-root .gigma-stats-collapse-btn,
 #${SELECTORS.WORLD_INFO_TOKEN_TOTAL} .gigma-stats-collapse-btn,
 #${SELECTORS.WORLD_INFO_GLOBAL_WI_STATS_HOST} .gigma-stats-collapse-btn{
   display:inline-flex;
@@ -10509,7 +10509,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
   flex:0 0 auto;
 }
 #gigma-modal-root .gigma-stats-collapse-btn > i,
-#gigma-preset-tree-preview-root .gigma-stats-collapse-btn > i,
+#gigma-layout-preset-tree-preview-root .gigma-stats-collapse-btn > i,
 #${SELECTORS.WORLD_INFO_TOKEN_TOTAL} .gigma-stats-collapse-btn > i,
 #${SELECTORS.WORLD_INFO_GLOBAL_WI_STATS_HOST} .gigma-stats-collapse-btn > i{
   pointer-events:none;
@@ -10532,7 +10532,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
 }
 #${SELECTORS.WORLD_INFO_GLOBAL_WI_STATS_HOST} .gigma-worldinfo-wi-stats-wrap,
 #gigma-modal-root .gigma-ordering-gwi-host,
-#gigma-preset-tree-preview-root .gigma-preview-gwi-host{
+#gigma-layout-preset-tree-preview-root .gigma-preview-gwi-host{
   gap:0.25em;
 }
 `;
@@ -10680,13 +10680,13 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
 
 /* Keep this strictly to buttons (non-header). */
 #gigma-modal-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions button.menu_button,
-#gigma-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions button.menu_button{
+#gigma-layout-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions button.menu_button{
   border-color: rgba(0,0,0,0.92) !important;
 }
 #gigma-modal-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions button.menu_button:hover,
 #gigma-modal-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions button.menu_button:focus-visible,
-#gigma-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions button.menu_button:hover,
-#gigma-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions button.menu_button:focus-visible{
+#gigma-layout-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions button.menu_button:hover,
+#gigma-layout-preset-tree-preview-root .gigma-modal-stats-panel .gigma-modal-stats-panel-actions button.menu_button:focus-visible{
   border-color: rgba(0,0,0,1) !important;
 }
 
@@ -10700,7 +10700,7 @@ dialog:has(#gigma-preset-tree-preview-root) .gigma-preview-gwi-host > button.men
     } catch (_e) { }
 })();
 
-function gigmaNormalizePresetTreePreviewLorebookStatsState(raw) {
+function gigmaNormalizeLayoutPresetTreePreviewLorebookStatsState(raw) {
     const base = {
         enabled: !!EXTENSION_STATE?.modalLorebookStatsEnabled,
         showEntries: (typeof EXTENSION_STATE?.modalLorebookStatsShowEntries === 'boolean') ? !!EXTENSION_STATE.modalLorebookStatsShowEntries : true,
@@ -10753,35 +10753,35 @@ function gigmaNormalizePresetTreePreviewLorebookStatsState(raw) {
     return out;
 }
 
-function gigmaGetPresetTreePreviewLorebookStatsState() {
+function gigmaGetLayoutPresetTreePreviewLorebookStatsState() {
     try {
-        if (window.__gigmaPresetTreePreviewLorebookStatsState && typeof window.__gigmaPresetTreePreviewLorebookStatsState === 'object') {
-            if (typeof window.__gigmaPresetTreePreviewLorebookStatsState.collapsed !== 'boolean') {
-                window.__gigmaPresetTreePreviewLorebookStatsState.collapsed = false;
+        if (window.__gigmaLayoutPresetTreePreviewLorebookStatsState && typeof window.__gigmaLayoutPresetTreePreviewLorebookStatsState === 'object') {
+            if (typeof window.__gigmaLayoutPresetTreePreviewLorebookStatsState.collapsed !== 'boolean') {
+                window.__gigmaLayoutPresetTreePreviewLorebookStatsState.collapsed = false;
             }
-            if (typeof window.__gigmaPresetTreePreviewLorebookStatsState.showCollapseButton !== 'boolean') {
-                window.__gigmaPresetTreePreviewLorebookStatsState.showCollapseButton = true;
+            if (typeof window.__gigmaLayoutPresetTreePreviewLorebookStatsState.showCollapseButton !== 'boolean') {
+                window.__gigmaLayoutPresetTreePreviewLorebookStatsState.showCollapseButton = true;
             }
-            return window.__gigmaPresetTreePreviewLorebookStatsState;
+            return window.__gigmaLayoutPresetTreePreviewLorebookStatsState;
         }
         let raw = null;
         try {
             const txt = localStorage.getItem(GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY);
             if (txt) raw = JSON.parse(txt);
         } catch (_eRead) { raw = null; }
-        const state = gigmaNormalizePresetTreePreviewLorebookStatsState(raw);
-        window.__gigmaPresetTreePreviewLorebookStatsState = state;
+        const state = gigmaNormalizeLayoutPresetTreePreviewLorebookStatsState(raw);
+        window.__gigmaLayoutPresetTreePreviewLorebookStatsState = state;
         return state;
     } catch (_e) {
-        const state = gigmaNormalizePresetTreePreviewLorebookStatsState(null);
-        window.__gigmaPresetTreePreviewLorebookStatsState = state;
+        const state = gigmaNormalizeLayoutPresetTreePreviewLorebookStatsState(null);
+        window.__gigmaLayoutPresetTreePreviewLorebookStatsState = state;
         return state;
     }
 }
 
-function gigmaPersistPresetTreePreviewLorebookStatsState() {
+function gigmaPersistLayoutPresetTreePreviewLorebookStatsState() {
     try {
-        const s = gigmaGetPresetTreePreviewLorebookStatsState();
+        const s = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
         const payload = {
             enabled: gigmaWriteBinaryToggle(s.enabled),
             showEntries: gigmaWriteBinaryToggle(s.showEntries),
@@ -10799,9 +10799,9 @@ function gigmaPersistPresetTreePreviewLorebookStatsState() {
     } catch (_e) { }
 }
 
-function gigmaSetPresetTreePreviewLorebookStatsCategoryList(list) {
+function gigmaSetLayoutPresetTreePreviewLorebookStatsCategoryList(list) {
     try {
-        const state = gigmaGetPresetTreePreviewLorebookStatsState();
+        const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
         const enabled = new Set();
         for (const k of (Array.isArray(list) ? list : [])) {
             const kk = String(k || '').trim();
@@ -10818,22 +10818,22 @@ function gigmaSetPresetTreePreviewLorebookStatsCategoryList(list) {
     } catch (_e) { }
 }
 
-function gigmaGetPresetTreePreviewLorebookStatsCategoryList() {
+function gigmaGetLayoutPresetTreePreviewLorebookStatsCategoryList() {
     try {
-        const state = gigmaGetPresetTreePreviewLorebookStatsState();
+        const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
         if (Array.isArray(state.categoriesList)) return state.categoriesList;
-        gigmaSetPresetTreePreviewLorebookStatsCategoryList(gigmaParseCsvToList(state.categoriesCsv, GIGMA_MODAL_STATS_DEFAULT_CSV));
+        gigmaSetLayoutPresetTreePreviewLorebookStatsCategoryList(gigmaParseCsvToList(state.categoriesCsv, GIGMA_MODAL_STATS_DEFAULT_CSV));
         return state.categoriesList || [];
     } catch (_e) {
         return [];
     }
 }
 
-function gigmaGetPresetTreePreviewLorebookStatsCategorySet() {
+function gigmaGetLayoutPresetTreePreviewLorebookStatsCategorySet() {
     try {
-        const state = gigmaGetPresetTreePreviewLorebookStatsState();
+        const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
         if (state.categoriesSet instanceof Set) return state.categoriesSet;
-        const set = new Set(gigmaGetPresetTreePreviewLorebookStatsCategoryList());
+        const set = new Set(gigmaGetLayoutPresetTreePreviewLorebookStatsCategoryList());
         state.categoriesSet = set;
         return set;
     } catch (_e) {
@@ -10841,7 +10841,7 @@ function gigmaGetPresetTreePreviewLorebookStatsCategorySet() {
     }
 }
 
-function gigmaWithPresetTreePreviewLorebookStatsStateScope(fn) {
+function gigmaWithLayoutPresetTreePreviewLorebookStatsStateScope(fn) {
     const prev = {
         enabled: EXTENSION_STATE.modalLorebookStatsEnabled,
         showEntries: EXTENSION_STATE.modalLorebookStatsShowEntries,
@@ -10856,7 +10856,7 @@ function gigmaWithPresetTreePreviewLorebookStatsStateScope(fn) {
         removeZeroTokenCategories: EXTENSION_STATE.modalLorebookStatsRemoveZeroTokenCategories,
     };
     try {
-        const state = gigmaGetPresetTreePreviewLorebookStatsState();
+        const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
         EXTENSION_STATE.modalLorebookStatsEnabled = !!state.enabled;
         EXTENSION_STATE.modalLorebookStatsShowEntries = !!state.showEntries;
         EXTENSION_STATE.modalLorebookStatsShowTokens = !!state.showTokens;
@@ -10884,23 +10884,23 @@ function gigmaWithPresetTreePreviewLorebookStatsStateScope(fn) {
     }
 }
 
-function gigmaGetLatestPresetTreePreviewRoot() {
+function gigmaGetLatestLayoutPresetTreePreviewRoot() {
     try {
-        const roots = document.querySelectorAll('#gigma-preset-tree-preview-root');
+        const roots = document.querySelectorAll('#gigma-layout-preset-tree-preview-root');
         return (roots && roots.length) ? roots[roots.length - 1] : null;
     } catch (_e) {
         return null;
     }
 }
 
-function gigmaEnsurePresetTreePreviewRowStatsHost(row) {
+function gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row) {
     try {
         if (!row) return null;
-        let host = row.querySelector ? row.querySelector(':scope > .gigma-preset-tree-row-stats') : null;
+        let host = row.querySelector ? row.querySelector(':scope > .gigma-layout-preset-tree-row-stats') : null;
         if (host) return host;
         host = document.createElement('div');
-        host.className = 'gigma-preset-tree-row-stats gigma-row-stats gigma-hidden';
-        const label = row.querySelector ? row.querySelector(':scope > .gigma-preset-tree-label') : null;
+        host.className = 'gigma-layout-preset-tree-row-stats gigma-row-stats gigma-hidden';
+        const label = row.querySelector ? row.querySelector(':scope > .gigma-layout-preset-tree-label') : null;
         if (label && label.parentNode === row) label.insertAdjacentElement('afterend', host);
         else row.appendChild(host);
         return host;
@@ -10909,10 +10909,10 @@ function gigmaEnsurePresetTreePreviewRowStatsHost(row) {
     }
 }
 
-function gigmaGetPresetTreePreviewLorebookStatsTheoreticalRootWidthEm(fallbackEl) {
+function gigmaGetLayoutPresetTreePreviewLorebookStatsTheoreticalRootWidthEm(fallbackEl) {
     try {
-        const root = gigmaGetLatestPresetTreePreviewRoot();
-        const tree = (root && root.querySelector) ? (root.querySelector('.gigma-preset-tree') || root) : root;
+        const root = gigmaGetLatestLayoutPresetTreePreviewRoot();
+        const tree = (root && root.querySelector) ? (root.querySelector('.gigma-layout-preset-tree') || root) : root;
         const ref = tree || fallbackEl;
         if (tree) {
             const rect = (typeof tree.getBoundingClientRect === 'function') ? tree.getBoundingClientRect() : null;
@@ -10927,13 +10927,13 @@ function gigmaGetPresetTreePreviewLorebookStatsTheoreticalRootWidthEm(fallbackEl
     return gigmaGetModalLorebookStatsLayoutWidthEm(fallbackEl);
 }
 
-function gigmaRecomputePresetTreePreviewLorebookStatsTargetCountCache(fallbackEl) {
+function gigmaRecomputeLayoutPresetTreePreviewLorebookStatsTargetCountCache(fallbackEl) {
     try {
         const preferredColEm = 8;
         const gapEm = gigmaGetModalLorebookStatsColumnGapEm(fallbackEl);
-        const rootWidthEm = gigmaGetPresetTreePreviewLorebookStatsTheoreticalRootWidthEm(fallbackEl);
+        const rootWidthEm = gigmaGetLayoutPresetTreePreviewLorebookStatsTheoreticalRootWidthEm(fallbackEl);
         const nTarget = Math.max(1, Math.floor((rootWidthEm + gapEm) / (preferredColEm + gapEm)));
-        window.__gigmaPresetTreePreviewLorebookStatsTargetCountCache = {
+        window.__gigmaLayoutPresetTreePreviewLorebookStatsTargetCountCache = {
             nTarget,
             rootWidthEm,
             gapEm,
@@ -10943,15 +10943,15 @@ function gigmaRecomputePresetTreePreviewLorebookStatsTargetCountCache(fallbackEl
     return 1;
 }
 
-function gigmaGetPresetTreePreviewLorebookStatsTargetCount(fallbackEl) {
+function gigmaGetLayoutPresetTreePreviewLorebookStatsTargetCount(fallbackEl) {
     try {
-        const cached = window.__gigmaPresetTreePreviewLorebookStatsTargetCountCache;
+        const cached = window.__gigmaLayoutPresetTreePreviewLorebookStatsTargetCountCache;
         if (cached && Number.isFinite(cached.nTarget) && cached.nTarget > 0) return cached.nTarget;
     } catch (_e) { }
-    return gigmaRecomputePresetTreePreviewLorebookStatsTargetCountCache(fallbackEl);
+    return gigmaRecomputeLayoutPresetTreePreviewLorebookStatsTargetCountCache(fallbackEl);
 }
 
-function gigmaApplyPresetTreePreviewLorebookStatsColumnCount(el) {
+function gigmaApplyLayoutPresetTreePreviewLorebookStatsColumnCount(el) {
     try {
         if (!el || !el.isConnected) return;
         const chips = el.querySelectorAll ? el.querySelectorAll('.gigma-row-stat-chip') : [];
@@ -10966,7 +10966,7 @@ function gigmaApplyPresetTreePreviewLorebookStatsColumnCount(el) {
         const rowWidthEm = gigmaGetModalLorebookStatsLayoutWidthEm((el && el.parentElement) ? el.parentElement : el);
 
         const safeFloor = (n) => Math.max(1, Math.floor(n));
-        const nTarget = Math.max(1, Number(gigmaGetPresetTreePreviewLorebookStatsTargetCount(el)) || 1);
+        const nTarget = Math.max(1, Number(gigmaGetLayoutPresetTreePreviewLorebookStatsTargetCount(el)) || 1);
         const nFit = safeFloor((rowWidthEm + gapEm) / (minColEm + gapEm));
         const n = Math.max(1, Math.min(nTarget, nFit));
 
@@ -10974,26 +10974,26 @@ function gigmaApplyPresetTreePreviewLorebookStatsColumnCount(el) {
     } catch (_e) { }
 }
 
-function gigmaUpdatePresetTreePreviewLorebookStatsColumnCountsAllRows(rootOverride) {
+function gigmaUpdateLayoutPresetTreePreviewLorebookStatsColumnCountsAllRows(rootOverride) {
     try {
-        const root = rootOverride || gigmaGetLatestPresetTreePreviewRoot();
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
-        const hosts = root.querySelectorAll ? root.querySelectorAll('.gigma-preset-tree-row[data-world-name] > .gigma-preset-tree-row-stats') : [];
+        const hosts = root.querySelectorAll ? root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name] > .gigma-layout-preset-tree-row-stats') : [];
         const firstHost = (hosts && hosts.length) ? hosts[0] : null;
-        gigmaRecomputePresetTreePreviewLorebookStatsTargetCountCache(firstHost || root);
-        hosts.forEach((el) => gigmaApplyPresetTreePreviewLorebookStatsColumnCount(el));
+        gigmaRecomputeLayoutPresetTreePreviewLorebookStatsTargetCountCache(firstHost || root);
+        hosts.forEach((el) => gigmaApplyLayoutPresetTreePreviewLorebookStatsColumnCount(el));
     } catch (_e) { }
 }
 
-(function gigmaBindPresetTreePreviewLorebookStatsColumnResizeOnce() {
+(function gigmaBindLayoutPresetTreePreviewLorebookStatsColumnResizeOnce() {
     try {
-        if (window.__gigmaPresetTreePreviewLorebookStatsColsResizeBound) return;
-        window.__gigmaPresetTreePreviewLorebookStatsColsResizeBound = true;
+        if (window.__gigmaLayoutPresetTreePreviewLorebookStatsColsResizeBound) return;
+        window.__gigmaLayoutPresetTreePreviewLorebookStatsColsResizeBound = true;
         window.addEventListener('resize', () => {
-            try { window.__gigmaPresetTreePreviewLorebookStatsTargetCountCache = null; } catch (_e) { }
-            try { gigmaUpdatePresetTreePreviewLorebookStatsColumnCountsAllRows(); } catch (_e) { }
+            try { window.__gigmaLayoutPresetTreePreviewLorebookStatsTargetCountCache = null; } catch (_e) { }
+            try { gigmaUpdateLayoutPresetTreePreviewLorebookStatsColumnCountsAllRows(); } catch (_e) { }
             try {
-                const root = gigmaGetLatestPresetTreePreviewRoot();
+                const root = gigmaGetLatestLayoutPresetTreePreviewRoot();
                 const container = root ? root.querySelector('#gigma-global-wi-stats-display-preview') : null;
                 if (container) gigmaApplyGlobalWiStatsColumnCount(container);
             } catch (_e) { }
@@ -11001,32 +11001,32 @@ function gigmaUpdatePresetTreePreviewLorebookStatsColumnCountsAllRows(rootOverri
     } catch (_e) { }
 })();
 
-function gigmaRenderPresetTreePreviewLorebookStatsInto(host, rawStats, worldName) {
+function gigmaRenderLayoutPresetTreePreviewLorebookStatsInto(host, rawStats, worldName) {
     try {
         if (!host) return;
-        gigmaWithPresetTreePreviewLorebookStatsStateScope(() => {
+        gigmaWithLayoutPresetTreePreviewLorebookStatsStateScope(() => {
             gigmaRenderLorebookStatsInto(host, rawStats, worldName);
         });
-        const root = host.closest ? host.closest('#gigma-preset-tree-preview-root') : null;
-        gigmaUpdatePresetTreePreviewLorebookStatsColumnCountsAllRows(root || undefined);
+        const root = host.closest ? host.closest('#gigma-layout-preset-tree-preview-root') : null;
+        gigmaUpdateLayoutPresetTreePreviewLorebookStatsColumnCountsAllRows(root || undefined);
     } catch (_e) { }
 }
 
-async function gigmaUpdatePresetTreePreviewLorebookRowStats(row) {
+async function gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row) {
     try {
         if (!row || !row.dataset) return;
         const worldName = String(row.dataset.worldName || '').trim();
-        const host = gigmaEnsurePresetTreePreviewRowStatsHost(row);
+        const host = gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row);
         if (!host) return;
 
         if (!worldName) {
-            gigmaRenderPresetTreePreviewLorebookStatsInto(host, null, '');
+            gigmaRenderLayoutPresetTreePreviewLorebookStatsInto(host, null, '');
             return;
         }
 
-        const state = gigmaGetPresetTreePreviewLorebookStatsState();
+        const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
         if (!state.enabled || !!state.collapsed) {
-            gigmaRenderPresetTreePreviewLorebookStatsInto(host, null, worldName);
+            gigmaRenderLayoutPresetTreePreviewLorebookStatsInto(host, null, worldName);
             return;
         }
 
@@ -11034,13 +11034,13 @@ async function gigmaUpdatePresetTreePreviewLorebookRowStats(row) {
         row.dataset.gigmaPreviewStatsReq = String(req);
 
         if (!state.sectionRaw) {
-            gigmaRenderPresetTreePreviewLorebookStatsInto(host, null, worldName);
+            gigmaRenderLayoutPresetTreePreviewLorebookStatsInto(host, null, worldName);
             return;
         }
 
         const cached = GIGMA_MODAL_LOREBOOK_STATS_CACHE.get(worldName);
         if (cached && cached.stats) {
-            gigmaRenderPresetTreePreviewLorebookStatsInto(host, cached.stats, worldName);
+            gigmaRenderLayoutPresetTreePreviewLorebookStatsInto(host, cached.stats, worldName);
             return;
         }
 
@@ -11050,47 +11050,47 @@ async function gigmaUpdatePresetTreePreviewLorebookRowStats(row) {
         chip.className = 'gigma-row-stat-chip';
         chip.textContent = 'Loading…';
         host.appendChild(chip);
-        gigmaApplyPresetTreePreviewLorebookStatsColumnCount(host);
+        gigmaApplyLayoutPresetTreePreviewLorebookStatsColumnCount(host);
 
         const stats = await gigmaGetLorebookStats(worldName);
         if (!row.isConnected || String(row.dataset.gigmaPreviewStatsReq || '') !== String(req)) return;
-        gigmaRenderPresetTreePreviewLorebookStatsInto(host, stats, worldName);
+        gigmaRenderLayoutPresetTreePreviewLorebookStatsInto(host, stats, worldName);
     } catch (_e) { }
 }
 
-function gigmaUpdatePresetTreePreviewLorebookStatsAllRows(rootOverride) {
+function gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows(rootOverride) {
     try {
-        const root = rootOverride || gigmaGetLatestPresetTreePreviewRoot();
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
-        const rows = root.querySelectorAll ? root.querySelectorAll('.gigma-preset-tree-row[data-world-name], .gigma-preset-tree-row[data-world]') : [];
+        const rows = root.querySelectorAll ? root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name], .gigma-layout-preset-tree-row[data-world]') : [];
         rows.forEach((row) => {
-            gigmaEnsurePresetTreePreviewRowStatsHost(row);
-            gigmaUpdatePresetTreePreviewLorebookRowStats(row);
+            gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row);
+            gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row);
         });
-        gigmaUpdatePresetTreePreviewLorebookStatsColumnCountsAllRows(root);
+        gigmaUpdateLayoutPresetTreePreviewLorebookStatsColumnCountsAllRows(root);
         try { gigmaQueueGlobalWiStatsUpdate('preview'); } catch (_e) {}
     } catch (_e) { }
 }
 
-function gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(rootOverride) {
+function gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(rootOverride) {
     try {
-        const root = rootOverride || gigmaGetLatestPresetTreePreviewRoot();
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
-        const state = gigmaGetPresetTreePreviewLorebookStatsState();
+        const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
         const pairs = [
-            ['#gigma-preset-tree-stats-entries', !!state.showEntries],
-            ['#gigma-preset-tree-stats-tokens', !!state.showTokens],
-            ['#gigma-preset-tree-stats-section-raw', !!state.sectionRaw],
-            ['#gigma-preset-tree-stats-section-activated', !!state.sectionActivated],
-            ['#gigma-preset-tree-stats-section-included', !!state.sectionIncluded],
+            ['#gigma-layout-preset-tree-stats-entries', !!state.showEntries],
+            ['#gigma-layout-preset-tree-stats-tokens', !!state.showTokens],
+            ['#gigma-layout-preset-tree-stats-section-raw', !!state.sectionRaw],
+            ['#gigma-layout-preset-tree-stats-section-activated', !!state.sectionActivated],
+            ['#gigma-layout-preset-tree-stats-section-included', !!state.sectionIncluded],
         ];
         for (const [sel, on] of pairs) {
             const b = root.querySelector(sel);
             if (b) b.setAttribute('aria-pressed', on ? 'true' : 'false');
         }
 
-        const panel = root.querySelector('#gigma-preset-tree-stats-panel');
-        const catsBtn = root.querySelector('#gigma-preset-tree-stats-cats');
+        const panel = root.querySelector('#gigma-layout-preset-tree-stats-panel');
+        const catsBtn = root.querySelector('#gigma-layout-preset-tree-stats-cats');
         if (panel) {
             const sw = panel.querySelector('input[type="checkbox"][data-gigma-lore-switch="1"]');
             if (sw) sw.checked = !!state.enabled;
@@ -11102,14 +11102,14 @@ function gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(rootOverride) {
             if (removeZeroTokensSw) removeZeroTokensSw.checked = !!state.removeZeroTokenCategories;
             panel.classList.toggle('gigma-hidden', !state.panelOpen);
             panel.setAttribute('aria-hidden', state.panelOpen ? 'false' : 'true');
-            const set = gigmaGetPresetTreePreviewLorebookStatsCategorySet();
+            const set = gigmaGetLayoutPresetTreePreviewLorebookStatsCategorySet();
             panel.querySelectorAll('input[type="checkbox"][data-gigma-cat]').forEach((cb) => {
                 const k = cb.getAttribute('data-gigma-cat');
                 cb.checked = !!(k && set.has(k));
             });
         }
         if (catsBtn) catsBtn.setAttribute('aria-expanded', state.panelOpen ? 'true' : 'false');
-        const collapseBtn = root.querySelector('#gigma-preset-tree-stats-collapse');
+        const collapseBtn = root.querySelector('#gigma-layout-preset-tree-stats-collapse');
         gigmaSyncStatsButtonPairUi(catsBtn, collapseBtn, !!state.enabled, !gigmaGetLorebookStatsDisplayCollapsed('preview'), 'Lorebook Stats', !!state.showCollapseButton);
         gigmaUpdateManualUsageRefreshButtonsUi();
         try { gigmaUpdateGlobalWiStatsControlsUi('preview'); } catch (_e) {}
@@ -11117,37 +11117,37 @@ function gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(rootOverride) {
     } catch (_e) { }
 }
 
-function gigmaClosePresetTreePreviewLorebookStatsPanel(rootOverride) {
+function gigmaCloseLayoutPresetTreePreviewLorebookStatsPanel(rootOverride) {
     try {
-        const root = rootOverride || gigmaGetLatestPresetTreePreviewRoot();
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
-        const state = gigmaGetPresetTreePreviewLorebookStatsState();
+        const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
         if (!state.panelOpen) return;
         state.panelOpen = false;
-        gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root);
+        gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
     } catch (_e) { }
 }
 
-function gigmaInstallPresetTreePreviewLorebookStatsOutsideCloser() {
+function gigmaInstallLayoutPresetTreePreviewLorebookStatsOutsideCloser() {
     try {
-        if (window.__gigmaPresetTreePreviewLorebookStatsOutsideCloser) return;
-        window.__gigmaPresetTreePreviewLorebookStatsOutsideCloser = true;
+        if (window.__gigmaLayoutPresetTreePreviewLorebookStatsOutsideCloser) return;
+        window.__gigmaLayoutPresetTreePreviewLorebookStatsOutsideCloser = true;
         document.addEventListener('pointerdown', (ev) => {
             try {
-                const root = gigmaGetLatestPresetTreePreviewRoot();
+                const root = gigmaGetLatestLayoutPresetTreePreviewRoot();
                 if (!root) return;
-                const state = gigmaGetPresetTreePreviewLorebookStatsState();
+                const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
                 if (!state.panelOpen) return;
                 const t = ev && ev.target;
-                const controls = root.querySelector('.gigma-preset-tree-stats-controls');
+                const controls = root.querySelector('.gigma-layout-preset-tree-stats-controls');
                 if (controls && controls.contains && controls.contains(t)) return;
-                gigmaClosePresetTreePreviewLorebookStatsPanel(root);
+                gigmaCloseLayoutPresetTreePreviewLorebookStatsPanel(root);
             } catch (_e) { }
         }, true);
     } catch (_e) { }
 }
 
-function gigmaBuildPresetTreePreviewLorebookStatsPanel(panel) {
+function gigmaBuildLayoutPresetTreePreviewLorebookStatsPanel(panel) {
     try {
         if (!panel) return;
         if (panel.getAttribute('data-gigma-built') === '1') return;
@@ -11191,8 +11191,8 @@ function gigmaBuildPresetTreePreviewLorebookStatsPanel(panel) {
 
         const countRow = document.createElement('div');
         countRow.className = 'gigma-modal-stats-panel-actions';
-        countRow.appendChild((() => { const b = document.createElement('button'); b.type = 'button'; b.id = 'gigma-preset-tree-stats-entries'; b.className = 'menu_button'; b.textContent = 'Entries'; b.title = 'Toggle entry counts'; return b; })());
-        countRow.appendChild((() => { const b = document.createElement('button'); b.type = 'button'; b.id = 'gigma-preset-tree-stats-tokens'; b.className = 'menu_button'; b.textContent = 'Tokens'; b.title = 'Toggle token counts'; return b; })());
+        countRow.appendChild((() => { const b = document.createElement('button'); b.type = 'button'; b.id = 'gigma-layout-preset-tree-stats-entries'; b.className = 'menu_button'; b.textContent = 'Entries'; b.title = 'Toggle entry counts'; return b; })());
+        countRow.appendChild((() => { const b = document.createElement('button'); b.type = 'button'; b.id = 'gigma-layout-preset-tree-stats-tokens'; b.className = 'menu_button'; b.textContent = 'Tokens'; b.title = 'Toggle token counts'; return b; })());
         panel.appendChild(countRow);
 
         const list = document.createElement('div');
@@ -11200,9 +11200,9 @@ function gigmaBuildPresetTreePreviewLorebookStatsPanel(panel) {
 
         const sectionToggles = document.createElement('div');
         sectionToggles.className = 'gigma-modal-stats-panel-actions';
-        sectionToggles.appendChild((() => { const b = document.createElement('button'); b.type = 'button'; b.id = 'gigma-preset-tree-stats-section-raw'; b.className = 'menu_button'; b.textContent = 'Raw'; b.title = 'Toggle Raw section'; return b; })());
-        sectionToggles.appendChild((() => { const b = document.createElement('button'); b.type = 'button'; b.id = 'gigma-preset-tree-stats-section-activated'; b.className = 'menu_button'; b.textContent = 'Activated'; b.title = 'Toggle Activated section'; return b; })());
-        sectionToggles.appendChild((() => { const b = document.createElement('button'); b.type = 'button'; b.id = 'gigma-preset-tree-stats-section-included'; b.className = 'menu_button'; b.textContent = 'Included'; b.title = 'Toggle Included section'; return b; })());
+        sectionToggles.appendChild((() => { const b = document.createElement('button'); b.type = 'button'; b.id = 'gigma-layout-preset-tree-stats-section-raw'; b.className = 'menu_button'; b.textContent = 'Raw'; b.title = 'Toggle Raw section'; return b; })());
+        sectionToggles.appendChild((() => { const b = document.createElement('button'); b.type = 'button'; b.id = 'gigma-layout-preset-tree-stats-section-activated'; b.className = 'menu_button'; b.textContent = 'Activated'; b.title = 'Toggle Activated section'; return b; })());
+        sectionToggles.appendChild((() => { const b = document.createElement('button'); b.type = 'button'; b.id = 'gigma-layout-preset-tree-stats-section-included'; b.className = 'menu_button'; b.textContent = 'Included'; b.title = 'Toggle Included section'; return b; })());
         panel.appendChild(sectionToggles);
 
         const actions = document.createElement('div');
@@ -11210,12 +11210,12 @@ function gigmaBuildPresetTreePreviewLorebookStatsPanel(panel) {
         const btnAll = document.createElement('button');
         btnAll.type = 'button';
         btnAll.className = 'menu_button';
-        btnAll.id = 'gigma-preset-tree-stats-cats-all';
+        btnAll.id = 'gigma-layout-preset-tree-stats-cats-all';
         btnAll.textContent = 'All';
         const btnNone = document.createElement('button');
         btnNone.type = 'button';
         btnNone.className = 'menu_button';
-        btnNone.id = 'gigma-preset-tree-stats-cats-none';
+        btnNone.id = 'gigma-layout-preset-tree-stats-cats-none';
         btnNone.textContent = 'None';
         actions.appendChild(btnAll);
         actions.appendChild(btnNone);
@@ -11241,9 +11241,9 @@ function gigmaBuildPresetTreePreviewLorebookStatsPanel(panel) {
     } catch (_e) { }
 }
 
-function gigmaClosePresetTreePreviewGlobalWiStatsPanel(rootOverride){
+function gigmaCloseLayoutPresetTreePreviewGlobalWiStatsPanel(rootOverride){
     try{
-        const root = rootOverride || gigmaGetLatestPresetTreePreviewRoot();
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
         if (!EXTENSION_STATE.globalWiStatsPreviewPanelOpen) return;
         EXTENSION_STATE.globalWiStatsPreviewPanelOpen = false;
@@ -11251,21 +11251,21 @@ function gigmaClosePresetTreePreviewGlobalWiStatsPanel(rootOverride){
     }catch(_e){}
 }
 
-function gigmaInstallPresetTreePreviewGlobalWiStatsOutsideCloser(){
+function gigmaInstallLayoutPresetTreePreviewGlobalWiStatsOutsideCloser(){
     try{
-        if (window.__gigmaPresetTreePreviewGlobalWiStatsOutsideCloser) return;
-        window.__gigmaPresetTreePreviewGlobalWiStatsOutsideCloser = true;
+        if (window.__gigmaLayoutPresetTreePreviewGlobalWiStatsOutsideCloser) return;
+        window.__gigmaLayoutPresetTreePreviewGlobalWiStatsOutsideCloser = true;
         document.addEventListener('pointerdown', (ev) => {
             try{
-                const root = gigmaGetLatestPresetTreePreviewRoot();
+                const root = gigmaGetLatestLayoutPresetTreePreviewRoot();
                 if (!root) return;
                 if (!EXTENSION_STATE.globalWiStatsPreviewPanelOpen) return;
                 const t = ev && ev.target;
-                const btn = root.querySelector('#gigma-preset-tree-global-wi-stats');
-                const collapseBtn = root.querySelector('#gigma-preset-tree-global-wi-stats-collapse');
-                const panel = root.querySelector('#gigma-preset-tree-global-wi-stats-panel');
+                const btn = root.querySelector('#gigma-layout-preset-tree-global-wi-stats');
+                const collapseBtn = root.querySelector('#gigma-layout-preset-tree-global-wi-stats-collapse');
+                const panel = root.querySelector('#gigma-layout-preset-tree-global-wi-stats-panel');
                 if ((btn && btn.contains && btn.contains(t)) || (collapseBtn && collapseBtn.contains && collapseBtn.contains(t)) || (panel && panel.contains && panel.contains(t))) return;
-                gigmaClosePresetTreePreviewGlobalWiStatsPanel(root);
+                gigmaCloseLayoutPresetTreePreviewGlobalWiStatsPanel(root);
             }catch(_e){}
         }, true);
     }catch(_e){}
@@ -11273,31 +11273,31 @@ function gigmaInstallPresetTreePreviewGlobalWiStatsOutsideCloser(){
 
 
 
-function gigmaEnsurePresetTreePreviewGlobalWiStatsOverlay(rootOverride){
+function gigmaEnsureLayoutPresetTreePreviewGlobalWiStatsOverlay(rootOverride){
     try{
-        const root = rootOverride || gigmaGetLatestPresetTreePreviewRoot();
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
 
-        const btn = root.querySelector('#gigma-preset-tree-global-wi-stats');
-        const panel = root.querySelector('#gigma-preset-tree-global-wi-stats-panel');
-        const tree = root.querySelector('.gigma-preset-tree');
+        const btn = root.querySelector('#gigma-layout-preset-tree-global-wi-stats');
+        const panel = root.querySelector('#gigma-layout-preset-tree-global-wi-stats-panel');
+        const tree = root.querySelector('.gigma-layout-preset-tree');
         if (!btn || !panel || !tree) return;
 
         // Wrap the scrollable tree area so we can anchor an overlay button inside the viewport.
         let wrap = tree.parentElement;
-        if (!wrap || !wrap.classList || !wrap.classList.contains('gigma-preset-tree-display-wrap')) {
+        if (!wrap || !wrap.classList || !wrap.classList.contains('gigma-layout-preset-tree-display-wrap')) {
             const parent = tree.parentNode;
             if (!parent) return;
             wrap = document.createElement('div');
-            wrap.className = 'gigma-preset-tree-display-wrap';
+            wrap.className = 'gigma-layout-preset-tree-display-wrap';
             parent.insertBefore(wrap, tree);
             wrap.appendChild(tree);
         }
 
-        let host = root.querySelector('#gigma-preset-tree-gwi-overlay-host');
+        let host = root.querySelector('#gigma-layout-preset-tree-gwi-overlay-host');
         if (!host){
             host = document.createElement('div');
-            host.id = 'gigma-preset-tree-gwi-overlay-host';
+            host.id = 'gigma-layout-preset-tree-gwi-overlay-host';
             host.className = 'gigma-gwi-overlay-host';
             wrap.appendChild(host);
         } else if (host.parentNode !== wrap) {
@@ -11314,15 +11314,15 @@ function gigmaEnsurePresetTreePreviewGlobalWiStatsOverlay(rootOverride){
             btn.addEventListener('click', (ev) => {
                 try{ ev.preventDefault(); ev.stopPropagation(); }catch(_e){}
                 try{
-                    const state = gigmaGetPresetTreePreviewLorebookStatsState();
+                    const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
                     if (state && typeof state === 'object') state.panelOpen = false; // close Cats panel
                 }catch(_e2){}
                 EXTENSION_STATE.globalWiStatsPreviewPanelOpen = !EXTENSION_STATE.globalWiStatsPreviewPanelOpen;
-                try{ gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root); }catch(_e3){}
+                try{ gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root); }catch(_e3){}
                 try{ gigmaUpdateGlobalWiStatsControlsUi('preview'); }catch(_e4){}
                 try{ gigmaApplyGlobalWiStatsDropdownPlacement(panel, btn, 'preview'); }catch(_e5){}
                 try{ gigmaQueueGlobalWiStatsUpdate('preview'); }catch(_e6){}
-                try{ gigmaInstallPresetTreePreviewGlobalWiStatsOutsideCloser(); }catch(_e7){}
+                try{ gigmaInstallLayoutPresetTreePreviewGlobalWiStatsOutsideCloser(); }catch(_e7){}
             });
         }
 
@@ -11332,21 +11332,21 @@ function gigmaEnsurePresetTreePreviewGlobalWiStatsOverlay(rootOverride){
 }
 
 
-function gigmaEnsurePresetTreePreviewGlobalWiStatsRightAligned(rootOverride){
+function gigmaEnsureLayoutPresetTreePreviewGlobalWiStatsRightAligned(rootOverride){
     try{
-        const root = rootOverride || gigmaGetLatestPresetTreePreviewRoot();
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
 
-        const btn = root.querySelector('#gigma-preset-tree-global-wi-stats');
-        const collapseBtn = root.querySelector('#gigma-preset-tree-global-wi-stats-collapse');
-        const panel = root.querySelector('#gigma-preset-tree-global-wi-stats-panel');
-        const headerRight = root.querySelector('.gigma-preset-tree-header-right');
+        const btn = root.querySelector('#gigma-layout-preset-tree-global-wi-stats');
+        const collapseBtn = root.querySelector('#gigma-layout-preset-tree-global-wi-stats-collapse');
+        const panel = root.querySelector('#gigma-layout-preset-tree-global-wi-stats-panel');
+        const headerRight = root.querySelector('.gigma-layout-preset-tree-header-right');
         if (!btn || !panel || !headerRight) return;
 
-        let host = root.querySelector('#gigma-preset-tree-gwi-right-host');
+        let host = root.querySelector('#gigma-layout-preset-tree-gwi-right-host');
         if (!host){
             host = document.createElement('div');
-            host.id = 'gigma-preset-tree-gwi-right-host';
+            host.id = 'gigma-layout-preset-tree-gwi-right-host';
             host.className = 'gigma-preview-gwi-host';
             headerRight.appendChild(host);
         } else if (host.parentNode !== headerRight) {
@@ -11362,13 +11362,13 @@ function gigmaEnsurePresetTreePreviewGlobalWiStatsRightAligned(rootOverride){
             btn.addEventListener('click', (ev) => {
                 try{ ev.preventDefault(); ev.stopPropagation(); }catch(_e){}
                 try{
-                    const state = gigmaGetPresetTreePreviewLorebookStatsState();
+                    const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
                     if (state && typeof state === 'object') state.panelOpen = false;
                 }catch(_e2){}
                 EXTENSION_STATE.globalWiStatsPreviewPanelOpen = !EXTENSION_STATE.globalWiStatsPreviewPanelOpen;
-                try{ gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root); }catch(_e3){}
+                try{ gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root); }catch(_e3){}
                 try{ gigmaQueueGlobalWiStatsUpdate('preview'); }catch(_e4){}
-                try{ gigmaInstallPresetTreePreviewGlobalWiStatsOutsideCloser(); }catch(_e5){}
+                try{ gigmaInstallLayoutPresetTreePreviewGlobalWiStatsOutsideCloser(); }catch(_e5){}
             });
         }
         if (collapseBtn && !collapseBtn.__gigmaGwiRightCollapseWired) {
@@ -11376,52 +11376,52 @@ function gigmaEnsurePresetTreePreviewGlobalWiStatsRightAligned(rootOverride){
             collapseBtn.addEventListener('click', (ev) => {
                 try{ ev.preventDefault(); ev.stopPropagation(); }catch(_e){}
                 gigmaSetGlobalWiStatsDisplayCollapsed('preview', !gigmaGetGlobalWiStatsDisplayCollapsed('preview'));
-                try{ gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root); }catch(_e2){}
+                try{ gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root); }catch(_e2){}
                 try{ gigmaQueueGlobalWiStatsUpdate('preview'); }catch(_e3){}
             });
         }
     }catch(_e){}
 }
 
-function gigmaEnsurePresetTreePreviewLorebookStatsUi(rootOverride) {
+function gigmaEnsureLayoutPresetTreePreviewLorebookStatsUi(rootOverride) {
     try {
-        const root = rootOverride || gigmaGetLatestPresetTreePreviewRoot();
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return null;
-        const group = root.querySelector('.gigma-preset-tree-header-right');
+        const group = root.querySelector('.gigma-layout-preset-tree-header-right');
         if (!group) return null;
 
-        let controls = root.querySelector('.gigma-preset-tree-stats-controls');
+        let controls = root.querySelector('.gigma-layout-preset-tree-stats-controls');
         if (!controls) {
             controls = document.createElement('div');
-            controls.className = 'gigma-preset-tree-stats-controls';
+            controls.className = 'gigma-layout-preset-tree-stats-controls';
             
 controls.innerHTML = '' +
-    '<button id="gigma-preset-tree-stats-refresh" class="menu_button" type="button" title="Refresh Activated/Included values with a dry WI scan" aria-label="Refresh Activated/Included values with a dry WI scan" data-gigma-idle-text="Gen">Gen</button>' +
-    '<button id="gigma-preset-tree-global-wi-stats" class="menu_button gigma-icon-btn gigma-global-wi-stats-btn" type="button" title="Global WI statistics" aria-label="Global WI statistics" aria-expanded="false">' + GIGMA_GLOBAL_WI_STATS_ICON_HTML + '</button>' +
-    '<button id="gigma-preset-tree-global-wi-stats-collapse" class="menu_button gigma-icon-btn gigma-stats-collapse-btn" type="button" title="Global WI Statistics: Expanded" aria-label="Global WI Statistics: Expanded" aria-expanded="true"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>' +
-    '<button id="gigma-preset-tree-stats-cats" class="menu_button gigma-icon-btn gigma-global-wi-stats-btn gigma-lorebook-stats-btn" type="button" title="Lorebook Stats" aria-label="Lorebook Stats" aria-expanded="false">' + GIGMA_LOREBOOK_STATS_ICON_HTML + '</button>' +
-    '<button id="gigma-preset-tree-stats-collapse" class="menu_button gigma-icon-btn gigma-stats-collapse-btn" type="button" title="Lorebook Stats: Expanded" aria-label="Lorebook Stats: Expanded" aria-expanded="true"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>' +
-    '<div id="gigma-preset-tree-global-wi-stats-panel" class="gigma-modal-stats-panel gigma-global-wi-stats-panel gigma-hidden" aria-hidden="true"></div>' +
-    '<div id="gigma-preset-tree-stats-panel" class="gigma-modal-stats-panel gigma-lorebook-stats-panel gigma-hidden" aria-hidden="true"></div>';
-            const restoreBtn = root.querySelector('#gigma-preset-tree-restore-folders');
+    '<button id="gigma-layout-preset-tree-stats-refresh" class="menu_button" type="button" title="Refresh Activated/Included values with a dry WI scan" aria-label="Refresh Activated/Included values with a dry WI scan" data-gigma-idle-text="Gen">Gen</button>' +
+    '<button id="gigma-layout-preset-tree-global-wi-stats" class="menu_button gigma-icon-btn gigma-global-wi-stats-btn" type="button" title="Global WI statistics" aria-label="Global WI statistics" aria-expanded="false">' + GIGMA_GLOBAL_WI_STATS_ICON_HTML + '</button>' +
+    '<button id="gigma-layout-preset-tree-global-wi-stats-collapse" class="menu_button gigma-icon-btn gigma-stats-collapse-btn" type="button" title="Global WI Statistics: Expanded" aria-label="Global WI Statistics: Expanded" aria-expanded="true"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>' +
+    '<button id="gigma-layout-preset-tree-stats-cats" class="menu_button gigma-icon-btn gigma-global-wi-stats-btn gigma-lorebook-stats-btn" type="button" title="Lorebook Stats" aria-label="Lorebook Stats" aria-expanded="false">' + GIGMA_LOREBOOK_STATS_ICON_HTML + '</button>' +
+    '<button id="gigma-layout-preset-tree-stats-collapse" class="menu_button gigma-icon-btn gigma-stats-collapse-btn" type="button" title="Lorebook Stats: Expanded" aria-label="Lorebook Stats: Expanded" aria-expanded="true"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>' +
+    '<div id="gigma-layout-preset-tree-global-wi-stats-panel" class="gigma-modal-stats-panel gigma-global-wi-stats-panel gigma-hidden" aria-hidden="true"></div>' +
+    '<div id="gigma-layout-preset-tree-stats-panel" class="gigma-modal-stats-panel gigma-lorebook-stats-panel gigma-hidden" aria-hidden="true"></div>';
+            const restoreBtn = root.querySelector('#gigma-layout-preset-tree-restore-folders');
             if (restoreBtn && restoreBtn.parentNode === group) group.insertBefore(controls, restoreBtn);
             else group.appendChild(controls);
         } else {
-            const restoreBtn = root.querySelector('#gigma-preset-tree-restore-folders');
+            const restoreBtn = root.querySelector('#gigma-layout-preset-tree-restore-folders');
             if (restoreBtn && restoreBtn.parentNode === group && controls.parentNode === group && controls.nextElementSibling !== restoreBtn) {
                 group.insertBefore(controls, restoreBtn);
             }
         }
 
-        const panel = root.querySelector('#gigma-preset-tree-stats-panel');
-        gigmaBuildPresetTreePreviewLorebookStatsPanel(panel);
+        const panel = root.querySelector('#gigma-layout-preset-tree-stats-panel');
+        gigmaBuildLayoutPresetTreePreviewLorebookStatsPanel(panel);
 // NEW: Global WI stats panel
 try{
-    const gPanel = root.querySelector('#gigma-preset-tree-global-wi-stats-panel');
+    const gPanel = root.querySelector('#gigma-layout-preset-tree-global-wi-stats-panel');
     if (gPanel) gigmaBuildGlobalWiStatsPanel(gPanel, 'preview');
 }catch(_e){}
 
-try{ gigmaEnsurePresetTreePreviewGlobalWiStatsRightAligned(root); }catch(_e){}
+try{ gigmaEnsureLayoutPresetTreePreviewGlobalWiStatsRightAligned(root); }catch(_e){}
 
         if (!controls.__gigmaPreviewStatsWired) {
             controls.__gigmaPreviewStatsWired = true;
@@ -11429,53 +11429,53 @@ try{ gigmaEnsurePresetTreePreviewGlobalWiStatsRightAligned(root); }catch(_e){}
                 try {
                     const t = ev && ev.target && ev.target.closest ? ev.target.closest('button') : null;
                     if (!t) return;
-                    const state = gigmaGetPresetTreePreviewLorebookStatsState();
+                    const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
                     let needsRerender = false;
 
-                    if (t.id === 'gigma-preset-tree-stats-refresh') {
+                    if (t.id === 'gigma-layout-preset-tree-stats-refresh') {
                         scheduleBackground(() => gigmaRefreshLastGenerationUsageSnapshot({ source: 'preset-preview' }));
-                    } else if (t.id === 'gigma-preset-tree-global-wi-stats') {
+                    } else if (t.id === 'gigma-layout-preset-tree-global-wi-stats') {
                         try { ev.preventDefault(); ev.stopPropagation(); } catch (_eStopG) { }
                         state.panelOpen = false;
                         EXTENSION_STATE.globalWiStatsPreviewPanelOpen = !EXTENSION_STATE.globalWiStatsPreviewPanelOpen;
-                        gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root);
+                        gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
                         gigmaQueueGlobalWiStatsUpdate('preview');
-                        gigmaInstallPresetTreePreviewGlobalWiStatsOutsideCloser();
+                        gigmaInstallLayoutPresetTreePreviewGlobalWiStatsOutsideCloser();
                         return;
-                    } else if (t.id === 'gigma-preset-tree-global-wi-stats-collapse') {
+                    } else if (t.id === 'gigma-layout-preset-tree-global-wi-stats-collapse') {
                         try { ev.preventDefault(); ev.stopPropagation(); } catch (_eStopGC) { }
                         gigmaSetGlobalWiStatsDisplayCollapsed('preview', !gigmaGetGlobalWiStatsDisplayCollapsed('preview'));
-                        gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root);
+                        gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
                         gigmaQueueGlobalWiStatsUpdate('preview');
                         return;
-                    } else if (t.id === 'gigma-preset-tree-stats-entries') {
+                    } else if (t.id === 'gigma-layout-preset-tree-stats-entries') {
                         state.showEntries = !state.showEntries;
                         if (!state.showEntries && !state.showTokens) state.showTokens = true;
                         needsRerender = true;
-                    } else if (t.id === 'gigma-preset-tree-stats-tokens') {
+                    } else if (t.id === 'gigma-layout-preset-tree-stats-tokens') {
                         state.showTokens = !state.showTokens;
                         if (!state.showEntries && !state.showTokens) state.showEntries = true;
                         needsRerender = true;
-                    } else if (t.id === 'gigma-preset-tree-stats-cats') {
+                    } else if (t.id === 'gigma-layout-preset-tree-stats-cats') {
                         state.panelOpen = !state.panelOpen;
-                    } else if (t.id === 'gigma-preset-tree-stats-collapse') {
+                    } else if (t.id === 'gigma-layout-preset-tree-stats-collapse') {
                         gigmaSetLorebookStatsDisplayCollapsed('preview', !gigmaGetLorebookStatsDisplayCollapsed('preview'));
                         needsRerender = true;
-                    } else if (t.id === 'gigma-preset-tree-stats-cats-all') {
-                        gigmaSetPresetTreePreviewLorebookStatsCategoryList(GIGMA_MODAL_STATS_CATEGORIES.map(c => c.key));
+                    } else if (t.id === 'gigma-layout-preset-tree-stats-cats-all') {
+                        gigmaSetLayoutPresetTreePreviewLorebookStatsCategoryList(GIGMA_MODAL_STATS_CATEGORIES.map(c => c.key));
                         needsRerender = true;
-                    } else if (t.id === 'gigma-preset-tree-stats-cats-none') {
-                        gigmaSetPresetTreePreviewLorebookStatsCategoryList([]);
+                    } else if (t.id === 'gigma-layout-preset-tree-stats-cats-none') {
+                        gigmaSetLayoutPresetTreePreviewLorebookStatsCategoryList([]);
                         needsRerender = true;
-                    } else if (t.id === 'gigma-preset-tree-stats-section-raw') {
+                    } else if (t.id === 'gigma-layout-preset-tree-stats-section-raw') {
                         state.sectionRaw = !state.sectionRaw;
                         if (!state.sectionRaw && !state.sectionActivated && !state.sectionIncluded) state.sectionActivated = true;
                         needsRerender = true;
-                    } else if (t.id === 'gigma-preset-tree-stats-section-activated') {
+                    } else if (t.id === 'gigma-layout-preset-tree-stats-section-activated') {
                         state.sectionActivated = !state.sectionActivated;
                         if (!state.sectionRaw && !state.sectionActivated && !state.sectionIncluded) state.sectionRaw = true;
                         needsRerender = true;
-                    } else if (t.id === 'gigma-preset-tree-stats-section-included') {
+                    } else if (t.id === 'gigma-layout-preset-tree-stats-section-included') {
                         state.sectionIncluded = !state.sectionIncluded;
                         if (!state.sectionRaw && !state.sectionActivated && !state.sectionIncluded) state.sectionRaw = true;
                         needsRerender = true;
@@ -11483,9 +11483,9 @@ try{ gigmaEnsurePresetTreePreviewGlobalWiStatsRightAligned(root); }catch(_e){}
                         return;
                     }
 
-                    gigmaPersistPresetTreePreviewLorebookStatsState();
-                    gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root);
-                    if (needsRerender) gigmaUpdatePresetTreePreviewLorebookStatsAllRows(root);
+                    gigmaPersistLayoutPresetTreePreviewLorebookStatsState();
+                    gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
+                    if (needsRerender) gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows(root);
                     try { ev.preventDefault(); ev.stopPropagation(); } catch (_eStop) { }
                 } catch (_e) { }
             });
@@ -11495,72 +11495,72 @@ try{ gigmaEnsurePresetTreePreviewGlobalWiStatsRightAligned(root); }catch(_e){}
                     const t = ev && ev.target;
                     if (!t || t.tagName !== 'INPUT') return;
                     if (t.getAttribute('data-gigma-lore-switch') === '1') {
-                        const state = gigmaGetPresetTreePreviewLorebookStatsState();
+                        const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
                         state.enabled = !!t.checked;
-                        gigmaPersistPresetTreePreviewLorebookStatsState();
-                        gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root);
-                        gigmaUpdatePresetTreePreviewLorebookStatsAllRows(root);
+                        gigmaPersistLayoutPresetTreePreviewLorebookStatsState();
+                        gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
+                        gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows(root);
                         return;
                     }
                     if (t.getAttribute('data-gigma-lore-collapse-switch') === '1') {
                         gigmaSetStatsCollapseButtonVisible('preview', 'lorebook', !!t.checked);
-                        gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root);
+                        gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
                         return;
                     }
                     if (t.getAttribute('data-gigma-lore-remove-irrelevant-switch') === '1') {
-                        const state = gigmaGetPresetTreePreviewLorebookStatsState();
+                        const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
                         state.removeIrrelevantCategories = !!t.checked;
-                        gigmaPersistPresetTreePreviewLorebookStatsState();
-                        gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root);
-                        gigmaUpdatePresetTreePreviewLorebookStatsAllRows(root);
+                        gigmaPersistLayoutPresetTreePreviewLorebookStatsState();
+                        gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
+                        gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows(root);
                         return;
                     }
                     if (t.getAttribute('data-gigma-lore-remove-zero-tokens-switch') === '1') {
-                        const state = gigmaGetPresetTreePreviewLorebookStatsState();
+                        const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
                         state.removeZeroTokenCategories = !!t.checked;
-                        gigmaPersistPresetTreePreviewLorebookStatsState();
-                        gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root);
-                        gigmaUpdatePresetTreePreviewLorebookStatsAllRows(root);
+                        gigmaPersistLayoutPresetTreePreviewLorebookStatsState();
+                        gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
+                        gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows(root);
                         return;
                     }
                     const k = t.getAttribute('data-gigma-cat');
                     if (!k) return;
-                    const cur = gigmaGetPresetTreePreviewLorebookStatsCategoryList().slice();
+                    const cur = gigmaGetLayoutPresetTreePreviewLorebookStatsCategoryList().slice();
                     const i = cur.indexOf(k);
                     if (t.checked) {
                         if (i < 0) cur.push(k);
                     } else {
                         if (i >= 0) cur.splice(i, 1);
                     }
-                    gigmaSetPresetTreePreviewLorebookStatsCategoryList(cur);
-                    gigmaPersistPresetTreePreviewLorebookStatsState();
-                    gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root);
-                    gigmaUpdatePresetTreePreviewLorebookStatsAllRows(root);
+                    gigmaSetLayoutPresetTreePreviewLorebookStatsCategoryList(cur);
+                    gigmaPersistLayoutPresetTreePreviewLorebookStatsState();
+                    gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
+                    gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows(root);
                 } catch (_e) { }
             });
         }
 
-        gigmaInstallPresetTreePreviewLorebookStatsOutsideCloser();
-        try { gigmaInstallPresetTreePreviewGlobalWiStatsOutsideCloser(); } catch (_e) {}
-        gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root);
+        gigmaInstallLayoutPresetTreePreviewLorebookStatsOutsideCloser();
+        try { gigmaInstallLayoutPresetTreePreviewGlobalWiStatsOutsideCloser(); } catch (_e) {}
+        gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
         return controls;
     } catch (_e) {
         return null;
     }
 }
 
-function gigmaInitPresetTreePreviewLorebookStatsUi() {
+function gigmaInitLayoutPresetTreePreviewLorebookStatsUi() {
     try {
-        const root = gigmaGetLatestPresetTreePreviewRoot();
+        const root = gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
         try { gigmaInstallLorebookContentStylesOnce(); } catch (_e) { }
-        try { gigmaEnsurePresetTreePreviewLorebookContentToggleButton(root); } catch (_e) { }
+        try { gigmaEnsureLayoutPresetTreePreviewLorebookContentToggleButton(root); } catch (_e) { }
         try { gigmaUpdateLorebookContentToggleButtonsUi(); } catch (_e) { }
-        try { gigmaUpdateLorebookContentExpandersInPresetTreePreview(root); } catch (_e) { }
+        try { gigmaUpdateLorebookContentExpandersInLayoutPresetTreePreview(root); } catch (_e) { }
 
-        gigmaEnsurePresetTreePreviewLorebookStatsUi(root);
-        gigmaUpdatePresetTreePreviewLorebookStatsAllRows(root);
-        gigmaUpdatePresetTreePreviewLorebookStatsControlsUi(root);
+        gigmaEnsureLayoutPresetTreePreviewLorebookStatsUi(root);
+        gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows(root);
+        gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
         gigmaUpdateManualUsageRefreshButtonsUi();
         try { gigmaUpdateGlobalWiStatsControlsUi('preview'); } catch (_e) {}
         try { gigmaQueueGlobalWiStatsUpdate('preview'); } catch (_e) {}
@@ -11569,8 +11569,8 @@ function gigmaInitPresetTreePreviewLorebookStatsUi() {
 
 try {
     if (typeof window !== 'undefined' && window) {
-        window.gigmaInitPresetTreePreviewLorebookStatsUi = gigmaInitPresetTreePreviewLorebookStatsUi;
-        window.gigmaUpdatePresetTreePreviewLorebookStatsAllRows = gigmaUpdatePresetTreePreviewLorebookStatsAllRows;
+        window.gigmaInitLayoutPresetTreePreviewLorebookStatsUi = gigmaInitLayoutPresetTreePreviewLorebookStatsUi;
+        window.gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows = gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows;
     }
 } catch (_e) { }
 // --- END GIGMA: Preset tree preview lorebook stats ---
@@ -11953,8 +11953,8 @@ function gigmaUpdateWorldInfoLorebookStatsDropdownUi(){
         panel.classList.toggle('gigma-hidden', !open);
         panel.setAttribute('aria-hidden', open ? 'false' : 'true');
 
-        const masterSw = panel.querySelector('input[data-gigma-wi-lore="master"]');
-        if (masterSw) masterSw.checked = !!EXTENSION_STATE.worldInfoLorebookStatsEnabled;
+        const statsEnabledSw = panel.querySelector('input[data-gigma-wi-lore="enabled"]');
+        if (statsEnabledSw) statsEnabledSw.checked = !!EXTENSION_STATE.worldInfoLorebookStatsEnabled;
 
         const collapseSw = panel.querySelector('input[data-gigma-wi-lore="collapse"]');
         if (collapseSw) collapseSw.checked = gigmaGetStatsCollapseButtonVisible('wi', 'lorebook');
@@ -12074,7 +12074,7 @@ function gigmaBuildWorldInfoLorebookStatsDropdown(panel){
         headTitle.textContent = 'Lorebook Statistics';
         const headCtrl = document.createElement('div');
         headCtrl.className = 'gigma-wi-lorebook-stats-control';
-        headCtrl.appendChild(mkSwitch('master', 'Lorebook Statistics', (v) => {
+        headCtrl.appendChild(mkSwitch('enabled', 'Lorebook Statistics', (v) => {
             EXTENSION_STATE.worldInfoLorebookStatsEnabled = !!v;
             try{
                 gigmaPersistBinaryExtensionSetting('worldInfoLorebookStatsEnabled', EXTENSION_STATE.worldInfoLorebookStatsEnabled, 1);
@@ -12263,7 +12263,7 @@ function gigmaGetManualUsageRefreshButtons() {
             '#gigma-modal-stats-refresh',
             '#gigma-modal-stats-refresh-right',
             '#gigma-modal-ordering-refresh',
-            '#gigma-preset-tree-stats-refresh',
+            '#gigma-layout-preset-tree-stats-refresh',
         ];
         const out = [];
         for (const sel of selectors) {
@@ -12361,8 +12361,8 @@ async function gigmaRefreshLastGenerationUsageSnapshot(options = {}) {
             try { gigmaQueueWorldInfoTokenUpdate(); } catch (_eUi1) { }
             try { gigmaUpdateModalLorebookStatsAllRows(); } catch (_eUi2) { }
             try {
-                if (typeof window.gigmaUpdatePresetTreePreviewLorebookStatsAllRows === 'function') {
-                    window.gigmaUpdatePresetTreePreviewLorebookStatsAllRows();
+                if (typeof window.gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows === 'function') {
+                    window.gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows();
                 }
             } catch (_eUi3) { }
             try {
@@ -12395,8 +12395,8 @@ async function gigmaRefreshLastGenerationUsageSnapshot(options = {}) {
                     try { gigmaQueueWorldInfoTokenUpdate(); } catch (_eWiTokenFinal) {}
                     try { gigmaUpdateModalLorebookStatsAllRows(); } catch (_eModalRowsFinal) {}
                     try {
-                        if (typeof window.gigmaUpdatePresetTreePreviewLorebookStatsAllRows === 'function') {
-                            window.gigmaUpdatePresetTreePreviewLorebookStatsAllRows();
+                        if (typeof window.gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows === 'function') {
+                            window.gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows();
                         }
                     } catch (_ePreviewRowsFinal) {}
                 }, 0);
@@ -12979,7 +12979,7 @@ async function gigmaSetWorldInfoTokensEnabled(enabled) {
     await gigmaUpdateWorldInfoTokenDisplay();
 }
 
-// === GIGMA: Lorebook content preview (per-lorebook entry list in ordering modal + preset-tree preview) ===
+// === GIGMA: Lorebook content preview (per-lorebook entry list in ordering modal + layout-preset-tree preview) ===
 const GIGMA_LOREBOOK_CONTENT_TOGGLE_SETTINGS_KEY = 'lorebookContentToggleEnabled';
 
 function gigmaIsLorebookContentToggleEnabled() {
@@ -13020,12 +13020,12 @@ function gigmaInstallLorebookContentStylesOnce() {
         s.textContent = `
 /* Toggle button (modal + preview) */
 #gigma-modal-root #gigma-modal-lore-content-toggle[aria-pressed="false"],
-#gigma-preset-tree-preview-root #gigma-preview-lore-content-toggle[aria-pressed="false"]{
+#gigma-layout-preset-tree-preview-root #gigma-preview-lore-content-toggle[aria-pressed="false"]{
   opacity:0.55;
   filter:grayscale(1);
 }
 #gigma-modal-root #gigma-modal-lore-content-toggle,
-#gigma-preset-tree-preview-root #gigma-preview-lore-content-toggle{
+#gigma-layout-preset-tree-preview-root #gigma-preview-lore-content-toggle{
   white-space:nowrap;
   display:inline-flex;
   align-items:center;
@@ -13035,7 +13035,7 @@ function gigmaInstallLorebookContentStylesOnce() {
   box-sizing:border-box;
 }
 #gigma-modal-root #gigma-modal-lore-content-toggle > i,
-#gigma-preset-tree-preview-root #gigma-preview-lore-content-toggle > i{
+#gigma-layout-preset-tree-preview-root #gigma-preview-lore-content-toggle > i{
   pointer-events:none;
   line-height:1;
 }
@@ -13068,15 +13068,15 @@ function gigmaInstallLorebookContentStylesOnce() {
 }
 
 /* Preview rows: keep label & icon vertically aligned, and keep expander from changing header height */
-#gigma-preset-tree-preview-root .gigma-preset-tree-row{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row{
   --gigma-lore-header-line-height: 1.15em;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row > .gigma-preset-tree-budget,
-#gigma-preset-tree-preview-root .gigma-preset-tree-row > .gigma-preset-tree-icon,
-#gigma-preset-tree-preview-root .gigma-preset-tree-row > .gigma-preset-tree-label{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row > .gigma-layout-preset-tree-budget,
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row > .gigma-layout-preset-tree-icon,
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row > .gigma-layout-preset-tree-label{
   align-self:center !important;
 }
-#gigma-preset-tree-preview-root .gigma-preset-tree-row > .gigma-preset-tree-label{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row > .gigma-layout-preset-tree-label{
   display:flex;
   align-items:center;
   gap:0.35em;
@@ -13136,7 +13136,7 @@ function gigmaInstallLorebookContentStylesOnce() {
 }
 
 /* Preview placement: full row width (grid) */
-#gigma-preset-tree-preview-root .gigma-preset-tree-row > .gigma-lore-content-panel{
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row > .gigma-lore-content-panel{
   grid-column: 1 / -1;
   margin-left:0.25em;
   margin-right:0.25em;
@@ -14011,7 +14011,7 @@ async function gigmaApplyCountLeadingNewlinePrefChangeNow(){
             }
         }catch(_){}
         try{
-            const prevRoot = (typeof gigmaGetLatestPresetTreePreviewRoot === 'function') ? gigmaGetLatestPresetTreePreviewRoot() : null;
+            const prevRoot = (typeof gigmaGetLatestLayoutPresetTreePreviewRoot === 'function') ? gigmaGetLatestLayoutPresetTreePreviewRoot() : null;
             const container = prevRoot ? prevRoot.querySelector('#gigma-global-wi-stats-display-preview') : null;
             if (container) gigmaRenderGlobalWiStatsDisplayInto(container, 'preview', prevRoot || undefined);
         }catch(_){}
@@ -14038,7 +14038,7 @@ async function gigmaApplyDetailedLorebookEntriesPrefChangeNow(){
             if (modalRoot) roots.push(modalRoot);
         }catch(_){}
         try{
-            const prevRoot = (typeof gigmaGetLatestPresetTreePreviewRoot === 'function') ? gigmaGetLatestPresetTreePreviewRoot() : null;
+            const prevRoot = (typeof gigmaGetLatestLayoutPresetTreePreviewRoot === 'function') ? gigmaGetLatestLayoutPresetTreePreviewRoot() : null;
             if (prevRoot) roots.push(prevRoot);
         }catch(_){}
         const tasks = [];
@@ -14084,7 +14084,7 @@ async function gigmaApplyDetailedLorebookEntriesPrefChangeNow(){
 function gigmaUpdateModalSettingsConvertButtonVisibility(root) {
     try {
         if (!root) return;
-        const kindBtn = document.getElementById('gigma-preset-kind-toggle');
+        const kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
         const kind = (kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') ? 'parent' : 'child';
 
         const popup = root.querySelector('#gigma-modal-settings-popup');
@@ -14298,7 +14298,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             if (root.dataset) root.dataset.gigmaModalSettingsPopupWired = '1';
             root.addEventListener('click', (ev) => {
                 try {
-                    const t = ev && ev.target && ev.target.closest ? ev.target.closest('#gigma-preset-kind-toggle') : null;
+                    const t = ev && ev.target && ev.target.closest ? ev.target.closest('#gigma-layout-preset-kind-toggle') : null;
                     if (!t) return;
                     setTimeout(() => { try { gigmaUpdateModalSettingsConvertButtonVisibility(root); } catch (_e) { } }, 0);
                 } catch (_e) { }
@@ -14426,12 +14426,12 @@ function gigmaEnsureOrderingModalLorebookContentToggleButton(rootOverride) {
     } catch (_e) { }
 }
 
-function gigmaEnsurePresetTreePreviewLorebookContentToggleButton(rootOverride) {
+function gigmaEnsureLayoutPresetTreePreviewLorebookContentToggleButton(rootOverride) {
     try {
-        const root = rootOverride || gigmaGetLatestPresetTreePreviewRoot?.();
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot?.();
         if (!root) return;
 
-        const head = root.querySelector('.gigma-preset-tree-header-right');
+        const head = root.querySelector('.gigma-layout-preset-tree-header-right');
         if (!head) return;
 
         let btn = root.querySelector('#gigma-preview-lore-content-toggle');
@@ -14461,7 +14461,7 @@ function gigmaSetLorebookContentToggleEnabled(enabled) {
 
         // Apply to all currently-visible UIs.
         gigmaUpdateLorebookContentExpandersInModal();
-        gigmaUpdateLorebookContentExpandersInPresetTreePreview();
+        gigmaUpdateLorebookContentExpandersInLayoutPresetTreePreview();
     } catch (_e) { }
 }
 
@@ -14475,7 +14475,7 @@ function gigmaGetWorldNameFromLorebookRow(rowEl) {
             return String(rowEl.dataset?.world || rowEl.dataset?.worldName || '').trim();
         }
         // Preset-tree preview row
-        if (rowEl.classList && rowEl.classList.contains('gigma-preset-tree-row')) {
+        if (rowEl.classList && rowEl.classList.contains('gigma-layout-preset-tree-row')) {
             return String(rowEl.getAttribute('data-world-name') || rowEl.getAttribute('data-world') || '').trim();
         }
         return '';
@@ -14639,12 +14639,12 @@ function gigmaRemoveLorebookContentExpanderFromModalRow(rowEl) {
 
 function gigmaEnsureLorebookContentExpanderOnPreviewRow(rowEl) {
     try {
-        if (!rowEl || !rowEl.classList || !rowEl.classList.contains('gigma-preset-tree-row')) return;
+        if (!rowEl || !rowEl.classList || !rowEl.classList.contains('gigma-layout-preset-tree-row')) return;
 
-        const label = rowEl.querySelector('.gigma-preset-tree-label');
+        const label = rowEl.querySelector('.gigma-layout-preset-tree-label');
         if (!label) return;
 
-        let btn = rowEl.querySelector(':scope > .gigma-preset-tree-label > .gigma-lore-content-expander');
+        let btn = rowEl.querySelector(':scope > .gigma-layout-preset-tree-label > .gigma-lore-content-expander');
         if (btn) return;
 
         btn = document.createElement('button');
@@ -14674,7 +14674,7 @@ function gigmaRemoveLorebookContentExpanderFromPreviewRow(rowEl) {
     try {
         if (!rowEl) return;
         gigmaCollapseLorebookContentForRow(rowEl);
-        const btn = rowEl.querySelector ? rowEl.querySelector(':scope > .gigma-preset-tree-label > .gigma-lore-content-expander') : null;
+        const btn = rowEl.querySelector ? rowEl.querySelector(':scope > .gigma-layout-preset-tree-label > .gigma-lore-content-expander') : null;
         if (btn) btn.remove();
     } catch (_e) { }
 }
@@ -14696,12 +14696,12 @@ function gigmaUpdateLorebookContentExpandersInModal(rootOverride) {
     } catch (_e) { }
 }
 
-function gigmaUpdateLorebookContentExpandersInPresetTreePreview(rootOverride) {
+function gigmaUpdateLorebookContentExpandersInLayoutPresetTreePreview(rootOverride) {
     try {
         const on = gigmaIsLorebookContentToggleEnabled();
-        const root = rootOverride || gigmaGetLatestPresetTreePreviewRoot?.();
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot?.();
         if (!root) return;
-        const rows = root.querySelectorAll ? root.querySelectorAll('.gigma-preset-tree-row[data-world-name], .gigma-preset-tree-row[data-world]') : [];
+        const rows = root.querySelectorAll ? root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name], .gigma-layout-preset-tree-row[data-world]') : [];
         rows.forEach((row) => {
             try {
                 if (on) gigmaEnsureLorebookContentExpanderOnPreviewRow(row);
@@ -15660,7 +15660,7 @@ function addGiglioMachinebudgetsection() {
                     </div>
 <div class="world_entry_form_control MarginTop10" style="text-align:left; width:100%;">
                         <div id="gigma-lorebook-preset-label" style="margin:0 0 0.255102em 0; font-size:calc(var(--mainFontSize) * 0.8); color:#aaa; display:flex; flex-direction:column; align-items:stretch; gap:0.170068em; width:100%; box-sizing:border-box;">
-                            <button type="button" id="gigma-lorebook-drawer-preset-kind-toggle" class="menu_button gigma-preset-kind-toggle gigma-drawer-preset-kind-toggle" style="align-self:flex-start;">Child Preset:</button>
+                            <button type="button" id="gigma-lorebook-drawer-layout-preset-kind-toggle" class="menu_button gigma-layout-preset-kind-toggle gigma-drawer-layout-preset-kind-toggle" style="align-self:flex-start;">Child Preset:</button>
                             <select id="gigma-lorebook-drawer-preset-select"
                                     class="text_pole textarea_compact"
                                     style="display:block; width:100%; max-width:100%; min-width:0; box-sizing:border-box;">
@@ -15699,7 +15699,7 @@ function addGiglioMachinebudgetsection() {
                         ${createBudgetControls('lorebook', DEFAULT_LOREBOOK_SETTINGS)}
                     </div>
 <div class="world_entry_form_control" style="width:100%; margin-top:1em;">
-                        <h4 style="margin:0 0 0.5em 0;">Preset assignment</h4>
+                        <h4 style="margin:0 0 0.5em 0;">Assignment preset</h4>
                         <select id="gigma-lorebook-drawer-assignment-preset-select"
                                 class="text_pole textarea_compact"
                                 style="display:block; width:100%; box-sizing:border-box;">
@@ -15722,8 +15722,8 @@ function addGiglioMachinebudgetsection() {
             if (scopeRows && scopeRows.length) {
                 let kind = 'child';
                 try {
-                    if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-                        kind = gigmaGetActivePresetKindForLorebookSettings();
+                    if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+                        kind = gigmaGetActiveLayoutPresetKindForLorebookSettings();
                     } else if (typeof gigmaGetLastPresetKind === 'function') {
                         const savedKind = gigmaGetLastPresetKind();
                         if (savedKind === 'parent' || savedKind === 'child') {
@@ -15733,10 +15733,10 @@ function addGiglioMachinebudgetsection() {
                 } catch (_eKindInit) {
                     kind = 'child';
                 }
-                const isMaster = (kind === 'parent');
+                const isParentPresetKind = (kind === 'parent');
                 scopeRows.forEach((row) => {
                     if (!row) return;
-                    row.style.display = isMaster ? 'none' : 'flex';
+                    row.style.display = isParentPresetKind ? 'none' : 'flex';
                 });
             }
         } catch (_eScopeInit) {
@@ -15749,14 +15749,14 @@ function addGiglioMachinebudgetsection() {
 
         // GIGMA FIX: When the Lorebook Budget drawer is opened on startup while a
         // child preset is already active, the unchained (retro lock) state cache
-        // may not have been initialised yet. Initialise it from the active preset
+        // may not have been initialised yet. Initialise it from the active layout preset
         // once so unchained lorebooks immediately show their icon.
         try {
             const kind = (typeof gigmaGetLastPresetKind === 'function' && (gigmaGetLastPresetKind() === 'parent' || gigmaGetLastPresetKind() === 'child'))
                 ? gigmaGetLastPresetKind()
                 : 'child';
-            const presetId = (typeof gigmaGetLastPresetName === 'function') ? gigmaGetLastPresetName(kind) : null;
-            const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(kind) || {}) : null;
+            const presetId = (typeof gigmaGetLastLayoutPresetId === 'function') ? gigmaGetLastLayoutPresetId(kind) : null;
+            const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore(kind) || {}) : null;
             const preset = (store && presetId && Object.prototype.hasOwnProperty.call(store, presetId)) ? store[presetId] : null;
             if (preset && typeof gigmaInitPerModeRetroLocksFromPreset === 'function') {
                 gigmaInitPerModeRetroLocksFromPreset(preset);
@@ -15871,17 +15871,17 @@ if (modeSelect && valueInput) {
                                 } catch (_eRandSave) {
                                     // Non-fatal
                                 }
-                                const kind = (typeof gigmaGetActivePresetKindForLorebookSettings === 'function')
-                                    ? gigmaGetActivePresetKindForLorebookSettings()
+                                const kind = (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function')
+                                    ? gigmaGetActiveLayoutPresetKindForLorebookSettings()
                                     : 'child';
-                                const presetName = (typeof gigmaGetLastPresetName === 'function')
-                                    ? gigmaGetLastPresetName(kind)
+                                const presetName = (typeof gigmaGetLastLayoutPresetId === 'function')
+                                    ? gigmaGetLastLayoutPresetId(kind)
                                     : null;
                                 // Persist the child preset-level budget inheritance (child presets only).
                                 try {
                                     if (typeof gigmaSetBudgetInheritanceForChildPreset === 'function' &&
-                                        typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-                                        const kindForInherit = gigmaGetActivePresetKindForLorebookSettings();
+                                        typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+                                        const kindForInherit = gigmaGetActiveLayoutPresetKindForLorebookSettings();
                                         if (kindForInherit === 'child' && inheritBudgetValue !== null) {
                                             gigmaSetBudgetInheritanceForChildPreset(inheritBudgetValue);
                                         }
@@ -15914,8 +15914,8 @@ if (modeSelect && valueInput) {
                                             statusEl.style.color = 'var(--SmartThemeAccentColor, #8fda7b)';
                                         } else {
                                             const msg = typeof gigmaSoftHyphenate === 'function'
-                                                ? gigmaSoftHyphenate('Select a preset before saving.')
-                                                : 'Select a preset before saving.';
+                                                ? gigmaSoftHyphenate('Select a layout preset before saving.')
+                                                : 'Select a layout preset before saving.';
                                             statusEl.textContent = msg;
                                             statusEl.style.color = 'var(--SmartThemeErrorColor, #ff6b6b)';
                                         }
@@ -15934,9 +15934,9 @@ if (modeSelect && valueInput) {
                                     // non-fatal
                                 }
                             } catch (errSave) {
-                                console.warn('GIGMA: Failed to save lorebook budget settings from drawer into preset:', errSave);
+                                console.warn('GIGMA: Failed to save lorebook budget settings from drawer into the current layout preset:', errSave);
                                 try {
-                                    toastr.error('Failed to save lorebook budget settings to preset.');
+                                    toastr.error('Failed to save lorebook budget settings to the current layout preset.');
                                 } catch (_eToast2) {}
                             }
                         });
@@ -15953,8 +15953,8 @@ if (modeSelect && valueInput) {
                     const onUserBudgetEdit = (ev) => {
                         try {
                             if (ev && ev.isTrusted === false) return;
-                            if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-                                const k = gigmaGetActivePresetKindForLorebookSettings();
+                            if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+                                const k = gigmaGetActiveLayoutPresetKindForLorebookSettings();
                                 if (k !== 'child') return;
                             }
                             if (typeof gigmaIsChildPresetInheritingBudget === 'function' && !gigmaIsChildPresetInheritingBudget()) return;
@@ -15997,7 +15997,7 @@ if (modeSelect && valueInput) {
                 } catch (_eRandWire) {
                     console.warn('GIGMA: failed to wire Lorebook Budget Drawer random box:', _eRandWire);
                 }
-                // Wire the read-only layout preset tree button (if present)
+                // Wire the read-only layout layout preset tree button (if present)
                 try {
                     const treeBtn = document.getElementById('gigma-lorebook-tree-button');
                     if (treeBtn && treeBtn.dataset.gigmaTreeWired !== '1') {
@@ -16007,14 +16007,14 @@ if (modeSelect && valueInput) {
                                 ev.preventDefault();
                             } catch (_) {}
                             try {
-                                if (typeof gigmaShowLastPresetTreePopup === 'function') {
+                                if (typeof gigmaShowLastLayoutPresetTreePopup === 'function') {
                                     try {
-                                        window.__gigmaLastPresetTreeOrigin = 'drawer';
+                                        window.__gigmaLastLayoutPresetTreeOrigin = 'drawer';
                                     } catch (_) {}
-                                    await gigmaShowLastPresetTreePopup();
+                                    await gigmaShowLastLayoutPresetTreePopup();
                                 }
                             } catch (errTree) {
-                                console.warn('GIGMA: failed to open last preset tree popup from drawer:', errTree);
+                                console.warn('GIGMA: failed to open last layout preset tree popup from drawer:', errTree);
                                 try {
                                     toastr.error('Could not open layout preset tree view.');
                                 } catch (_) {}
@@ -16022,9 +16022,9 @@ if (modeSelect && valueInput) {
                         });
                     }
                 } catch (_eTreeWire) {
-                    console.warn('GIGMA: failed to wire Lorebook Budget preset tree button:', _eTreeWire);
+                    console.warn('GIGMA: failed to wire Lorebook Budget layout preset tree button:', _eTreeWire);
                 }
-                // Keep the drawer preset label in sync with the currently active preset.
+                // Keep the drawer preset label in sync with the currently active layout preset.
                 try {
                     if (typeof gigmaUpdateLorebookDrawerPresetLabel === 'function') {
                         if (!window.__gigmaLorebookDrawerPresetLabelSyncInstalled) {
@@ -16037,7 +16037,7 @@ if (modeSelect && valueInput) {
                             });
                             document.addEventListener('click', (ev) => {
                                 const t = ev && ev.target;
-                                if (t && t.closest && t.closest('#gigma-preset-kind-toggle')) {
+                                if (t && t.closest && t.closest('#gigma-layout-preset-kind-toggle')) {
                                     gigmaUpdateLorebookDrawerPresetLabel();
                                 }
                             });
@@ -16373,9 +16373,9 @@ function gigmaApplyPresetFromLorebookDrawer(kind, presetId, drawerSelect) {
     if (!id) return;
 
     if (typeof gigmaSetLastPresetKind === 'function') gigmaSetLastPresetKind(k);
-    if (typeof gigmaSetLastPresetName === 'function') gigmaSetLastPresetName(id, k);
+    if (typeof gigmaSetLastLayoutPresetId === 'function') gigmaSetLastLayoutPresetId(id, k);
 
-    const presets = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(k) || {}) : null;
+    const presets = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore(k) || {}) : null;
     const preset = (presets && typeof presets === 'object') ? presets[id] : null;
     if (!preset) return;
 
@@ -16393,8 +16393,8 @@ function gigmaApplyPresetFromLorebookDrawer(kind, presetId, drawerSelect) {
             }
         }
 
-        if (k === 'child' && typeof gigmaApplyChatMasterFromPreset === 'function') {
-            gigmaApplyChatMasterFromPreset(preset);
+        if (k === 'child' && typeof gigmaApplyChatParentPresetSelectFromLayoutPreset === 'function') {
+            gigmaApplyChatParentPresetSelectFromLayoutPreset(preset);
         }
 
         const lbSelect = document.getElementById('gigma-lorebook-dropdown-toggle');
@@ -16451,7 +16451,7 @@ function gigmaUpdateLorebookDrawerPresetLabel() {
         const labelEl = container.querySelector('#gigma-lorebook-preset-label');
         if (!labelEl) return;
 
-        const kindBtn = container.querySelector('#gigma-lorebook-drawer-preset-kind-toggle');
+        const kindBtn = container.querySelector('#gigma-lorebook-drawer-layout-preset-kind-toggle');
         const presetSelect = container.querySelector('#gigma-lorebook-drawer-preset-select');
         const statusSpan = container.querySelector('#gigma-lorebook-save-status');
 
@@ -16467,7 +16467,7 @@ function gigmaUpdateLorebookDrawerPresetLabel() {
         }
 
         if (presetSelect) {
-            const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(k) || {}) : {};
+            const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore(k) || {}) : {};
             const ids = Object.keys(store || {}).filter((id) => !!(id && store[id]));
             ids.sort((a, b) => {
                 const an = (store[a] && typeof store[a].name === 'string') ? store[a].name.trim().toLowerCase() : '';
@@ -16475,7 +16475,7 @@ function gigmaUpdateLorebookDrawerPresetLabel() {
                 return an.localeCompare(bn);
             });
 
-            const activeId = (typeof gigmaGetLastPresetName === 'function') ? gigmaGetLastPresetName(k) : null;
+            const activeId = (typeof gigmaGetLastLayoutPresetId === 'function') ? gigmaGetLastLayoutPresetId(k) : null;
 
             presetSelect.innerHTML = '';
             if (!ids.length) {
@@ -16483,7 +16483,7 @@ function gigmaUpdateLorebookDrawerPresetLabel() {
                 optEmpty.value = '';
                 optEmpty.disabled = true;
                 optEmpty.selected = true;
-                optEmpty.textContent = 'No presets available';
+                optEmpty.textContent = (k === 'parent') ? 'No parent presets available' : 'No child presets available';
                 presetSelect.appendChild(optEmpty);
             } else {
                 const wanted = (activeId && store[activeId]) ? activeId : ids[0];
@@ -16496,7 +16496,7 @@ function gigmaUpdateLorebookDrawerPresetLabel() {
                     if (id === wanted) opt.selected = true;
                     presetSelect.appendChild(opt);
                 });
-                if (wanted && typeof gigmaSetLastPresetName === 'function') gigmaSetLastPresetName(wanted, k);
+                if (wanted && typeof gigmaSetLastLayoutPresetId === 'function') gigmaSetLastLayoutPresetId(wanted, k);
             }
         }
 
@@ -16509,9 +16509,9 @@ function gigmaUpdateLorebookDrawerPresetLabel() {
                 gigmaUpdateLorebookDrawerPresetLabel();
 
                 if (!presetSelect) return;
-                const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(next) || {}) : {};
-                const target = (typeof gigmaGetLastPresetName === 'function' && gigmaGetLastPresetName(next) && store[gigmaGetLastPresetName(next)])
-                    ? gigmaGetLastPresetName(next)
+                const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore(next) || {}) : {};
+                const target = (typeof gigmaGetLastLayoutPresetId === 'function' && gigmaGetLastLayoutPresetId(next) && store[gigmaGetLastLayoutPresetId(next)])
+                    ? gigmaGetLastLayoutPresetId(next)
                     : (Object.keys(store || {})[0] || null);
                 if (target) gigmaApplyPresetFromLorebookDrawer(next, target, presetSelect);
             }, { passive: true });
@@ -16578,25 +16578,25 @@ try {
 // Settings opening (global-open: proceed even if no lorebook is selected)
         const currentLorebook = getCurrentLorebookName();
         const currentSettings = { ...DEFAULT_LOREBOOK_SETTINGS };
-        // Snapshot the currently active preset kind/name and the visible
+        // Snapshot the currently active layout preset kind/name and the visible
         // lorebook budget drawer settings so that simply opening and closing
         // the modal (without changing presets) does not alter the drawer UI.
         let initialPresetKind = null;
-        let initialPresetName = null;
+        let initialLayoutPresetId = null;
         let initialDrawerSettings = null;
         try {
-            if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-                initialPresetKind = gigmaGetActivePresetKindForLorebookSettings();
+            if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+                initialPresetKind = gigmaGetActiveLayoutPresetKindForLorebookSettings();
             }
         } catch (_eInitKindSnapshot) {
             initialPresetKind = null;
         }
         try {
-            if (typeof gigmaGetLastPresetName === 'function' && initialPresetKind) {
-                initialPresetName = gigmaGetLastPresetName(initialPresetKind) || null;
+            if (typeof gigmaGetLastLayoutPresetId === 'function' && initialPresetKind) {
+                initialLayoutPresetId = gigmaGetLastLayoutPresetId(initialPresetKind) || null;
             }
         } catch (_eInitNameSnapshot) {
-            initialPresetName = null;
+            initialLayoutPresetId = null;
         }
         try {
             if (typeof gigmaCaptureDrawerLorebookSettings === 'function') {
@@ -16610,7 +16610,7 @@ try {
             <div id="gigma-modal-root" class="world_entry_form_control MarginBot5 alignCenteritems gigma-modal-root">
                 <!-- Global settings section (always visible / non-scrolling) -->
                 <div id="gigma-global-settings" class="gigma-global-settings" aria-label="Global settings">
-                    <button id="gigma-global-accept" class="menu_button gigma-global-accept gigma-global-icon" type="button" aria-label="Quicksave preset & close" title="Quicksave preset & close">
+                    <button id="gigma-global-accept" class="menu_button gigma-global-accept gigma-global-icon" type="button" aria-label="Quicksave layout preset & close" title="Quicksave layout preset & close">
                         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
                     </button>
                     <div class="gigma-global-center">
@@ -16639,14 +16639,14 @@ try {
                         <div class="gigma-widthbtn-stash" style="height:0; overflow:hidden;">
                             <button type="button" class="menu_button gigmaWidthBtn"></button>
                         </div>
-                                                <div class="gigma-preset-kind-toggle-row">
-                            <button id="gigma-preset-kind-toggle" class="menu_button gigma-preset-kind-toggle" type="button">
+                                                <div class="gigma-layout-preset-kind-toggle-row">
+                            <button id="gigma-layout-preset-kind-toggle" class="menu_button gigma-layout-preset-kind-toggle" type="button">
                                 Child Preset
                             </button>
                         </div>
-                        <div class="gigma-preset-select-row">
-                            <select id="gigma-parent-preset-select" class="text_pole textarea_compact" style="width:100%; display:none;" data-gigma-preset-kind="parent"></select>
-                            <select id="gigma-child-preset-select" class="text_pole textarea_compact" style="width:100%;" data-gigma-preset-kind="child"></select>
+                        <div class="gigma-layout-or-assignment-preset-select-row">
+                            <select id="gigma-parent-preset-select" class="text_pole textarea_compact" style="width:100%; display:none;" data-gigma-layout-preset-kind="parent"></select>
+                            <select id="gigma-child-preset-select" class="text_pole textarea_compact" style="width:100%;" data-gigma-layout-preset-kind="child"></select>
                         </div>
 <div id="gigma-inherit-area" class="gigma-inherit-area">
   <div id="gigma-inherit-child" class="gigma-inherit-child">
@@ -16656,7 +16656,7 @@ try {
                                 <button id="gigma-switch-order-parent" class="menu_button gigma-icon-btn gigma-modal-dim-btn gigma-inherit-switch-btn" type="button" title="Switch to order parent" aria-label="Switch to order parent" style="visibility:hidden; pointer-events:none;"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-right"></i></span></button></span>
                             </div>
                             <select
-                                class="text_pole textarea_compact gigma-chat-master-select"
+                                class="text_pole textarea_compact gigma-chat-parent-preset-select"
                                 style="display:block; width:100%; max-width:100%; min-width:0; box-sizing:border-box;">
                             </select>
                         </div>
@@ -16666,7 +16666,7 @@ try {
                                 <button id="gigma-switch-budget-parent" class="menu_button gigma-icon-btn gigma-modal-dim-btn gigma-inherit-switch-btn" type="button" title="Switch to budget parent" aria-label="Switch to budget parent" style="visibility:hidden; pointer-events:none;"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-right"></i></span></button></span>
                             </div>
                             <select
-                                class="text_pole textarea_compact gigma-chat-master-select"
+                                class="text_pole textarea_compact gigma-chat-parent-preset-select"
                                 style="display:block; width:100%; max-width:100%; min-width:0; box-sizing:border-box;">
                             </select>
                         </div>
@@ -16690,14 +16690,14 @@ try {
 </div>
   </div>
 </div>
-<div id="gigma-preset-controls-parent" class="gigma-preset-controls" data-gigma-preset-kind="parent" style="display:none; flex-wrap:wrap; align-items:center; column-gap:0.375em; row-gap:0em; justify-content:center; margin-top:0.375em; margin-bottom:0.625em;">
+<div id="gigma-layout-preset-controls-parent" class="gigma-layout-or-assignment-preset-controls" data-gigma-layout-preset-kind="parent" style="display:none; flex-wrap:wrap; align-items:center; column-gap:0.375em; row-gap:0em; justify-content:center; margin-top:0.375em; margin-bottom:0.625em;">
                             <button id="gigma-modal-convert-parent" class="menu_button gigma-icon-btn gigma-modal-dim-btn" type="button" title="Save as child preset" aria-label="Save as child preset"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrows-rotate"></i></span></button>
                             <button id="gigma-editable-chained-parent" class="menu_button gigma-icon-btn gigma-modal-dim-btn gigma-unchained-edit-toggle gigma-chained-edit-toggle" type="button" title="Editable chained lorebooks" aria-label="Editable chained lorebooks" aria-pressed="true"><span class="gigma-modal-dim-icon gigma-unchained-edit-icon"><i class="fa-solid fa-link gigma-unchained-edit-main"></i><i class="fa-solid fa-pen-to-square gigma-unchained-edit-pen"></i></span></button>
                             <button id="gigma-modal-dim-chained-parent" class="menu_button gigma-icon-btn gigma-modal-dim-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks" aria-pressed="false"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-link"></i><span class="gigma-modal-dim-dot"></span></span></button>
                             <button id="gigma-modal-dim-unchained-parent" class="menu_button gigma-icon-btn gigma-modal-dim-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks" aria-pressed="false"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-link-slash"></i><span class="gigma-modal-dim-dot"></span></span></button>
                                                         <button id="gigma-editable-unchained-parent" class="menu_button gigma-icon-btn gigma-modal-dim-btn gigma-unchained-edit-toggle" type="button" title="Editable unchained lorebooks" aria-label="Editable unchained lorebooks" aria-pressed="false"><span class="gigma-modal-dim-icon gigma-unchained-edit-icon"><i class="fa-solid fa-link-slash gigma-unchained-edit-main"></i><i class="fa-solid fa-pen-to-square gigma-unchained-edit-pen"></i></span></button>
                             <button id="gigma-budget-mode-parent" class="menu_button gigma-budget-mode-toggle" type="button">Order</button>
-                            <span class="gigma-preset-separator" aria-hidden="true"></span>
+                            <span class="gigma-layout-preset-separator" aria-hidden="true"></span>
                             <button id="gigma-parent-preset-restore" class="menu_button gigma-icon-btn" type="button" title="Restore" aria-label="Restore"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-recycle"></i></span></button>
                                 <button id="gigma-parent-preset-new" class="menu_button gigma-icon-btn" type="button" title="New" aria-label="New"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-file"></i></span></button>
                                 <button id="gigma-parent-preset-quicksave" class="menu_button gigma-quicksave-btn" type="button" title="Quicksave" aria-label="Quicksave"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-bolt"></i></span></button>
@@ -16705,14 +16705,14 @@ try {
                                 <button id="gigma-parent-preset-edit" class="menu_button gigma-icon-btn" type="button" title="Rename" aria-label="Rename"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-pencil"></i></span></button>
                                 <button id="gigma-parent-preset-delete" class="menu_button gigma-icon-btn" type="button" title="Delete" aria-label="Delete"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-trash-can"></i></span></button>
                         </div>
-                        <div id="gigma-preset-controls-child" class="gigma-preset-controls" data-gigma-preset-kind="child" style="display:flex; flex-wrap:wrap; align-items:center; column-gap:0.375em; row-gap:0em; justify-content:center; margin-top:0.375em; margin-bottom:0.625em;">
+                        <div id="gigma-layout-preset-controls-child" class="gigma-layout-or-assignment-preset-controls" data-gigma-layout-preset-kind="child" style="display:flex; flex-wrap:wrap; align-items:center; column-gap:0.375em; row-gap:0em; justify-content:center; margin-top:0.375em; margin-bottom:0.625em;">
                             <button id="gigma-modal-convert-child" class="menu_button gigma-icon-btn gigma-modal-dim-btn" type="button" title="Save as parent preset" aria-label="Save as parent preset"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrows-rotate"></i></span></button>
                             <button id="gigma-editable-chained-child" class="menu_button gigma-icon-btn gigma-modal-dim-btn gigma-unchained-edit-toggle gigma-chained-edit-toggle" type="button" title="Editable chained lorebooks" aria-label="Editable chained lorebooks" aria-pressed="true"><span class="gigma-modal-dim-icon gigma-unchained-edit-icon"><i class="fa-solid fa-link gigma-unchained-edit-main"></i><i class="fa-solid fa-pen-to-square gigma-unchained-edit-pen"></i></span></button>
                             <button id="gigma-modal-dim-chained-child" class="menu_button gigma-icon-btn gigma-modal-dim-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks" aria-pressed="false"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-link"></i><span class="gigma-modal-dim-dot"></span></span></button>
                             <button id="gigma-modal-dim-unchained-child" class="menu_button gigma-icon-btn gigma-modal-dim-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks" aria-pressed="false"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-link-slash"></i><span class="gigma-modal-dim-dot"></span></span></button>
                                                         <button id="gigma-editable-unchained-child" class="menu_button gigma-icon-btn gigma-modal-dim-btn gigma-unchained-edit-toggle" type="button" title="Editable unchained lorebooks" aria-label="Editable unchained lorebooks" aria-pressed="true"><span class="gigma-modal-dim-icon gigma-unchained-edit-icon"><i class="fa-solid fa-link-slash gigma-unchained-edit-main"></i><i class="fa-solid fa-pen-to-square gigma-unchained-edit-pen"></i></span></button>
                             <button id="gigma-budget-mode-child" class="menu_button gigma-budget-mode-toggle" type="button">Order</button>
-                            <span class="gigma-preset-separator" aria-hidden="true"></span>
+                            <span class="gigma-layout-preset-separator" aria-hidden="true"></span>
                             <button id="gigma-child-preset-restore" class="menu_button gigma-icon-btn" type="button" title="Restore" aria-label="Restore"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-recycle"></i></span></button>
                                 <button id="gigma-child-preset-new" class="menu_button gigma-icon-btn" type="button" title="New" aria-label="New"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-file"></i></span></button>
                                 <button id="gigma-child-preset-quicksave" class="menu_button gigma-quicksave-btn" type="button" title="Quicksave" aria-label="Quicksave"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-bolt"></i></span></button>
@@ -16742,13 +16742,13 @@ try {
                         <div class="world_entry_form_control MarginTop10" style="width:100%; max-width:var(--gigma-ordering-list-width,40.5rem); margin:0 auto; text-align:left; box-sizing:border-box;">
                             <hr style="border:none; border-top:0.125em solid #ccc; box-shadow:0 0 0.25em rgba(255,255,255,0.35); margin:0.625em 0 0.75em 0;" />
                             <div class="gigma-assignment-preview-head" style="display:flex; align-items:center; justify-content:space-between; gap:0.75em;">
-                                <h4 style="margin:0;">Preset assignments</h4>
+                                <h4 style="margin:0;">Assignment presets</h4>
                                 <button id="gigma-assignment-preview-button" class="menu_button" type="button" style="white-space:nowrap; padding:0 0.8em;">Preview</button>
                             </div>
-                            <div class="gigma-preset-select-row">
+                            <div class="gigma-layout-or-assignment-preset-select-row">
                                 <select id="gigma-assignment-preset-select" class="text_pole textarea_compact" style="flex:1 1 auto; min-width:0;"></select>
                             </div>
-                            <div id="gigma-assignment-preset-controls" class="gigma-preset-controls" style="display:flex; flex-wrap:wrap; align-items:center; column-gap:0.375em; row-gap:0em; justify-content:center; margin-top:0.375em; margin-bottom:0.625em;">
+                            <div id="gigma-assignment-preset-controls" class="gigma-layout-or-assignment-preset-controls" style="display:flex; flex-wrap:wrap; align-items:center; column-gap:0.375em; row-gap:0em; justify-content:center; margin-top:0.375em; margin-bottom:0.625em;">
                                 <button id="gigma-assignment-preset-restore" class="menu_button gigma-icon-btn" type="button" title="Restore" aria-label="Restore"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-recycle"></i></span></button>
                                 <button id="gigma-assignment-preset-new" class="menu_button gigma-icon-btn" type="button" title="New" aria-label="New"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-file"></i></span></button>
                                 <button id="gigma-assignment-preset-quicksave" class="menu_button gigma-quicksave-btn" type="button" title="Quicksave" aria-label="Quicksave"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-bolt"></i></span></button>
@@ -16757,9 +16757,9 @@ try {
                                 <button id="gigma-assignment-preset-delete" class="menu_button gigma-icon-btn" type="button" title="Delete" aria-label="Delete"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-trash-can"></i></span></button>
                             </div>
                             <div class="MarginTop5" style="text-align:right;">
-                                <button id="gigma-preset-assignment-add" class="menu_button" type="button" title="Add a new preset assignment row" style="width:2em; min-width:2em; height:2em; padding:0; text-align:center; line-height:2em;">+</button>
+                                <button id="gigma-assignment-section-add" class="menu_button" type="button" title="Add a new assignment section" style="width:2em; min-width:2em; height:2em; padding:0; text-align:center; line-height:2em;">+</button>
                             </div>
-                        <div id="gigma-preset-assignments-container"></div>
+                        <div id="gigma-assignment-sections-container"></div>
 </div>
                 </div>
                 <div id="gigma-lorebook-settings-section" class="inline-drawer wide100p world_entry_form_control MarginTop15 MarginBot10" style="position:relative; width:100%; max-width:var(--gigma-ordering-list-width,40.5rem); margin:0 auto; box-sizing:border-box;">
@@ -16817,7 +16817,7 @@ try {
                 onClosing: (popup) => {
                     try { gigmaEndModalLorebookStatsSession(); } catch (_eEndStats) {}
                     // Always refresh the Lorebook Budget Drawer from the
-                    // currently selected preset when the GIGMA modal closes so
+                    // currently selected layout preset when the GIGMA modal closes so
                     // any changes persisted while it was open are reflected
                     // immediately in the drawer.
                     try {
@@ -16893,8 +16893,8 @@ if (footer) {
 
                 const accept = document.getElementById('gigma-global-accept');
                 if (accept) {
-                    accept.title = 'Quicksave preset & close';
-                    accept.setAttribute('aria-label', 'Quicksave preset & close');
+                    accept.title = 'Quicksave layout preset & close';
+                    accept.setAttribute('aria-label', 'Quicksave layout preset & close');
                     const handler = (e) => {
                         try { e.preventDefault(); } catch (_) {}
                         try { e.stopPropagation(); } catch (_) {}
@@ -16905,14 +16905,14 @@ if (footer) {
                         try {
                             let kind = null;
                             try {
-                                if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-                                    kind = gigmaGetActivePresetKindForLorebookSettings();
+                                if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+                                    kind = gigmaGetActiveLayoutPresetKindForLorebookSettings();
                                 }
                             } catch (_) {
                                 kind = null;
                             }
                             if (!kind) {
-                                const toggle = document.getElementById('gigma-preset-kind-toggle');
+                                const toggle = document.getElementById('gigma-layout-preset-kind-toggle');
                                 kind = toggle && toggle.dataset ? toggle.dataset.gigmaPresetKind : null;
                             }
                             kind = (kind === 'parent') ? 'parent' : 'child';
@@ -16964,12 +16964,12 @@ if (footer) {
 }
 // Set up Budget controls
     setupBudgetControls(modalEventListeners, currentSettings);
-// Initialize Child Preset assignments UI (if present)
-    if (typeof gigmaInitCharacterPresetAssignments === 'function') {
+// Initialize assignment sections UI (if present)
+    if (typeof gigmaInitAssignmentSections === 'function') {
         try {
-            gigmaInitCharacterPresetAssignments();
+            gigmaInitAssignmentSections();
         } catch (_ePresetAssignments) {
-            console.warn('GIGMA: Failed to initialize Child Preset assignments:', _ePresetAssignments);
+            console.warn('GIGMA: Failed to initialize assignment sections:', _ePresetAssignments);
         }
     }
     // Initialize GIGMA lorebook dropdown (<select> that behaves like other SillyTavern dropdowns)
@@ -17161,14 +17161,14 @@ const changeHandler = async () => {
                                 loadedFromPreset = true;
                             } else {
                                 // If there are no stored settings for this lorebook
-                                // in the current preset, reset the drawer to defaults
+                                // in the current layout preset, reset the drawer to defaults
                                 // so the budget dropdown shows "Use ST World Info Budget (default)".
                                 gigmaApplyLorebookSettingsToForm(DEFAULT_LOREBOOK_SETTINGS);
                                 loadedFromPreset = false;
                             }
                         }
                     } catch (_ePresetApply) {
-                        console.warn('GIGMA: Failed to apply lorebook budget settings from preset:', _ePresetApply);
+                        console.warn('GIGMA: Failed to apply lorebook budget settings from the current layout preset:', _ePresetApply);
                     }
                     // If no preset-specific settings exist for this lorebook, fall back
                     // to the lorebook's own saved settings so the drawer still reflects
@@ -17215,8 +17215,8 @@ const changeHandler = async () => {
     if (typeof gigmaInitPresetControls === 'function') {
         gigmaInitPresetControls();
     }
-    if (typeof gigmaInitPresetKindToggle === 'function') {
-        gigmaInitPresetKindToggle();
+    if (typeof gigmaInitLayoutPresetKindToggle === 'function') {
+        gigmaInitLayoutPresetKindToggle();
     }
     if (typeof gigmaInitBudgetModeToggleButtons === 'function') {
         gigmaInitBudgetModeToggleButtons();
@@ -17781,7 +17781,7 @@ function gigmaCaptureDrawerLorebookSettings() {
         } catch (_eBudgetSnapshot) {
             console.warn('GIGMA: Failed to capture budget fields from lorebook drawer:', _eBudgetSnapshot);
         }
-        // Deterministic/Random trim state (stored into presets per lorebook)
+        // Deterministic/Random trim state (stored into layout presets per lorebook)
         try {
             const box = document.getElementById('gigma-lorebook-drawer-random');
             settings.randomTrim = (typeof gigmaGetDeterministicRandomBoxState === 'function')
@@ -17892,72 +17892,20 @@ function gigmaApplyLorebookSettingsToForm(settings) {
     }
 }
 /**
- * Populate the "make this lorebook always appear after" dropdown with
- * all available lorebooks except the currently selected one.
- *
- * This dropdown is kept in sync with the lorebook budget settings dropdown
- * and the active editor lorebook, and is rebuilt whenever those
- * change so that the currently selected lorebook is never offered
- * as a candidate.
- */
-function setupCharacterPresetTargetsSelect() {
-    try {
-        const select = document.getElementById('gigma-child-preset-targets');
-        if (!select) return;
-        const context = (typeof getContext === 'function') ? getContext() : null;
-        const characters = (context && Array.isArray(context.characters)) ? context.characters : [];
-        // Clear existing options
-        select.innerHTML = '';
-        if (!characters.length) {
-            const opt = document.createElement('option');
-            opt.value = '';
-            opt.textContent = '-- No characters found --';
-            select.appendChild(opt);
-            select.disabled = true;
-        } else {
-            select.disabled = false;
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = '-- Select characters --';
-            select.appendChild(placeholder);
-            characters.forEach((character) => {
-                const option = document.createElement('option');
-                const name = (character?.avatar?.replace(/\.[^/.]+$/, '') || character?.name || '');
-                if (!name) return;
-                option.value = name;
-                option.textContent = name;
-                option.setAttribute('data-type', 'child');
-                select.appendChild(option);
-            });
-        }
-        if (typeof $ === 'function' && $.fn?.select2 && $(select).length) {
-            $(select).select2({
-                width: '100%',
-                placeholder: 'Select characters to apply this preset to...',
-                allowClear: true,
-                closeOnSelect: false,
-                dropdownParent: $(select).closest('.popup-content, .popup-body, [role="dialog"]').first()
-            });
-        }
-    } catch (e) {
-        console.warn('GIGMA: Failed to initialize Child Preset targets selector:', e);
-    }
-}
-/**
- * Initialize per-child preset assignment rows (character + parent/child preset).
+ * Initialize per-child assignment sections (character + parent/child preset).
  * Renders one initial row and wires the "+" add button to append more rows.
  */
-function gigmaInitCharacterPresetAssignments() {
+function gigmaInitAssignmentSections() {
     try {
-        const container = document.getElementById('gigma-preset-assignments-container');
-        const addBtn = document.getElementById('gigma-preset-assignment-add');
+        const container = document.getElementById('gigma-assignment-sections-container');
+        const addBtn = document.getElementById('gigma-assignment-section-add');
         if (!container || !addBtn) return;
         if (container.dataset.gigmaAssignmentsWired === '1') return;
         container.dataset.gigmaAssignmentsWired = '1';
         let __gigmaIsRefreshingPresetAssignments = false;
-function ensureUnassignedAssignmentRowLast() {
+function ensureUnassignedAssignmentSectionLast() {
     try {
-        const rows = container.querySelectorAll('.gigma-preset-assignment');
+        const rows = container.querySelectorAll('.gigma-assignment-section');
         let special = null;
         rows.forEach((row) => {
             if (row && row.dataset && row.dataset.gigmaUnassigned === '1') {
@@ -17973,18 +17921,18 @@ function ensureUnassignedAssignmentRowLast() {
             try {
                 const assignControls = document.getElementById('gigma-assignment-preset-controls');
                 if (!assignControls) return;
-                const allControls = document.querySelectorAll('.gigma-preset-controls[data-gigma-active-preset="1"]');
+                const allControls = document.querySelectorAll('.gigma-layout-or-assignment-preset-controls[data-gigma-active-layout-or-assignment-preset="1"]');
                 allControls.forEach((el) => {
                     try {
                         if (el !== assignControls) {
-                            el.removeAttribute('data-gigma-active-preset');
+                            el.removeAttribute('data-gigma-active-layout-or-assignment-preset');
                         }
                     } catch (_eRem) {}
                 });
-                assignControls.setAttribute('data-gigma-active-preset', '1');
+                assignControls.setAttribute('data-gigma-active-layout-or-assignment-preset', '1');
             } catch (_eMarkAssign) {}
         }
-        function getSelectedValuesForPresetAssignment(select) {
+        function getSelectedValuesForAssignmentSectionSelect(select) {
             if (!select) return [];
             try {
                 if (typeof $ === 'function' && $(select).data && $(select).data('select2')) {
@@ -18008,13 +17956,13 @@ function ensureUnassignedAssignmentRowLast() {
                 return [];
             }
         }
-        function getAssignedCharactersAcrossPresetAssignments(excludeSelect) {
+        function getAssignedCharactersAcrossAssignmentSections(excludeSelect) {
             const used = new Set();
             try {
-                const selects = container.querySelectorAll('.gigma-child-preset-characters');
+                const selects = container.querySelectorAll('.gigma-assignment-section-characters');
                 selects.forEach((sel) => {
                     if (!sel || sel === excludeSelect) return;
-                    const vals = getSelectedValuesForPresetAssignment(sel);
+                    const vals = getSelectedValuesForAssignmentSectionSelect(sel);
                     vals.forEach((v) => {
                         const s = String(v || '').trim();
                         if (s) used.add(s);
@@ -18023,11 +17971,11 @@ function ensureUnassignedAssignmentRowLast() {
             } catch (_eAssigned) {}
             return used;
         }
-        function refreshAllPresetAssignmentCharacterSelects(sourceSelect) {
+        function refreshAllAssignmentSectionCharacterSelects(sourceSelect) {
             if (__gigmaIsRefreshingPresetAssignments) return;
             __gigmaIsRefreshingPresetAssignments = true;
             try {
-                const selects = container.querySelectorAll('.gigma-child-preset-characters');
+                const selects = container.querySelectorAll('.gigma-assignment-section-characters');
                 selects.forEach((sel) => {
                     if (!sel || sel === sourceSelect) return;
                     populateCharacterSelect(sel);
@@ -18037,16 +17985,16 @@ function ensureUnassignedAssignmentRowLast() {
         }
         
         
-        function getAssignedPresetsAcrossPresetAssignments(excludeSelect, kind) {
+        function getAssignedLayoutPresetsAcrossAssignmentSections(excludeSelect, kind) {
             const used = new Set();
             try {
-                const rows = container.querySelectorAll('.gigma-preset-assignment');
+                const rows = container.querySelectorAll('.gigma-assignment-section');
                 rows.forEach((row) => {
                     if (!row) return;
                     let presetSelect = null;
                     let kindBtn = null;
-                    try { presetSelect = row.querySelector('.gigma-child-preset-select'); } catch (_ePresetSel) {}
-                    try { kindBtn = row.querySelector('.gigma-preset-kind-toggle'); } catch (_eKindSel) {}
+                    try { presetSelect = row.querySelector('.gigma-assignment-section-layout-preset-select'); } catch (_ePresetSel) {}
+                    try { kindBtn = row.querySelector('.gigma-layout-preset-kind-toggle'); } catch (_eKindSel) {}
                     if (!presetSelect || presetSelect === excludeSelect) return;
                     const rowKind = (kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') ? 'parent' : 'child';
                     if (kind && rowKind !== kind) return;
@@ -18059,17 +18007,17 @@ function ensureUnassignedAssignmentRowLast() {
             } catch (_eAssignedPreset) {}
             return used;
         }
-        function refreshAllPresetAssignmentPresetSelects(sourceSelect) {
+        function refreshAllAssignmentSectionLayoutPresetSelects(sourceSelect) {
             if (__gigmaIsRefreshingPresetAssignments) return;
             __gigmaIsRefreshingPresetAssignments = true;
             try {
-                const rows = container.querySelectorAll('.gigma-preset-assignment');
+                const rows = container.querySelectorAll('.gigma-assignment-section');
                 rows.forEach((row) => {
                     if (!row) return;
                     let presetSelect = null;
                     let kindBtn = null;
-                    try { presetSelect = row.querySelector('.gigma-child-preset-select'); } catch (_ePresetSel) {}
-                    try { kindBtn = row.querySelector('.gigma-preset-kind-toggle'); } catch (_eKindSel) {}
+                    try { presetSelect = row.querySelector('.gigma-assignment-section-layout-preset-select'); } catch (_ePresetSel) {}
+                    try { kindBtn = row.querySelector('.gigma-layout-preset-kind-toggle'); } catch (_eKindSel) {}
                     if (!presetSelect || !kindBtn) return;
                     const rowKind = (kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') ? 'parent' : 'child';
                     populatePresetSelect(presetSelect, rowKind);
@@ -18095,9 +18043,9 @@ function populateCharacterSelect(select) {
                         || '';
                 };
                 // Snapshot current selection for this row (so we can preserve it)
-                const currentlySelectedValues = new Set(getSelectedValuesForPresetAssignment(select));
+                const currentlySelectedValues = new Set(getSelectedValuesForAssignmentSectionSelect(select));
                 // Characters that are already assigned to other rows
-                const assignedCharacters = getAssignedCharactersAcrossPresetAssignments(select);
+                const assignedCharacters = getAssignedCharactersAcrossAssignmentSections(select);
                 // Tear down any existing Select2 instance before rebuilding options
                 let jq = null;
                 if (typeof $ === 'function') {
@@ -18226,42 +18174,42 @@ function populateCharacterSelect(select) {
                         $sel.off('change.gigmaPresetAssign');
                         $sel.on('change.gigmaPresetAssign', () => {
                             // Rebuild options for all *other* rows while keeping this dropdown open
-                            refreshAllPresetAssignmentCharacterSelects(select);
+                            refreshAllAssignmentSectionCharacterSelects(select);
                         });
                     } else {
                         // Fallback for plain <select> without Select2
                         try {
-                            select.removeEventListener('change', refreshAllPresetAssignmentCharacterSelects);
+                            select.removeEventListener('change', refreshAllAssignmentSectionCharacterSelects);
                         } catch (_eRem) {}
-                        select.addEventListener('change', () => refreshAllPresetAssignmentCharacterSelects(select));
+                        select.addEventListener('change', () => refreshAllAssignmentSectionCharacterSelects(select));
                     }
                 } catch (_eSel2Init) {
                     // Non-fatal if Select2 wiring fails.
                 }
             } catch (_eChar) {
-                console.warn('GIGMA: Failed to populate child preset assignment selector:', _eChar);
+                console.warn('GIGMA: Failed to populate child assignment preset selector:', _eChar);
             }
         }
         
         function populatePresetSelect(select, kind, preferredName) {
             try {
                 if (!select) return;
-                const isMaster = (kind === 'parent');
+                const isParentPresetKind = (kind === 'parent');
                 // Per-kind "Last opened … preset" options (existing behavior)
                 const LAST_CHILD_SENTINEL = '__last_opened_child_preset__';
                 const LAST_PARENT_SENTINEL = '__last_opened_parent_preset__';
-                const sentinelValue = isMaster ? LAST_PARENT_SENTINEL : LAST_CHILD_SENTINEL;
-                const sentinelLabel = isMaster ? 'Last opened parent preset' : 'Last opened child preset';
-                // New global "Last opened preset" option shared across parent + child assignments
-                const GLOBAL_LAST_SENTINEL = '__last_opened_preset__';
-                const GLOBAL_LAST_LABEL = 'Last opened preset';
+                const sentinelValue = isParentPresetKind ? LAST_PARENT_SENTINEL : LAST_CHILD_SENTINEL;
+                const sentinelLabel = isParentPresetKind ? 'Last opened parent preset' : 'Last opened child preset';
+                // New global "Last opened layout preset" option shared across parent + child assignments
+                const GLOBAL_LAST_SENTINEL = '__last_opened_layout_preset__';
+                const GLOBAL_LAST_LABEL = 'Last opened layout preset';
                 // New global "None (ST Default)" option shared across parent + child assignments
-                const GLOBAL_NONE_SENTINEL = '__st_default_preset__';
+                const GLOBAL_NONE_SENTINEL = '__st_default_layout_preset__';
                 const GLOBAL_NONE_LABEL = 'None (ST Default)';
                 let presets = {};
                 try {
-                    if (typeof gigmaGetPresetStore === 'function') {
-                        presets = gigmaGetPresetStore(isMaster ? 'parent' : 'child') || {};
+                    if (typeof gigmaGetLayoutPresetStore === 'function') {
+                        presets = gigmaGetLayoutPresetStore(isParentPresetKind ? 'parent' : 'child') || {};
                     }
                 } catch (_eStore) {
                     presets = {};
@@ -18276,20 +18224,20 @@ function populateCharacterSelect(select) {
                 const placeholder = document.createElement('option');
                 placeholder.value = '';
                 if (!ids.length) {
-                    placeholder.textContent = isMaster ? 'No Parent Presets' : 'No Child Presets';
+                    placeholder.textContent = isParentPresetKind ? 'No Parent Presets' : 'No Child Presets';
                     placeholder.disabled = true;
                     placeholder.selected = true;
                     select.appendChild(placeholder);
                     select.disabled = true;
                     return;
                 }
-                placeholder.textContent = isMaster ? '-- Select parent preset --' : '-- Select child preset --';
+                placeholder.textContent = isParentPresetKind ? '-- Select parent preset --' : '-- Select child preset --';
                 placeholder.disabled = true;
                 placeholder.selected = true;
                 select.appendChild(placeholder);
                 select.disabled = false;
                 let selectedValue = '';
-                const assignedPresets = getAssignedPresetsAcrossPresetAssignments(select, isMaster ? 'parent' : 'child');
+                const assignedPresets = getAssignedLayoutPresetsAcrossAssignmentSections(select, isParentPresetKind ? 'parent' : 'child');
                 // Preserve selection of the special "Last opened … preset" options, including
                 // the global "None (ST Default)" sentinel.
                 if (prevValue === GLOBAL_NONE_SENTINEL) {
@@ -18341,12 +18289,12 @@ function populateCharacterSelect(select) {
                 }
                 // Insert the special options just after the placeholder, in this order:
                 //   1) Global "None (ST Default)" (only once across all rows)
-                //   2) Global "Last opened preset" (only once across all rows)
+                //   2) Global "Last opened layout preset" (only once across all rows)
                 //   3) Per-kind "Last opened … preset" (once per kind)
                 try {
-                    const allAssignedPresets = getAssignedPresetsAcrossPresetAssignments(select, null);
+                    const allAssignedPresets = getAssignedLayoutPresetsAcrossAssignmentSections(select, null);
                     // Global "None (ST Default)" option that can only be used once
-                    // across *all* assignment rows (both parent and child).
+                    // across *all* assignment sections (both parent and child).
                     const noneInUse = allAssignedPresets && allAssignedPresets.has(GLOBAL_NONE_SENTINEL);
                     const showNone = !noneInUse || selectedValue === GLOBAL_NONE_SENTINEL;
                     if (showNone) {
@@ -18358,14 +18306,14 @@ function populateCharacterSelect(select) {
                         }
                         select.appendChild(optNone);
                     }
-                    // Global "Last opened preset" option that can only be used once
-                    // across *all* assignment rows (both parent and child).
+                    // Global "Last opened layout preset" option that can only be used once
+                    // across *all* assignment sections (both parent and child).
                     const globalInUse = allAssignedPresets && allAssignedPresets.has(GLOBAL_LAST_SENTINEL);
                     const showGlobal = !globalInUse || selectedValue === GLOBAL_LAST_SENTINEL;
                     if (showGlobal) {
                         const optGlobal = document.createElement('option');
                         optGlobal.value = GLOBAL_LAST_SENTINEL;
-                        optGlobal.textContent = gigmaFormatLastOpenedLabel(GLOBAL_LAST_LABEL, (typeof gigmaGetLastOpenedPresetName === 'function') ? gigmaGetLastOpenedPresetName('global') : null);
+                        optGlobal.textContent = gigmaFormatLastOpenedLayoutPresetLabel(GLOBAL_LAST_LABEL, (typeof gigmaGetLastOpenedLayoutPresetName === 'function') ? gigmaGetLastOpenedLayoutPresetName('global') : null);
                         if (selectedValue === GLOBAL_LAST_SENTINEL) {
                             optGlobal.selected = true;
                         }
@@ -18378,7 +18326,7 @@ function populateCharacterSelect(select) {
                     if (showKindSentinel) {
                         const optSentinel = document.createElement('option');
                         optSentinel.value = sentinelValue;
-                        optSentinel.textContent = gigmaFormatLastOpenedLabel(sentinelLabel, (typeof gigmaGetLastOpenedPresetName === 'function') ? gigmaGetLastOpenedPresetName(isMaster ? 'parent' : 'child') : null);
+                        optSentinel.textContent = gigmaFormatLastOpenedLayoutPresetLabel(sentinelLabel, (typeof gigmaGetLastOpenedLayoutPresetName === 'function') ? gigmaGetLastOpenedLayoutPresetName(isParentPresetKind ? 'parent' : 'child') : null);
                         if (selectedValue === sentinelValue) {
                             optSentinel.selected = true;
                         }
@@ -18408,15 +18356,15 @@ function populateCharacterSelect(select) {
         function wireKindToggle(btn, select) {
             if (!btn || !select) return;
             function applyKind(kind) {
-                const isMaster = (kind === 'parent');
-                btn.dataset.gigmaPresetKind = isMaster ? 'parent' : 'child';
-                btn.textContent = isMaster ? 'Parent Preset:' : 'Child Preset:';
+                const isParentPresetKind = (kind === 'parent');
+                btn.dataset.gigmaPresetKind = isParentPresetKind ? 'parent' : 'child';
+                btn.textContent = isParentPresetKind ? 'Parent Preset:' : 'Child Preset:';
                 let preferredName = '';
                 try {
                     let presets = {};
                     try {
-                        if (typeof gigmaGetPresetStore === 'function') {
-                            presets = gigmaGetPresetStore(isMaster ? 'parent' : 'child') || {};
+                        if (typeof gigmaGetLayoutPresetStore === 'function') {
+                            presets = gigmaGetLayoutPresetStore(isParentPresetKind ? 'parent' : 'child') || {};
                         }
                     } catch (_eStoreToggle) {
                         presets = {};
@@ -18425,7 +18373,7 @@ function populateCharacterSelect(select) {
                     if (names.length) {
                         let assignedPresets = null;
                         try {
-                            assignedPresets = getAssignedPresetsAcrossPresetAssignments(select, isMaster ? 'parent' : 'child');
+                            assignedPresets = getAssignedLayoutPresetsAcrossAssignmentSections(select, isParentPresetKind ? 'parent' : 'child');
                         } catch (_eAssignedToggle) {
                             assignedPresets = null;
                         }
@@ -18438,7 +18386,7 @@ function populateCharacterSelect(select) {
                         let candidate = '';
                         // (1) Currently loaded preset from the main preset section (same kind)
                         try {
-                            const selectId = isMaster ? 'gigma-parent-preset-select' : 'gigma-child-preset-select';
+                            const selectId = isParentPresetKind ? 'gigma-parent-preset-select' : 'gigma-child-preset-select';
                             const mainSelect = document.getElementById(selectId);
                             if (mainSelect && mainSelect.value) {
                                 const v = String(mainSelect.value);
@@ -18450,8 +18398,8 @@ function populateCharacterSelect(select) {
                         // Also consider the last-used preset for this kind as a fallback
                         if (!candidate) {
                             try {
-                                if (typeof gigmaGetLastPresetName === 'function') {
-                                    const last = gigmaGetLastPresetName(isMaster ? 'parent' : 'child');
+                                if (typeof gigmaGetLastLayoutPresetId === 'function') {
+                                    const last = gigmaGetLastLayoutPresetId(isParentPresetKind ? 'parent' : 'child');
                                     if (last && Object.prototype.hasOwnProperty.call(presets, last) && !isTaken(last)) {
                                         candidate = last;
                                     }
@@ -18474,11 +18422,11 @@ function populateCharacterSelect(select) {
                         }
                     }
                 } catch (_ePreferredKind) {}
-                populatePresetSelect(select, isMaster ? 'parent' : 'child', preferredName);
+                populatePresetSelect(select, isParentPresetKind ? 'parent' : 'child', preferredName);
                 // After changing kind, refresh all rows so that the unique-per-kind
                 // constraint for presets is immediately enforced across the UI.
                 try {
-                    refreshAllPresetAssignmentPresetSelects(select);
+                    refreshAllAssignmentSectionLayoutPresetSelects(select);
                 } catch (_eRefreshKindToggle) {}
             }
             btn.addEventListener('click', (ev) => {
@@ -18518,10 +18466,10 @@ function populateCharacterSelect(select) {
                 }
             }catch(_ePresetSize){}
         }
-function createUnassignedAssignmentRow() {
-    const idx = container.querySelectorAll('.gigma-preset-assignment').length;
+function createUnassignedAssignmentSection() {
+    const idx = container.querySelectorAll('.gigma-assignment-section').length;
     const row = document.createElement('div');
-    row.className = 'gigma-preset-assignment';
+    row.className = 'gigma-assignment-section';
     row.dataset.index = String(idx);
     row.dataset.gigmaUnassigned = '1';
     row.style.marginTop = '0.375em';
@@ -18548,17 +18496,17 @@ function createUnassignedAssignmentRow() {
     info.style.opacity = '0.9';
     info.style.marginTop = '0.125em';
     const rowBottom = document.createElement('div');
-    rowBottom.className = 'gigma-child-preset-row';
+    rowBottom.className = 'gigma-assignment-section-body';
     rowBottom.style.display = 'flex';
     rowBottom.style.flexDirection = 'column';
     rowBottom.style.alignItems = 'stretch';
     rowBottom.style.gap = '0.25em';
     rowBottom.style.marginTop = '0.375em';
     const kindRow = document.createElement('div');
-    kindRow.className = 'gigma-preset-kind-toggle-row gigma-child-preset-kind-toggle-row';
+    kindRow.className = 'gigma-layout-preset-kind-toggle-row gigma-assignment-section-layout-preset-kind-toggle-row';
     const kindBtn = document.createElement('button');
     kindBtn.type = 'button';
-    kindBtn.className = 'menu_button gigma-preset-kind-toggle gigma-child-preset-kind-toggle';
+    kindBtn.className = 'menu_button gigma-layout-preset-kind-toggle gigma-assignment-section-layout-preset-kind-toggle';
     kindBtn.textContent = 'Child Preset:';
     kindBtn.dataset.gigmaPresetKind = 'child';
     kindRow.appendChild(kindBtn);
@@ -18566,7 +18514,7 @@ function createUnassignedAssignmentRow() {
     presetRow.style.display = 'flex';
     presetRow.style.alignItems = 'center';
     const presetSelect = document.createElement('select');
-    presetSelect.className = 'text_pole textarea_compact gigma-child-preset-select';
+    presetSelect.className = 'text_pole textarea_compact gigma-assignment-section-layout-preset-select';
     presetSelect.style.flex = '1 1 auto';
     presetSelect.style.minWidth = '0';
     presetRow.appendChild(presetSelect);
@@ -18577,7 +18525,7 @@ function createUnassignedAssignmentRow() {
     row.appendChild(rowBottom);
     container.appendChild(row);
     try {
-        ensureUnassignedAssignmentRowLast();
+        ensureUnassignedAssignmentSectionLast();
     } catch (_eEnsureLastSpecial) {}
     // Wire the common Parent/Child toggle behaviour
     wireKindToggle(kindBtn, presetSelect);
@@ -18602,15 +18550,15 @@ function createUnassignedAssignmentRow() {
     } catch (_eUnassignedInit) {}
     try {
         presetSelect.addEventListener('change', () => {
-            refreshAllPresetAssignmentPresetSelects(presetSelect);
+            refreshAllAssignmentSectionLayoutPresetSelects(presetSelect);
         });
     } catch (_ePresetChangeUnassigned) {}
     return row;
 }
-        function createAssignmentRow() {
-            const idx = container.querySelectorAll('.gigma-preset-assignment').length;
+        function createAssignmentSection() {
+            const idx = container.querySelectorAll('.gigma-assignment-section').length;
             const row = document.createElement('div');
-            row.className = 'gigma-preset-assignment';
+            row.className = 'gigma-assignment-section';
             row.dataset.index = String(idx);
             row.style.marginTop = '0.375em';
             row.style.padding = '0.375em 0.5em';
@@ -18628,7 +18576,7 @@ function createUnassignedAssignmentRow() {
             deleteBtn.type = 'button';
             deleteBtn.className = 'menu_button';
             deleteBtn.textContent = '×';
-            deleteBtn.title = 'Delete this assignment';
+            deleteBtn.title = 'Delete this assignment section';
             deleteBtn.style.padding = '0';
             deleteBtn.style.width = '1.8em';
             deleteBtn.style.height = '1.8em';
@@ -18642,7 +18590,7 @@ function createUnassignedAssignmentRow() {
             header.appendChild(deleteBtn);
             header.appendChild(label);
             const charSelect = document.createElement('select');
-            charSelect.className = 'text_pole textarea_compact gigma-child-preset-characters';
+            charSelect.className = 'text_pole textarea_compact gigma-assignment-section-characters';
             charSelect.multiple = true;
             charSelect.style.display = 'block';
             charSelect.style.width = '100%';
@@ -18650,17 +18598,17 @@ function createUnassignedAssignmentRow() {
             charSelect.style.minWidth = '0';
             charSelect.style.boxSizing = 'border-box';
             const rowBottom = document.createElement('div');
-            rowBottom.className = 'gigma-child-preset-row';
+            rowBottom.className = 'gigma-assignment-section-body';
             rowBottom.style.display = 'flex';
             rowBottom.style.flexDirection = 'column';
             rowBottom.style.alignItems = 'stretch';
             rowBottom.style.gap = '0.25em';
             rowBottom.style.marginTop = '0.375em';
             const kindRow = document.createElement('div');
-            kindRow.className = 'gigma-preset-kind-toggle-row gigma-child-preset-kind-toggle-row';
+            kindRow.className = 'gigma-layout-preset-kind-toggle-row gigma-assignment-section-layout-preset-kind-toggle-row';
             const kindBtn = document.createElement('button');
             kindBtn.type = 'button';
-            kindBtn.className = 'menu_button gigma-preset-kind-toggle gigma-child-preset-kind-toggle';
+            kindBtn.className = 'menu_button gigma-layout-preset-kind-toggle gigma-assignment-section-layout-preset-kind-toggle';
             kindBtn.textContent = 'Child Preset:';
             kindBtn.dataset.gigmaPresetKind = 'child';
             kindRow.appendChild(kindBtn);
@@ -18668,7 +18616,7 @@ function createUnassignedAssignmentRow() {
             presetRow.style.display = 'flex';
             presetRow.style.alignItems = 'center';
             const presetSelect = document.createElement('select');
-            presetSelect.className = 'text_pole textarea_compact gigma-child-preset-select';
+            presetSelect.className = 'text_pole textarea_compact gigma-assignment-section-layout-preset-select';
             presetSelect.style.flex = '1 1 auto';
             presetSelect.style.minWidth = '0';
             presetRow.appendChild(presetSelect);
@@ -18683,16 +18631,16 @@ function createUnassignedAssignmentRow() {
                 container.insertBefore(row, container.firstChild);
             }
             try {
-                ensureUnassignedAssignmentRowLast();
+                ensureUnassignedAssignmentSectionLast();
             } catch (_eEnsureLast) {}
             populateCharacterSelect(charSelect);
             wireKindToggle(kindBtn, presetSelect);
             try {
                 presetSelect.addEventListener('change', () => {
-                    refreshAllPresetAssignmentPresetSelects(presetSelect);
+                    refreshAllAssignmentSectionLayoutPresetSelects(presetSelect);
                 });
             } catch (_ePresetChange) {}
-            function getSelectedCharactersForRow() {
+            function getSelectedCharactersForSection() {
                 try {
                     if (typeof $ === 'function' && $(charSelect).length) {
                         const vals = $(charSelect).val();
@@ -18711,10 +18659,10 @@ function createUnassignedAssignmentRow() {
                         ev.preventDefault();
                     }
                 } catch (_e) {}
-                const selectedChars = getSelectedCharactersForRow();
+                const selectedChars = getSelectedCharactersForSection();
                 const presetName = presetSelect && presetSelect.value ? String(presetSelect.value) : '';
                 // Use the dropdown's visible label for the preset so that special
-                // options like "Last opened preset" and "None (ST Default)" appear
+                // options like "Last opened layout preset" and "None (ST Default)" appear
                 // in confirmations exactly as shown in the select menu.
                 let presetLabel = presetName;
                 try {
@@ -18732,7 +18680,7 @@ function createUnassignedAssignmentRow() {
                 if (!selectedChars.length || !presetName) {
                     row.remove();
                     try {
-                        const rows = container.querySelectorAll('.gigma-preset-assignment');
+                        const rows = container.querySelectorAll('.gigma-assignment-section');
                         rows.forEach((r, index) => {
                             if (r && r.dataset) {
                                 r.dataset.index = String(index);
@@ -18740,7 +18688,7 @@ function createUnassignedAssignmentRow() {
                         });
                     } catch (_eRenumber) {}
                     try {
-                        refreshAllPresetAssignmentPresetSelects(null);
+                        refreshAllAssignmentSectionLayoutPresetSelects(null);
                     } catch (_eRefreshAfterDelete) {}
                     return;
                 }
@@ -18770,7 +18718,7 @@ function createUnassignedAssignmentRow() {
                     : 'Delete the assignments of the characters';
                 const middleText = (
                     presetLabel === 'None (ST Default)'
-                    || (typeof presetLabel === 'string' && presetLabel.startsWith('Last opened preset'))
+                    || (typeof presetLabel === 'string' && presetLabel.startsWith('Last opened layout preset'))
                     || (typeof presetLabel === 'string' && presetLabel.startsWith('Last opened parent preset'))
                     || (typeof presetLabel === 'string' && presetLabel.startsWith('Last opened child preset'))
                 )
@@ -18782,7 +18730,7 @@ function createUnassignedAssignmentRow() {
                         ? SillyTavern.getContext()
                         : null;
                     const popupApi = ctx && ctx.Popup ? ctx.Popup : Popup;
-                    confirmed = await popupApi.show.confirm('Delete preset assignment section', htmlMessage);
+                    confirmed = await popupApi.show.confirm('Delete assignment section', htmlMessage);
                 } catch (_eConfirm) {
                     const plainChars = selectedChars.join(', ') || '(none)';
                     const plainKind = kindLabel;
@@ -18800,7 +18748,7 @@ function createUnassignedAssignmentRow() {
                 }
                 row.remove();
                 try {
-                    const rows = container.querySelectorAll('.gigma-preset-assignment');
+                    const rows = container.querySelectorAll('.gigma-assignment-section');
                     rows.forEach((r, index) => {
                         if (r && r.dataset) {
                             r.dataset.index = String(index);
@@ -18808,23 +18756,23 @@ function createUnassignedAssignmentRow() {
                     });
                 } catch (_eRenumber2) {}
                 try {
-                    refreshAllPresetAssignmentPresetSelects(null);
+                    refreshAllAssignmentSectionLayoutPresetSelects(null);
                 } catch (_eRefreshAfterDelete2) {}
             });
             return row;
         }
         
-        // Capture the current preset assignment rows into a reusable snapshot
+        // Capture the current assignment sections into a reusable snapshot
         function gigmaCaptureAssignmentPresetSnapshot() {
             const rows = [];
             try {
-                const rowEls = container.querySelectorAll('.gigma-preset-assignment');
+                const rowEls = container.querySelectorAll('.gigma-assignment-section');
                 rowEls.forEach((row) => {
                     if (!row) return;
-                    const charSelect = row.querySelector('.gigma-child-preset-characters');
-                    const presetSelect = row.querySelector('.gigma-child-preset-select');
-                    const kindBtn = row.querySelector('.gigma-preset-kind-toggle');
-                    const characters = getSelectedValuesForPresetAssignment(charSelect);
+                    const charSelect = row.querySelector('.gigma-assignment-section-characters');
+                    const presetSelect = row.querySelector('.gigma-assignment-section-layout-preset-select');
+                    const kindBtn = row.querySelector('.gigma-layout-preset-kind-toggle');
+                    const characters = getSelectedValuesForAssignmentSectionSelect(charSelect);
                     const presetName = (presetSelect && presetSelect.value) ? String(presetSelect.value) : '';
                     const kind = (kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') ? 'parent' : 'child';
                     const isUnassigned = !!(row && row.dataset && row.dataset.gigmaUnassigned === '1');
@@ -18840,12 +18788,12 @@ function createUnassignedAssignmentRow() {
                     rows.push(entry);
                 });
             } catch (e) {
-                console.warn('GIGMA: Failed to capture preset assignment snapshot:', e);
+                console.warn('GIGMA: Failed to capture assignment preset snapshot:', e);
             }
             if (!rows.length) return null;
             return { rows };
         }
-        // Apply a previously saved preset assignment snapshot to the UI
+        // Apply a previously saved assignment preset snapshot to the UI
         function gigmaApplyAssignmentPresetSnapshot(snapshot) {
             if (!snapshot || typeof snapshot !== 'object' || !Array.isArray(snapshot.rows)) {
                 return;
@@ -18858,7 +18806,7 @@ function createUnassignedAssignmentRow() {
             rows.forEach((data) => {
                 try {
                     const isUnassigned = !!(data && data.unassigned);
-                    const row = isUnassigned ? createUnassignedAssignmentRow() : createAssignmentRow();
+                    const row = isUnassigned ? createUnassignedAssignmentSection() : createAssignmentSection();
                     if (isUnassigned) {
                         try {
                             row.dataset.gigmaUnassigned = '1';
@@ -18866,9 +18814,9 @@ function createUnassignedAssignmentRow() {
                         hasUnassigned = true;
                     }
                     if (!row || !data) return;
-                    const charSelect = row.querySelector('.gigma-child-preset-characters');
-                    const presetSelect = row.querySelector('.gigma-child-preset-select');
-                    const kindBtn = row.querySelector('.gigma-preset-kind-toggle');
+                    const charSelect = row.querySelector('.gigma-assignment-section-characters');
+                    const presetSelect = row.querySelector('.gigma-assignment-section-layout-preset-select');
+                    const kindBtn = row.querySelector('.gigma-layout-preset-kind-toggle');
                     const kind = (data.kind === 'parent') ? 'parent' : 'child';
                     if (kindBtn && presetSelect) {
                         try {
@@ -18915,11 +18863,11 @@ function createUnassignedAssignmentRow() {
             // even for older snapshots that did not include it.
             if (!hasUnassigned) {
                 try {
-                    createUnassignedAssignmentRow();
+                    createUnassignedAssignmentSection();
                 } catch (_eDefaultUnassigned) {}
             }
             try {
-                const rowEls = container.querySelectorAll('.gigma-preset-assignment');
+                const rowEls = container.querySelectorAll('.gigma-assignment-section');
                 rowEls.forEach((row, index) => {
                     if (row && row.dataset) {
                         row.dataset.index = String(index);
@@ -18927,7 +18875,7 @@ function createUnassignedAssignmentRow() {
                 });
             } catch (_eReindex) {}
             try {
-                refreshAllPresetAssignmentPresetSelects(null);
+                refreshAllAssignmentSectionLayoutPresetSelects(null);
             } catch (_eRefreshFromSnapshot) {}
         }
         function gigmaRefreshAssignmentPresetSelect() {
@@ -18974,7 +18922,7 @@ function createUnassignedAssignmentRow() {
                 }
                 const snapshot = presets[presetId];
                 if (!snapshot) {
-                    toastr.error('Selected preset assignment no longer exists.');
+                    toastr.error('Selected assignment preset no longer exists.');
                     gigmaRefreshAssignmentPresetSelect();
                     return;
                 }
@@ -18987,7 +18935,7 @@ function createUnassignedAssignmentRow() {
             });
 
 try {
-    // If a saved preset assignment is already selected (e.g. restored from last used),
+    // If a saved assignment preset is already selected (e.g. restored from last used),
     // apply it immediately so the UI does not show an extra default blank row.
     if (select.value) {
         select.dispatchEvent(new Event('change'));
@@ -19005,19 +18953,19 @@ if (restoreBtn) {
                 : null;
             const popupApi = ctx && ctx.Popup ? ctx.Popup : Popup;
             confirmed = await popupApi.show.confirm(
-                'Restore preset assignment',
-                'Restore the current preset assignment to its last saved state? Unsaved changes will be lost.'
+                'Restore assignment preset',
+                'Restore the current assignment preset to its last saved state? Unsaved changes will be lost.'
             );
         } catch (_eConfirm) {
-            confirmed = window.confirm('Restore the current preset assignment to its last saved state? Unsaved changes will be lost.');
+            confirmed = window.confirm('Restore the current assignment preset to its last saved state? Unsaved changes will be lost.');
         }
         if (!confirmed) return;
         try {
             select.dispatchEvent(new Event('change'));
             try {
-                if (typeof gigmaShowPresetStatus === 'function') {
+                if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
                     gigmaMarkAssignmentPresetControlsActive();
-                    gigmaShowPresetStatus('Restored preset assignment.', 'success', 'assignment');
+                    gigmaShowScopedLayoutOrAssignmentPresetStatus('Restored assignment preset.', 'success', 'assignment');
                 }
             } catch (_eStatus) {}
         } catch (_eApply) {}
@@ -19042,14 +18990,14 @@ if (newBtn) {
                 : null;
             if (ctx && ctx.Popup && ctx.Popup.show && typeof ctx.Popup.show.input === 'function') {
                 nameRaw = await ctx.Popup.show.input(
-                    'New preset assignment',
+                    'New assignment preset',
                     ''
                 );
             } else {
-                nameRaw = window.prompt('New preset assignment', '');
+                nameRaw = window.prompt('New assignment preset', '');
             }
         } catch (_ePrompt) {
-            nameRaw = window.prompt('New preset assignment', '');
+            nameRaw = window.prompt('New assignment preset', '');
         }
 
         const name = (typeof nameRaw === 'string') ? nameRaw.trim() : '';
@@ -19057,7 +19005,7 @@ if (newBtn) {
 
         const existingId = findAssignmentPresetIdByName(presets, name);
         if (existingId) {
-            toastr.error('A preset assignment with that name already exists.');
+            toastr.error('An assignment preset with that name already exists.');
             return;
         }
 
@@ -19093,9 +19041,9 @@ if (newBtn) {
             gigmaApplyAssignmentPresetSnapshot(blankSnapshot);
         } catch (_eApply) {}
         try {
-            if (typeof gigmaShowPresetStatus === 'function') {
+            if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
                 gigmaMarkAssignmentPresetControlsActive();
-                gigmaShowPresetStatus(`Created preset assignment "${name}".`, 'success', 'assignment');
+                gigmaShowScopedLayoutOrAssignmentPresetStatus(`Created assignment preset "${name}".`, 'success', 'assignment');
             }
         } catch (_eStatus) {}
     });
@@ -19111,7 +19059,7 @@ if (newBtn) {
                     }
                     const snapshot = gigmaCaptureAssignmentPresetSnapshot();
                     if (!snapshot) {
-                        toastr.error('Configure at least one preset assignment before saving.');
+                        toastr.error('Configure at least one assignment preset before saving.');
                         return;
                     }
                     let presets = {};
@@ -19124,7 +19072,7 @@ if (newBtn) {
                     }
                     const existing = presets[presetId];
                     if (!existing) {
-                        toastr.error('Selected preset assignment no longer exists.');
+                        toastr.error('Selected assignment preset no longer exists.');
                         gigmaRefreshAssignmentPresetSelect();
                         return;
                     }
@@ -19139,10 +19087,10 @@ if (newBtn) {
                     gigmaRefreshAssignmentPresetSelect();
                     try { select.value = presetId; } catch (_eVal) {}
                     try {
-                        if (typeof gigmaShowPresetStatus === 'function') {
+                        if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
                             gigmaMarkAssignmentPresetControlsActive();
                             const nm = (typeof existing.name === 'string') ? existing.name : '';
-                            gigmaShowPresetStatus(`Quick-saved preset assignment "${nm}".`, 'success', 'assignment');
+                            gigmaShowScopedLayoutOrAssignmentPresetStatus(`Quick-saved assignment preset "${nm}".`, 'success', 'assignment');
                         }
                     } catch (_eStatus) {}
                 });
@@ -19151,7 +19099,7 @@ if (newBtn) {
             saveBtn.addEventListener('click', async () => {
                 const snapshot = gigmaCaptureAssignmentPresetSnapshot();
                 if (!snapshot) {
-                    toastr.error('Configure at least one preset assignment before saving.');
+                    toastr.error('Configure at least one assignment preset before saving.');
                     return;
                 }
 
@@ -19174,14 +19122,14 @@ if (newBtn) {
                         : null;
                     if (ctx && ctx.Popup && ctx.Popup.show && typeof ctx.Popup.show.input === 'function') {
                         nameRaw = await ctx.Popup.show.input(
-                            'Save preset assignment',
+                            'Save assignment preset',
                             defaultName || ''
                         );
                     } else {
-                        nameRaw = window.prompt('Save preset assignment', defaultName || '');
+                        nameRaw = window.prompt('Save assignment preset', defaultName || '');
                     }
                 } catch (_ePrompt) {
-                    nameRaw = window.prompt('Save preset assignment', defaultName || '');
+                    nameRaw = window.prompt('Save assignment preset', defaultName || '');
                 }
 
                 const name = (typeof nameRaw === 'string') ? nameRaw.trim() : '';
@@ -19205,11 +19153,11 @@ if (newBtn) {
                             "'": '&#39;',
                         }[ch] || ch));
                         overwrite = await popupApi.show.confirm(
-                            'Overwrite preset assignment',
-                            `A preset assignment named "<b>${safeName}</b>" already exists. Overwrite it?`
+                            'Overwrite assignment preset',
+                            `An assignment preset named "<b>${safeName}</b>" already exists. Overwrite it?`
                         );
                     } catch (_eConfirm) {
-                        overwrite = window.confirm(`A preset assignment named "${name}" already exists. Overwrite it?`);
+                        overwrite = window.confirm(`An assignment preset named "${name}" already exists. Overwrite it?`);
                     }
                     if (!overwrite) return;
                     targetId = existingId;
@@ -19238,9 +19186,9 @@ if (newBtn) {
                     }
                 } catch (_eLast) {}
                 try {
-                    if (typeof gigmaShowPresetStatus === 'function') {
+                    if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
                         gigmaMarkAssignmentPresetControlsActive();
-                        gigmaShowPresetStatus(`Saved preset assignment "${name}".`, 'success', 'assignment');
+                        gigmaShowScopedLayoutOrAssignmentPresetStatus(`Saved assignment preset "${name}".`, 'success', 'assignment');
                     }
                 } catch (_eStatus) {}
             });
@@ -19260,7 +19208,7 @@ if (newBtn) {
 
                 const current = presets[presetId];
                 if (!current) {
-                    toastr.error('Selected preset assignment no longer exists.');
+                    toastr.error('Selected assignment preset no longer exists.');
                     gigmaRefreshAssignmentPresetSelect();
                     return;
                 }
@@ -19273,14 +19221,14 @@ if (newBtn) {
                         : null;
                     if (ctx && ctx.Popup && ctx.Popup.show && typeof ctx.Popup.show.input === 'function') {
                         nameRaw = await ctx.Popup.show.input(
-                            'Rename preset assignment',
+                            'Rename assignment preset',
                             currentName || ''
                         );
                     } else {
-                        nameRaw = window.prompt('Rename preset assignment', currentName || '');
+                        nameRaw = window.prompt('Rename assignment preset', currentName || '');
                     }
                 } catch (_ePrompt) {
-                    nameRaw = window.prompt('Rename preset assignment', currentName || '');
+                    nameRaw = window.prompt('Rename assignment preset', currentName || '');
                 }
 
                 const newName = (typeof nameRaw === 'string') ? nameRaw.trim() : '';
@@ -19288,7 +19236,7 @@ if (newBtn) {
 
                 const conflictId = findAssignmentPresetIdByName(presets, newName);
                 if (conflictId && conflictId !== presetId) {
-                    toastr.error('A preset assignment with that name already exists.');
+                    toastr.error('An assignment preset with that name already exists.');
                     return;
                 }
 
@@ -19305,9 +19253,9 @@ if (newBtn) {
                 gigmaRefreshAssignmentPresetSelect();
                 try { select.value = presetId; } catch (_eVal) {}
                 try {
-                    if (typeof gigmaShowPresetStatus === 'function') {
+                    if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
                         gigmaMarkAssignmentPresetControlsActive();
-                        gigmaShowPresetStatus(`Renamed preset assignment "${newName}".`, 'success', 'assignment');
+                        gigmaShowScopedLayoutOrAssignmentPresetStatus(`Renamed assignment preset "${newName}".`, 'success', 'assignment');
                     }
                 } catch (_eStatus) {}
             });
@@ -19327,7 +19275,7 @@ if (newBtn) {
 
                 const current = presets[presetId];
                 if (!current) {
-                    toastr.error('Selected preset assignment no longer exists.');
+                    toastr.error('Selected assignment preset no longer exists.');
                     gigmaRefreshAssignmentPresetSelect();
                     return;
                 }
@@ -19347,11 +19295,11 @@ if (newBtn) {
                         "'": '&#39;',
                     }[ch] || ch));
                     confirmed = await popupApi.show.confirm(
-                        'Delete preset assignment',
-                        `Delete preset assignment "<b>${safeName}</b>"?`
+                        'Delete assignment preset',
+                        `Delete assignment preset "<b>${safeName}</b>"?`
                     );
                 } catch (_eConfirm) {
-                    confirmed = window.confirm(`Delete preset assignment "${displayName}"?`);
+                    confirmed = window.confirm(`Delete assignment preset "${displayName}"?`);
                 }
                 if (!confirmed) return;
 
@@ -19383,17 +19331,17 @@ if (newBtn) {
                     try { select.dispatchEvent(new Event('change')); } catch (_eDispatchNext) {}
                 }
                 try {
-                    if (typeof gigmaShowPresetStatus === 'function') {
+                    if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
                         gigmaMarkAssignmentPresetControlsActive();
-                        gigmaShowPresetStatus(`Deleted preset assignment "${displayName}".`, 'success', 'assignment');
+                        gigmaShowScopedLayoutOrAssignmentPresetStatus(`Deleted assignment preset "${displayName}".`, 'success', 'assignment');
                     }
                 } catch (_eStatus) {}
             });
         }
 
 // Initial rows: one unremovable "All unassigned characters" section
-        createUnassignedAssignmentRow();
-        // Wire preset assignment save/load controls
+        createUnassignedAssignmentSection();
+        // Wire assignment preset save/load controls
         gigmaInitAssignmentPresetControls();
         // "+" button handler
         addBtn.addEventListener('click', (ev) => {
@@ -19402,10 +19350,10 @@ if (newBtn) {
                     ev.preventDefault();
                 }
             } catch (_e) {}
-            createAssignmentRow();
+            createAssignmentSection();
         });
     } catch (e) {
-        console.warn('GIGMA: Failed to initialize Child Preset assignments:', e);
+        console.warn('GIGMA: Failed to initialize assignment sections:', e);
     }
 }
 /**
@@ -19414,7 +19362,7 @@ if (newBtn) {
  */
 
 
-// --- GIGMA: Preset assignment preview popup ---
+// --- GIGMA: Assignment preset preview popup ---
 function gigmaGetActiveAssignmentPresetId() {
     try {
         const modal = document.getElementById('gigma-assignment-preset-select');
@@ -19429,17 +19377,17 @@ function gigmaGetActiveAssignmentPresetId() {
 }
 
 function gigmaCaptureLiveAssignmentPresetSnapshot() {
-    const container = document.getElementById('gigma-preset-assignments-container');
+    const container = document.getElementById('gigma-assignment-sections-container');
     if (!container) return null;
     const rows = [];
-    const rowEls = Array.from(container.querySelectorAll('.gigma-preset-assignment') || []);
+    const rowEls = Array.from(container.querySelectorAll('.gigma-assignment-section') || []);
     for (const rowEl of rowEls) {
         if (!rowEl) continue;
         const unassigned = !!(rowEl.dataset && rowEl.dataset.gigmaUnassigned === '1');
 
         let characters = [];
         try {
-            const charSel = rowEl.querySelector('select.gigma-child-preset-characters');
+            const charSel = rowEl.querySelector('select.gigma-assignment-section-characters');
             if (charSel) {
                 try {
                     const $sel = $(charSel);
@@ -19456,13 +19404,13 @@ function gigmaCaptureLiveAssignmentPresetSnapshot() {
 
         let preset = '';
         try {
-            const presetSel = rowEl.querySelector('select.gigma-child-preset-select');
+            const presetSel = rowEl.querySelector('select.gigma-assignment-section-layout-preset-select');
             if (presetSel && typeof presetSel.value === 'string') preset = presetSel.value;
         } catch (_ePreset) {}
 
         let kind = 'child';
         try {
-            const kindBtn = rowEl.querySelector('.gigma-preset-kind-toggle');
+            const kindBtn = rowEl.querySelector('.gigma-layout-preset-kind-toggle');
             const k = kindBtn && kindBtn.dataset ? kindBtn.dataset.gigmaPresetKind : null;
             if (k === 'parent' || k === 'child') kind = k;
         } catch (_eKind) {}
@@ -19478,20 +19426,20 @@ function gigmaCaptureLiveAssignmentPresetSnapshot() {
     return { rows };
 }
 
-function gigmaResolveAssignmentPresetLabel(presetId, kind) {
+function gigmaResolveLayoutPresetLabelForAssignmentSection(presetId, kind) {
     const LAST_CHILD_SENTINEL = '__last_opened_child_preset__';
     const LAST_PARENT_SENTINEL = '__last_opened_parent_preset__';
-    const GLOBAL_LAST_SENTINEL = '__last_opened_preset__';
-    const GLOBAL_NONE_SENTINEL = '__st_default_preset__';
+    const GLOBAL_LAST_SENTINEL = '__last_opened_layout_preset__';
+    const GLOBAL_NONE_SENTINEL = '__st_default_layout_preset__';
 
     if (!presetId) return '—';
     if (presetId === GLOBAL_NONE_SENTINEL) return 'None (ST Default)';
-    if (presetId === GLOBAL_LAST_SENTINEL) return gigmaFormatLastOpenedLabel('Last opened preset', gigmaGetLastOpenedPresetName('global'));
-    if (presetId === LAST_CHILD_SENTINEL) return gigmaFormatLastOpenedLabel('Last opened child preset', gigmaGetLastOpenedPresetName('child'));
-    if (presetId === LAST_PARENT_SENTINEL) return gigmaFormatLastOpenedLabel('Last opened parent preset', gigmaGetLastOpenedPresetName('parent'));
+    if (presetId === GLOBAL_LAST_SENTINEL) return gigmaFormatLastOpenedLayoutPresetLabel('Last opened layout preset', gigmaGetLastOpenedLayoutPresetName('global'));
+    if (presetId === LAST_CHILD_SENTINEL) return gigmaFormatLastOpenedLayoutPresetLabel('Last opened child preset', gigmaGetLastOpenedLayoutPresetName('child'));
+    if (presetId === LAST_PARENT_SENTINEL) return gigmaFormatLastOpenedLayoutPresetLabel('Last opened parent preset', gigmaGetLastOpenedLayoutPresetName('parent'));
 
     const k = (kind === 'parent') ? 'parent' : 'child';
-    const store = gigmaGetPresetStore(k) || {};
+    const store = gigmaGetLayoutPresetStore(k) || {};
     const snap = Object.prototype.hasOwnProperty.call(store, presetId) ? store[presetId] : null;
     const nm = (snap && typeof snap.name === 'string') ? snap.name.trim() : '';
     return nm || presetId;
@@ -19510,7 +19458,7 @@ function gigmaBuildAssignmentPreviewHtml(presetId, presetName, snapshot) {
 
     let bodyHtml = '';
     if (!ordered.length) {
-        bodyHtml = '<div class="gigma-assignment-preview-card"><div class="gigma-assignment-preview-value">No preset assignments configured.</div></div>';
+        bodyHtml = '<div class="gigma-assignment-preview-card"><div class="gigma-assignment-preview-value">No assignment presets configured.</div></div>';
     } else {
         for (const row of ordered) {
             const unassigned = !!(row && row.unassigned);
@@ -19519,7 +19467,7 @@ function gigmaBuildAssignmentPreviewHtml(presetId, presetName, snapshot) {
                 : (row && Array.isArray(row.characters) && row.characters.length) ? row.characters.join(', ') : '—';
             const kind = (row && row.kind === 'parent') ? 'parent' : 'child';
             const kindLabel = (kind === 'parent') ? 'Parent preset' : 'Child preset';
-            const presetLabel = gigmaResolveAssignmentPresetLabel(row ? row.preset : '', kind);
+            const presetLabel = gigmaResolveLayoutPresetLabelForAssignmentSection(row ? row.preset : '', kind);
 
             bodyHtml +=
                 '<div class="gigma-assignment-preview-card">' +
@@ -19533,7 +19481,7 @@ function gigmaBuildAssignmentPreviewHtml(presetId, presetName, snapshot) {
         '<div id="gigma-assignment-preview-root" data-assignment-preset-id="' + gigmaEscapeHtml(presetId || '') + '">' +
             '<div class="gigma-assignment-preview-header">' +
                 '<div class="gigma-assignment-preview-header-left">' +
-                    '<div class="gigma-assignment-preview-title">Preset assignment preview</div>' +
+                    '<div class="gigma-assignment-preview-title">Assignment preset preview</div>' +
                     '<div class="gigma-assignment-preview-subtitle">' + gigmaEscapeHtml(safeName) + '</div>' +
                 '</div>' +
                 '<button id="gigma-assignment-preview-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview">' +
@@ -19549,7 +19497,7 @@ async function gigmaShowAssignmentPresetPreviewPopup() {
     try {
         const presetId = gigmaGetActiveAssignmentPresetId();
         if (!presetId) {
-            try { toastr.error('No preset assignment selected.'); } catch (_eToast) {}
+            try { toastr.error('No assignment preset selected.'); } catch (_eToast) {}
             return;
         }
 
@@ -19561,7 +19509,7 @@ async function gigmaShowAssignmentPresetPreviewPopup() {
         const snapshot = live || snap || { rows: [] };
 
         const html = gigmaBuildAssignmentPreviewHtml(presetId, presetName, snapshot);
-        const modalTitle = 'Preset assignment preview';
+        const modalTitle = 'Assignment preset preview';
 
         try {
             const ctx = (typeof SillyTavern !== 'undefined' && SillyTavern && typeof SillyTavern.getContext === 'function')
@@ -19586,15 +19534,15 @@ async function gigmaShowAssignmentPresetPreviewPopup() {
         });
         popup.show();
     } catch (e) {
-        console.warn('GIGMA: failed to show preset assignment preview', e);
-        try { toastr.error('Could not open preset assignment preview.'); } catch (_eToast2) {}
+        console.warn('GIGMA: failed to show assignment preset preview', e);
+        try { toastr.error('Could not open assignment preset preview.'); } catch (_eToast2) {}
     }
 }
 
-(function gigmaPresetAssignmentPreviewButtonsOnce(){
+(function gigmaAssignmentPresetPreviewButtonsOnce(){
   try{
-    if (window.__gigmaPresetAssignmentPreviewButtonsOnce) return;
-    window.__gigmaPresetAssignmentPreviewButtonsOnce = true;
+    if (window.__gigmaAssignmentPresetPreviewButtonsOnce) return;
+    window.__gigmaAssignmentPresetPreviewButtonsOnce = true;
 
     document.addEventListener('click', function(ev){
       try{
@@ -19638,7 +19586,7 @@ async function gigmaShowAssignmentPresetPreviewPopup() {
     });
   }catch(_){}
 })();
-// --- end GIGMA: Preset assignment preview popup ---
+// --- end GIGMA: Assignment preset preview popup ---
 /**
  * Apply priority ordering to all entries
  * @param {Object} eventData - Contains globalLore, characterLore, chatLore, personaLore arrays
@@ -19756,7 +19704,7 @@ async function applyPriorityOrdering(eventData) {
 }
 
 /**
- * Runtime helper: resolve the active speaker name for preset assignment.
+ * Runtime helper: resolve the active speaker name for assignment preset.
  * Uses GROUP_MEMBER_DRAFTED for group chats and falls back to the current chat character.
  */
 function gigmaGetActiveSpeakerName() {
@@ -19774,7 +19722,7 @@ function gigmaGetActiveSpeakerName() {
 
 /**
  * Runtime helper: resolve which preset (kind + id) applies to the active speaker.
- * Reads the currently selected "preset assignment" snapshot from settings.
+ * Reads the currently selected "assignment preset" snapshot from settings.
  */
 function gigmaResolveAssignedPresetForSpeaker(speakerName) {
     try {
@@ -19807,7 +19755,7 @@ function gigmaResolvePresetIdFromAssignmentValue(rawValue, kind) {
     const v = (typeof rawValue === 'string') ? rawValue.trim() : '';
     if (!v) return null;
 
-    const GLOBAL_LAST_SENTINEL = '__last_opened_preset__';
+    const GLOBAL_LAST_SENTINEL = '__last_opened_layout_preset__';
     const LAST_CHILD_SENTINEL = '__last_opened_child_preset__';
     const LAST_PARENT_SENTINEL = '__last_opened_parent_preset__';
 
@@ -19815,8 +19763,8 @@ function gigmaResolvePresetIdFromAssignmentValue(rawValue, kind) {
         if (v === LAST_CHILD_SENTINEL) return (typeof gigmaExtensionSettings?.lastOpenedChildPresetId === 'string') ? gigmaExtensionSettings.lastOpenedChildPresetId.trim() : null;
         if (v === LAST_PARENT_SENTINEL) return (typeof gigmaExtensionSettings?.lastOpenedParentPresetId === 'string') ? gigmaExtensionSettings.lastOpenedParentPresetId.trim() : null;
         if (v === GLOBAL_LAST_SENTINEL) {
-            const k = gigmaExtensionSettings?.lastOpenedPresetKind;
-            const id = (typeof gigmaExtensionSettings?.lastOpenedPresetId === 'string') ? gigmaExtensionSettings.lastOpenedPresetId.trim() : null;
+            const k = gigmaExtensionSettings?.lastOpenedLayoutPresetKind;
+            const id = (typeof gigmaExtensionSettings?.lastOpenedLayoutPresetId === 'string') ? gigmaExtensionSettings.lastOpenedLayoutPresetId.trim() : null;
             if (k === 'parent' || k === 'child') return id;
             return null;
         }
@@ -19872,7 +19820,7 @@ function gigmaFlattenPresetLorebookOrderIdsRuntime(preset) {
 /**
  * Runtime helper: ensure the resolved preset contains every lorebook ID that exists in ST.
  * Missing IDs are appended to the end of the "unsorted" folder list in the preset data.
- * (This prevents "missing from preset" cases without adding UI-only extras.)
+ * (This prevents "missing from the current layout preset" cases without adding UI-only extras.)
  */
 function gigmaEnsurePresetContainsAllLorebooks(preset, allLorebookIds) {
     try {
@@ -19956,7 +19904,7 @@ async function gigmaBuildRuntimePresetCacheForCurrentSpeaker(entries) {
     const resolvedPresetId = gigmaResolvePresetIdFromAssignmentValue(row.preset, kind);
     if (!resolvedPresetId) return null;
 
-    const store = (typeof gigmaGetPresetStore === 'function') ? gigmaGetPresetStore(kind) : {};
+    const store = (typeof gigmaGetLayoutPresetStore === 'function') ? gigmaGetLayoutPresetStore(kind) : {};
     const preset = store && typeof store === 'object' ? store[resolvedPresetId] : null;
     if (!preset || typeof preset !== 'object') return null;
 
@@ -19989,7 +19937,7 @@ async function gigmaBuildRuntimePresetCacheForCurrentSpeaker(entries) {
         // If we mutated the underlying snapshot (child/preset), persist it so the UI and runtime stay aligned.
         if (changed) {
             store[resolvedPresetId] = effectiveOrderPreset;
-            if (typeof gigmaSetPresetStore === 'function') gigmaSetPresetStore(store, kind);
+            if (typeof gigmaSetLayoutPresetStore === 'function') gigmaSetLayoutPresetStore(store, kind);
         }
     } catch (_ePersist) {}
 
@@ -20015,7 +19963,7 @@ async function gigmaBuildRuntimePresetCacheForCurrentSpeaker(entries) {
             let parentMap = {};
             if (inheriting) {
                 const parentId = gigmaGetBudgetInheritParentNameFromPreset(childPreset);
-                const parentStore = (typeof gigmaGetPresetStore === 'function') ? gigmaGetPresetStore('parent') : {};
+                const parentStore = (typeof gigmaGetLayoutPresetStore === 'function') ? gigmaGetLayoutPresetStore('parent') : {};
                 const parentPreset = parentStore && parentStore[parentId] ? parentStore[parentId] : null;
                 parentMap = (parentPreset && parentPreset.lorebookSettings && typeof parentPreset.lorebookSettings === 'object') ? parentPreset.lorebookSettings : {};
             }
@@ -20187,7 +20135,7 @@ async function populateOrderingList(opts = {}) {
         // In Order mode, budget header controls are not created at all (zero DOM impact during drag).
         try{
             const worldId = row.dataset.worldId || null;
-            // Start with any already-cached dataset values, then fall back to preset values.
+            // Start with any already-cached dataset values, then fall back to layout preset values.
             let mode = (row.dataset && typeof row.dataset.gigmaBudgetMode === 'string')
                 ? (row.dataset.gigmaBudgetMode || 'default')
                 : 'default';
@@ -22647,9 +22595,9 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
     css.id = 'gigma-modal-dim-buttons-style';
     css.textContent = `
       /* Modal dim toggles (chained/unchained) */
-      .gigma-preset-controls{--gigma-btn-h:2.1em;}
-      .gigma-preset-controls>button.menu_button{height:var(--gigma-btn-h)!important;display:inline-flex;align-items:center;justify-content:center;}
-      .gigma-preset-controls>button.menu_button.gigma-icon-btn{width:var(--gigma-btn-h)!important;padding:0!important;}
+      .gigma-layout-or-assignment-preset-controls{--gigma-btn-h:2.1em;}
+      .gigma-layout-or-assignment-preset-controls>button.menu_button{height:var(--gigma-btn-h)!important;display:inline-flex;align-items:center;justify-content:center;}
+      .gigma-layout-or-assignment-preset-controls>button.menu_button.gigma-icon-btn{width:var(--gigma-btn-h)!important;padding:0!important;}
       .gigma-modal-dim-btn{position:relative;width:var(--gigma-btn-h,2.1em)!important;height:var(--gigma-btn-h,2.1em)!important;box-sizing:border-box!important;padding:0!important;display:inline-flex;align-items:center;justify-content:center;}
       .gigma-modal-dim-icon{
         position:relative;
@@ -23067,7 +23015,7 @@ function gigmaApplyBudgetChildRestrictions(){
     // Only enforce the "no structural edits" restrictions while:
     //  - viewing Child presets, AND
     //  - Budget mode is active ("Adjust Budget")
-    var kindBtn = document.getElementById('gigma-preset-kind-toggle');
+    var kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
     var kind = 'child';
     try{
       if (kindBtn && kindBtn.dataset && typeof kindBtn.dataset.gigmaPresetKind === 'string'){
@@ -23641,7 +23589,7 @@ function gigmaAttachBudgetHeaderControlsToRow(row){
       } catch (_eDsRand) {
         initRandom = null;
       }
-      // If dataset cache is missing, fall back to preset
+      // If dataset cache is missing, fall back to the current layout preset
       if ((!row.dataset || !row.dataset.gigmaBudgetMode) && worldId && typeof gigmaLoadLorebookSettingsFromCurrentPreset === 'function') {
         const settings = gigmaLoadLorebookSettingsFromCurrentPreset(worldId) || DEFAULT_LOREBOOK_SETTINGS || {};
         if (settings && typeof settings === 'object') {
@@ -23771,7 +23719,7 @@ function gigmaApplyBudgetModeState(active){
     }
   }catch(_){}
   try{
-    var kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-preset-kind-toggle') : null;
+    var kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-layout-preset-kind-toggle') : null;
     var kind = (kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') ? 'parent' : 'child';
     if (typeof gigmaApplyModalDimStateForKind === 'function') gigmaApplyModalDimStateForKind(kind);
   }catch(_){}
@@ -23946,16 +23894,16 @@ function gigmaRestoreRightPaneScrollAnchor(anchor){
 // --- end GIGMA: pixel-perfect scroll anchoring across Order/Budget mode toggles ---
 
 // --- GIGMA: pixel-perfect scroll anchoring inside the Preset Tree Preview (Order/Budget viewmode) ---
-function gigmaGetPresetTreeScrollAnchorKey(el){
+function gigmaGetLayoutPresetTreeScrollAnchorKey(el){
   try{
     if (!el) return null;
     var li = (el.closest && el.closest('li')) ? el.closest('li') : null;
     if (!li) return null;
-    if (li.classList && li.classList.contains('gigma-preset-tree-row')){
+    if (li.classList && li.classList.contains('gigma-layout-preset-tree-row')){
       var wid = li.getAttribute('data-world-id');
       if (wid) return 'row:' + String(wid);
     }
-    if (li.classList && li.classList.contains('gigma-preset-tree-folder')){
+    if (li.classList && li.classList.contains('gigma-layout-preset-tree-folder')){
       var fid = li.getAttribute('data-folder-id');
       if (fid) return 'folder:' + String(fid);
     }
@@ -23964,7 +23912,7 @@ function gigmaGetPresetTreeScrollAnchorKey(el){
     return null;
   }
 }
-function gigmaCapturePresetTreeScrollAnchorForHost(host, scopeRoot){
+function gigmaCaptureLayoutPresetTreeScrollAnchorForHost(host, scopeRoot){
   try{
     if (!host || !scopeRoot || !scopeRoot.querySelectorAll) return null;
 
@@ -23973,7 +23921,7 @@ function gigmaCapturePresetTreeScrollAnchorForHost(host, scopeRoot){
     var bottom = hostRect.bottom;
 
     // Anchor to the visible "header line" of a row/folder, not the <li> (folders can contain nested <ul>).
-    var items = scopeRoot.querySelectorAll('.gigma-preset-tree-row > .gigma-preset-tree-label, .gigma-preset-tree-folder > .gigma-preset-tree-label');
+    var items = scopeRoot.querySelectorAll('.gigma-layout-preset-tree-row > .gigma-layout-preset-tree-label, .gigma-layout-preset-tree-folder > .gigma-layout-preset-tree-label');
     if (!items || !items.length) return null;
 
     var bestEl = null;
@@ -23996,7 +23944,7 @@ function gigmaCapturePresetTreeScrollAnchorForHost(host, scopeRoot){
 
     if (!bestEl || !bestRect) return null;
 
-    var key = gigmaGetPresetTreeScrollAnchorKey(bestEl);
+    var key = gigmaGetLayoutPresetTreeScrollAnchorKey(bestEl);
     if (!key) return null;
 
     var h = bestRect.height || 0;
@@ -24009,21 +23957,21 @@ function gigmaCapturePresetTreeScrollAnchorForHost(host, scopeRoot){
     return null;
   }
 }
-function gigmaRestorePresetTreeScrollAnchorForHost(anchor, host, scopeRoot){
+function gigmaRestoreLayoutPresetTreeScrollAnchorForHost(anchor, host, scopeRoot){
   try{
     if (!anchor || !host || !scopeRoot || !scopeRoot.querySelectorAll) return;
 
     var key = anchor.key;
     if (!key) return;
 
-    var items = scopeRoot.querySelectorAll('.gigma-preset-tree-row > .gigma-preset-tree-label, .gigma-preset-tree-folder > .gigma-preset-tree-label');
+    var items = scopeRoot.querySelectorAll('.gigma-layout-preset-tree-row > .gigma-layout-preset-tree-label, .gigma-layout-preset-tree-folder > .gigma-layout-preset-tree-label');
     if (!items || !items.length) return;
 
     var target = null;
     for (var i = 0; i < items.length; i++){
       var el = items[i];
       if (!el) continue;
-      var k = gigmaGetPresetTreeScrollAnchorKey(el);
+      var k = gigmaGetLayoutPresetTreeScrollAnchorKey(el);
       if (k && k === key){
         target = el;
         break;
@@ -24041,20 +23989,20 @@ function gigmaRestorePresetTreeScrollAnchorForHost(anchor, host, scopeRoot){
     host.scrollTop = desired;
   }catch(_){}
 }
-function gigmaCapturePresetTreePreviewScrollAnchor(previewRoot){
+function gigmaCaptureLayoutPresetTreePreviewScrollAnchor(previewRoot){
   try{
     if (!previewRoot || !previewRoot.querySelector) return null;
-    var host = previewRoot.querySelector('.gigma-preset-tree');
-    return gigmaCapturePresetTreeScrollAnchorForHost(host, host);
+    var host = previewRoot.querySelector('.gigma-layout-preset-tree');
+    return gigmaCaptureLayoutPresetTreeScrollAnchorForHost(host, host);
   }catch(_){
     return null;
   }
 }
-function gigmaRestorePresetTreePreviewScrollAnchor(anchor, previewRoot){
+function gigmaRestoreLayoutPresetTreePreviewScrollAnchor(anchor, previewRoot){
   try{
     if (!previewRoot || !previewRoot.querySelector) return;
-    var host = previewRoot.querySelector('.gigma-preset-tree');
-    gigmaRestorePresetTreeScrollAnchorForHost(anchor, host, host);
+    var host = previewRoot.querySelector('.gigma-layout-preset-tree');
+    gigmaRestoreLayoutPresetTreeScrollAnchorForHost(anchor, host, host);
   }catch(_){}
 }
 // --- end GIGMA: pixel-perfect scroll anchoring inside the Preset Tree Preview ---
@@ -24063,11 +24011,11 @@ function gigmaGetActivePresetKindAndId(){
   try{
     var kind = 'child';
     try{
-      if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function'){
-        var k = gigmaGetActivePresetKindForLorebookSettings();
+      if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function'){
+        var k = gigmaGetActiveLayoutPresetKindForLorebookSettings();
         if (k === 'parent' || k === 'child') kind = k;
       }else{
-        var kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-preset-kind-toggle') : null;
+        var kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-layout-preset-kind-toggle') : null;
         var dk = (kindBtn && kindBtn.dataset) ? kindBtn.dataset.gigmaPresetKind : null;
         if (dk === 'parent' || dk === 'child') kind = dk;
       }
@@ -24075,9 +24023,9 @@ function gigmaGetActivePresetKindAndId(){
     var selId = (kind === 'parent') ? 'gigma-parent-preset-select' : 'gigma-child-preset-select';
     var sel = (typeof document !== 'undefined') ? document.getElementById(selId) : null;
     var presetId = (sel && typeof sel.value === 'string') ? sel.value.trim() : '';
-    if (!presetId && typeof gigmaGetLastPresetName === 'function'){
+    if (!presetId && typeof gigmaGetLastLayoutPresetId === 'function'){
       try{
-        var last = gigmaGetLastPresetName(kind);
+        var last = gigmaGetLastLayoutPresetId(kind);
         presetId = (typeof last === 'string') ? last.trim() : '';
       }catch(_){}
     }
@@ -24104,7 +24052,7 @@ function gigmaEnsurePresetPaneScrollAnchors(preset){
 function gigmaWritePresetPaneScrollAnchors(kind, presetId, mode, leftAnchor, rightAnchor){
   try{
     if (!presetId) return;
-    var presets = (typeof gigmaGetPresetStore === 'function') ? gigmaGetPresetStore(kind) : null;
+    var presets = (typeof gigmaGetLayoutPresetStore === 'function') ? gigmaGetLayoutPresetStore(kind) : null;
     if (!presets || typeof presets !== 'object') return;
     var preset = presets[presetId];
     if (!preset || typeof preset !== 'object') return;
@@ -24112,13 +24060,13 @@ function gigmaWritePresetPaneScrollAnchors(kind, presetId, mode, leftAnchor, rig
     if (!map) return;
     var m = (mode === 'budget') ? 'budget' : 'order';
     map[m] = { left: leftAnchor || null, right: rightAnchor || null };
-    if (typeof gigmaSetPresetStore === 'function') gigmaSetPresetStore(presets, kind);
+    if (typeof gigmaSetLayoutPresetStore === 'function') gigmaSetLayoutPresetStore(presets, kind);
   }catch(_){}
 }
 function gigmaReadPresetPaneScrollAnchors(kind, presetId, mode){
   try{
     if (!presetId) return null;
-    var presets = (typeof gigmaGetPresetStore === 'function') ? gigmaGetPresetStore(kind) : null;
+    var presets = (typeof gigmaGetLayoutPresetStore === 'function') ? gigmaGetLayoutPresetStore(kind) : null;
     if (!presets || typeof presets !== 'object') return null;
     var preset = presets[presetId];
     if (!preset || typeof preset !== 'object') return null;
@@ -24173,7 +24121,7 @@ function gigmaToggleBudgetMode(fromBtn){
     var active = !root.classList.contains('gigma-budget-mode-active');
     var nextMode = active ? 'budget' : 'order';
 
-    // Save the scroll state for the mode we are leaving into the current preset.
+    // Save the scroll state for the mode we are leaving into the current layout preset.
     try{
       if (activePreset && activePreset.presetId && typeof gigmaWritePresetPaneScrollAnchors === 'function'){
         gigmaWritePresetPaneScrollAnchors(activePreset.kind, activePreset.presetId, prevMode, leftAnchor, rightAnchor);
@@ -24360,8 +24308,8 @@ function gigmaInitPerModeRetroLocksFromPreset(preset){
 // --- GIGMA: Lorebook Budget drawer lock-box sync (mirrors modal header lock square) ---
 
 function gigmaIsChildPresetInheritingBudget() {
-    if (typeof gigmaGetActivePresetKindForLorebookSettings !== 'function') return false;
-    if (gigmaGetActivePresetKindForLorebookSettings() !== 'child') return false;
+    if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings !== 'function') return false;
+    if (gigmaGetActiveLayoutPresetKindForLorebookSettings() !== 'child') return false;
     const inh = (typeof gigmaGetBudgetInheritanceForChildPreset === 'function') ? gigmaGetBudgetInheritanceForChildPreset() : 'decoupled';
     return typeof inh === 'string' && inh.trim() !== '' && inh.trim() !== 'decoupled';
 }
@@ -24371,13 +24319,13 @@ function gigmaIsChildPresetInheritingOrder(anchorEl) {
   try {
     let kind = 'child';
     try {
-      if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-        kind = gigmaGetActivePresetKindForLorebookSettings() || 'child';
+      if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+        kind = gigmaGetActiveLayoutPresetKindForLorebookSettings() || 'child';
       } else if (typeof gigmaGetLastPresetKind === 'function') {
         const k = gigmaGetLastPresetKind();
         if (k === 'parent' || k === 'child') kind = k;
       } else {
-        const kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-preset-kind-toggle') : null;
+        const kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-layout-preset-kind-toggle') : null;
         const k = kindBtn && kindBtn.dataset ? kindBtn.dataset.gigmaPresetKind : null;
         if (k === 'parent' || k === 'child') kind = k;
       }
@@ -24510,8 +24458,8 @@ function gigmaSyncLorebookDrawerLockBoxFromCache() {
     const lockEl = (typeof document !== 'undefined') ? document.getElementById('gigma-lorebook-drawer-lock') : null;
     if (!lockEl || !lockEl.classList) return;
 
-    const kind = (typeof gigmaGetActivePresetKindForLorebookSettings === 'function')
-      ? gigmaGetActivePresetKindForLorebookSettings()
+    const kind = (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function')
+      ? gigmaGetActiveLayoutPresetKindForLorebookSettings()
       : 'child';
 
     if (kind !== 'child') {
@@ -24575,7 +24523,7 @@ function gigmaGetLiveRandomTrimForLorebookId(lorebookId, fallbackValue) {
         return row.dataset.gigmaRandomTrim === '1';
       }
     } catch (_eRow) {}
-    // Fall back to current preset settings.
+    // Fall back to current layout preset settings.
     try {
       if (typeof gigmaLoadLorebookSettingsFromCurrentPreset === 'function') {
         const s = gigmaLoadLorebookSettingsFromCurrentPreset(key);
@@ -24782,7 +24730,7 @@ function gigmaApplyLockCheckboxVisibility(){
     if (typeof document === 'undefined') return;
     var root = document.documentElement;
     if (!root || !root.classList) return;
-    var kindBtn = document.getElementById('gigma-preset-kind-toggle');
+    var kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
     var kind = 'child';
     try{
       if (kindBtn && kindBtn.dataset && typeof kindBtn.dataset.gigmaPresetKind === 'string'){
@@ -24824,7 +24772,7 @@ function gigmaUpdateBudgetModeToggleVisibility(){
   try{
     var parentBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-budget-mode-parent') : null;
     var childBtn  = (typeof document !== 'undefined') ? document.getElementById('gigma-budget-mode-child')  : null;
-    var kindBtn   = (typeof document !== 'undefined') ? document.getElementById('gigma-preset-kind-toggle') : null;
+    var kindBtn   = (typeof document !== 'undefined') ? document.getElementById('gigma-layout-preset-kind-toggle') : null;
     var kind = 'child';
     try{
       if (kindBtn && kindBtn.dataset && typeof kindBtn.dataset.gigmaPresetKind === 'string'){
@@ -24849,7 +24797,7 @@ function gigmaUpdateBudgetModeToggleVisibility(){
       try{
         var t = ev && ev.target;
         if (!t || !t.classList) return;
-        if (t.classList.contains('gigma-chat-master-select')){
+        if (t.classList.contains('gigma-chat-parent-preset-select')){
           if (typeof gigmaUpdateBudgetModeToggleVisibility === 'function'){
             gigmaUpdateBudgetModeToggleVisibility();
           }
@@ -27536,7 +27484,7 @@ if (selectedFolders.length && rootList) {
                     // Parent presets: keep injected "unchained lorebooks" placeholders inside any moved folder.
                     const __gigmaKeepParentUnchainedInMovedFolders = (() => {
                         try {
-                            const btn = document.getElementById('gigma-preset-kind-toggle');
+                            const btn = document.getElementById('gigma-layout-preset-kind-toggle');
                             return !!(btn && btn.dataset && btn.dataset.gigmaPresetKind === 'parent');
                         } catch (_) { return false; }
                     })();
@@ -29914,9 +29862,9 @@ if (collapse && !isRight) {
           }
 
           /* Preview popup: search UI sits below the top-right X and spans the full width */
-          #gigma-preset-tree-search{ padding: 0 !important; }
-          #gigma-preset-tree-search svg{ width:1.375em; height:1.375em; display:block; }
-          #gigma-preset-tree-preview-root .gigma-pane-search-host[data-gigma-pane="preview"]{
+          #gigma-layout-preset-tree-search{ padding: 0 !important; }
+          #gigma-layout-preset-tree-search svg{ width:1.375em; height:1.375em; display:block; }
+          #gigma-layout-preset-tree-preview-root .gigma-pane-search-host[data-gigma-pane="preview"]{
             margin-top: 1.375em; /* keep header label visible */
             width: calc(100% + 3.25em);
             margin-right: -3.25em;
@@ -30197,7 +30145,7 @@ cleanupLegacyPaneSearchQualifierSettings();
     function getPresetShortName(childId){
       try{
         if (!childId) return '';
-        const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+        const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
         const p = store[String(childId)];
         const nm = (p && typeof p.name === 'string') ? p.name.trim() : '';
         return nm ? nm.slice(0, 15) : '';
@@ -30211,7 +30159,7 @@ cleanupLegacyPaneSearchQualifierSettings();
         if (row.classList.contains('gigma-parent-budget-unchained-row')) return true;
         let presetKind = 'child';
         try{
-          const kindBtn = document.getElementById('gigma-preset-kind-toggle');
+          const kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
           if (kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') presetKind = 'parent';
         }catch(_){ }
         if (presetKind === 'parent') return false;
@@ -30250,15 +30198,15 @@ cleanupLegacyPaneSearchQualifierSettings();
     function getPreviewItemLabel(el){
       try{
         if (!el || !el.classList) return '';
-        if (el.classList.contains('gigma-preset-tree-folder')) {
-          const lab = el.querySelector('.gigma-preset-tree-label');
+        if (el.classList.contains('gigma-layout-preset-tree-folder')) {
+          const lab = el.querySelector('.gigma-layout-preset-tree-label');
           return (lab && lab.textContent) ? lab.textContent.trim() : (el.textContent || '').trim();
         }
-        if (el.classList.contains('gigma-preset-tree-row')) {
+        if (el.classList.contains('gigma-layout-preset-tree-row')) {
           const d = el.dataset || {};
           const nm = (typeof d.worldName === 'string' && d.worldName.trim()) ? d.worldName.trim() : '';
           if (nm) return nm;
-          const lab = el.querySelector('.gigma-preset-tree-label');
+          const lab = el.querySelector('.gigma-layout-preset-tree-label');
           if (lab && lab.textContent) return lab.textContent.replace(/^\s*\d+\.\s*/, '').trim();
           return (el.textContent || '').replace(/^\s*\d+\.\s*/, '').trim();
         }
@@ -30268,14 +30216,14 @@ cleanupLegacyPaneSearchQualifierSettings();
 
     function isPreviewRowUnchained(el){
       try{
-        return !!(el && el.classList && el.classList.contains('gigma-preset-tree-row-unchained'));
+        return !!(el && el.classList && el.classList.contains('gigma-layout-preset-tree-row-unchained'));
       }catch(_){ return false; }
     }
 
     function getPreviewOriginShortName(el){
       try{
         if (!el || !el.querySelector) return '';
-        const o = el.querySelector('.gigma-preset-tree-unchained-origin');
+        const o = el.querySelector('.gigma-layout-preset-tree-unchained-origin');
         const t = (o && o.textContent) ? o.textContent.trim() : '';
         return t ? t.slice(0, 15) : '';
       }catch(_){ return ''; }
@@ -30285,10 +30233,10 @@ cleanupLegacyPaneSearchQualifierSettings();
       try{
         if (!el || !el.classList) return null;
         const uid = (el.dataset && el.dataset.gigmaSearchUid != null) ? String(el.dataset.gigmaSearchUid) : '';
-        if (el.classList.contains('gigma-preset-tree-folder')) {
+        if (el.classList.contains('gigma-layout-preset-tree-folder')) {
           return { type:'folder', folderId: (el.dataset && el.dataset.folderId) ? String(el.dataset.folderId) : '', uid };
         }
-        if (el.classList.contains('gigma-preset-tree-row')) {
+        if (el.classList.contains('gigma-layout-preset-tree-row')) {
           return {
             type:'row',
             worldId: (el.dataset && el.dataset.worldId) ? String(el.dataset.worldId) : '',
@@ -30303,8 +30251,8 @@ cleanupLegacyPaneSearchQualifierSettings();
     function collectPreviewItems(previewRoot){
       try{
         if (!previewRoot || !previewRoot.querySelectorAll) return [];
-        const tree = previewRoot.querySelector('.gigma-preset-tree') || previewRoot;
-        const nodes = Array.from(tree.querySelectorAll('.gigma-preset-tree-folder, .gigma-preset-tree-row') || []);
+        const tree = previewRoot.querySelector('.gigma-layout-preset-tree') || previewRoot;
+        const nodes = Array.from(tree.querySelectorAll('.gigma-layout-preset-tree-folder, .gigma-layout-preset-tree-row') || []);
         for (let i = 0; i < nodes.length; i++){
           const el = nodes[i];
           try{ if (el && el.dataset) el.dataset.gigmaSearchUid = String(i); }catch(_){ }
@@ -30316,52 +30264,52 @@ cleanupLegacyPaneSearchQualifierSettings();
     function previewPassesFilters(el, previewRoot){
       try{
         if (!el || !previewRoot || !previewRoot.classList) return true;
-        if (!(el.classList && el.classList.contains('gigma-preset-tree-row'))) return true;
+        if (!(el.classList && el.classList.contains('gigma-layout-preset-tree-row'))) return true;
 
         const kind = (previewRoot.getAttribute && previewRoot.getAttribute('data-preset-kind') === 'parent') ? 'parent' : 'child';
         const vm = (previewRoot.classList.contains('gigma-preview-viewmode-budget')) ? 'budget' : 'order';
 
         if (vm == 'budget') {
-          if (el.classList.contains('gigma-preset-tree-row-orderonly')) return false;
+          if (el.classList.contains('gigma-layout-preset-tree-row-orderonly')) return false;
         } else {
-          if (el.classList.contains('gigma-preset-tree-row-budgetonly')) return false;
+          if (el.classList.contains('gigma-layout-preset-tree-row-budgetonly')) return false;
         }
 
         const chainedState = (previewRoot.getAttribute && previewRoot.getAttribute('data-chained-state')) || 'show';
-        if (chainedState === 'hide' && el.classList.contains('gigma-preset-tree-row-chained')) return false;
+        if (chainedState === 'hide' && el.classList.contains('gigma-layout-preset-tree-row-chained')) return false;
 
         const unchState = (previewRoot.getAttribute && previewRoot.getAttribute('data-unchained-state')) || (kind === 'parent' ? 'selected' : 'show');
         if (kind === 'parent') {
-          if (!el.classList.contains('gigma-preset-tree-row-unchained')) return true;
+          if (!el.classList.contains('gigma-layout-preset-tree-row-unchained')) return true;
           if (unchState === 'hide') return false;
-          if (unchState === 'selected' && !el.classList.contains('gigma-preset-tree-row-unchained-selected')) return false;
-          if (unchState === 'unselected' && el.classList.contains('gigma-preset-tree-row-unchained-selected')) return false;
+          if (unchState === 'selected' && !el.classList.contains('gigma-layout-preset-tree-row-unchained-selected')) return false;
+          if (unchState === 'unselected' && el.classList.contains('gigma-layout-preset-tree-row-unchained-selected')) return false;
           return true; // all
         }
 
         // child presets
-        if (!el.classList.contains('gigma-preset-tree-row-unchained')) return true;
+        if (!el.classList.contains('gigma-layout-preset-tree-row-unchained')) return true;
         if (unchState === 'hide') return false;
         return true;
       }catch(_){ return true; }
     }
 
-    function expandPresetTreeDomAncestors(el, skipSelf){
+    function expandLayoutPresetTreeDomAncestors(el, skipSelf){
       try{
         if (!el || !el.closest) return;
-        let cur = el.closest('.gigma-preset-tree-folder');
-        if (skipSelf && cur === el) cur = cur.parentElement ? cur.parentElement.closest('.gigma-preset-tree-folder') : null;
+        let cur = el.closest('.gigma-layout-preset-tree-folder');
+        if (skipSelf && cur === el) cur = cur.parentElement ? cur.parentElement.closest('.gigma-layout-preset-tree-folder') : null;
         while (cur){
-          try{ cur.classList.remove('gigma-preset-tree-folder-collapsed'); }catch(_){ }
-          cur = cur.parentElement ? cur.parentElement.closest('.gigma-preset-tree-folder') : null;
+          try{ cur.classList.remove('gigma-layout-preset-tree-folder-collapsed'); }catch(_){ }
+          cur = cur.parentElement ? cur.parentElement.closest('.gigma-layout-preset-tree-folder') : null;
         }
       }catch(_){ }
     }
 
-    function centerInPresetTreeScrollHost(el, previewRoot){
+    function centerInLayoutPresetTreeScrollHost(el, previewRoot){
       try{
         if (!el || !previewRoot || !el.getBoundingClientRect) return;
-        const host = previewRoot.querySelector('.gigma-preset-tree');
+        const host = previewRoot.querySelector('.gigma-layout-preset-tree');
         if (!host || !host.getBoundingClientRect) return;
         const hr = host.getBoundingClientRect();
         const tr = el.getBoundingClientRect();
@@ -30427,7 +30375,7 @@ cleanupLegacyPaneSearchQualifierSettings();
             const idp = token.folderId;
             if (idp) {
               const escp = (window.CSS && CSS.escape) ? CSS.escape(String(idp)) : String(idp);
-              const hit = previewRoot.querySelector('.gigma-preset-tree-folder[data-folder-id="' + escp + '"]');
+              const hit = previewRoot.querySelector('.gigma-layout-preset-tree-folder[data-folder-id="' + escp + '"]');
               if (hit) return hit;
             }
           }
@@ -30435,12 +30383,12 @@ cleanupLegacyPaneSearchQualifierSettings();
             const widp = token.worldId;
             if (widp) {
               const escp = (window.CSS && CSS.escape) ? CSS.escape(String(widp)) : String(widp);
-              const hit = previewRoot.querySelector('.gigma-preset-tree-row[data-world-id="' + escp + '"]');
+              const hit = previewRoot.querySelector('.gigma-layout-preset-tree-row[data-world-id="' + escp + '"]');
               if (hit) return hit;
             }
             if (token.worldName) {
               const escn = (window.CSS && CSS.escape) ? CSS.escape(String(token.worldName)) : String(token.worldName);
-              const hit = previewRoot.querySelector('.gigma-preset-tree-row[data-world-name="' + escn + '"]');
+              const hit = previewRoot.querySelector('.gigma-layout-preset-tree-row[data-world-name="' + escn + '"]');
               if (hit) return hit;
             }
           }
@@ -30618,7 +30566,7 @@ cleanupLegacyPaneSearchQualifierSettings();
 
     function getParentUnchainedAllowedChildPresetSet(){
       try{
-        const kindBtn = document.getElementById('gigma-preset-kind-toggle');
+        const kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
         if (!(kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent')) return null;
         const root = document.documentElement;
         const isBudget = !!(root && root.classList && root.classList.contains('gigma-budget-mode-active'));
@@ -31736,10 +31684,10 @@ function renderResults(state){
         if (isPreview) {
           // For folders: expand only ancestors (keep the folder's own collapsed/expanded state).
           // For rows: expand all ancestor folders so the row becomes visible.
-          expandPresetTreeDomAncestors(live, isFolderTok);
+          expandLayoutPresetTreeDomAncestors(live, isFolderTok);
           forceSingleSelection(live);
-          const anchor = isFolderTok ? live.querySelector('.gigma-preset-tree-label') : live;
-          try{ requestAnimationFrame(()=>centerInPresetTreeScrollHost(anchor, previewRoot)); }catch(_){ centerInPresetTreeScrollHost(anchor, previewRoot); }
+          const anchor = isFolderTok ? live.querySelector('.gigma-layout-preset-tree-label') : live;
+          try{ requestAnimationFrame(()=>centerInLayoutPresetTreeScrollHost(anchor, previewRoot)); }catch(_){ centerInLayoutPresetTreeScrollHost(anchor, previewRoot); }
           return;
         }
         if (isFolderTok) {
@@ -32097,7 +32045,7 @@ function openSearch(state){
 
     function ensurePreview(){
       try{
-        const roots = document.querySelectorAll('#gigma-preset-tree-preview-root');
+        const roots = document.querySelectorAll('#gigma-layout-preset-tree-preview-root');
         const root = (roots && roots.length) ? roots[roots.length - 1] : null;
         if (!root){
           if (STATES.preview){
@@ -32106,15 +32054,15 @@ function openSearch(state){
           }
           return;
         }
-        const header = root.querySelector('.gigma-preset-tree-header');
-        const group = root.querySelector('.gigma-preset-tree-header-right');
-        const left = root.querySelector('.gigma-preset-tree-header-left');
+        const header = root.querySelector('.gigma-layout-preset-tree-header');
+        const group = root.querySelector('.gigma-layout-preset-tree-header-right');
+        const left = root.querySelector('.gigma-layout-preset-tree-header-left');
         if (!header || !group) return;
 
-        let searchBtn = root.querySelector('#gigma-preset-tree-search');
+        let searchBtn = root.querySelector('#gigma-layout-preset-tree-search');
         if (!searchBtn) {
           searchBtn = document.createElement('button');
-          searchBtn.id = 'gigma-preset-tree-search';
+          searchBtn.id = 'gigma-layout-preset-tree-search';
           searchBtn.type = 'button';
           searchBtn.className = 'menu_button gigma-icon-btn';
           searchBtn.title = 'Search';
@@ -32123,8 +32071,8 @@ function openSearch(state){
         }
         // Keep Restore + Search grouped directly to the right of Collapse All (matching the modal toolbar order).
         try{
-          const collapseBtn = root.querySelector('#gigma-preset-tree-collapse-all');
-          const restoreBtn = root.querySelector('#gigma-preset-tree-restore-folders');
+          const collapseBtn = root.querySelector('#gigma-layout-preset-tree-collapse-all');
+          const restoreBtn = root.querySelector('#gigma-layout-preset-tree-restore-folders');
           if (collapseBtn && collapseBtn.parentNode === group && restoreBtn) {
             if (restoreBtn.parentNode !== group || collapseBtn.nextElementSibling !== restoreBtn) {
               collapseBtn.insertAdjacentElement('afterend', restoreBtn);
@@ -32202,7 +32150,7 @@ function openSearch(state){
 
         // Re-render preview search results after Order/Budget view is toggled.
         try{
-          const vmBtn = root.querySelector('#gigma-preset-tree-viewmode-toggle');
+          const vmBtn = root.querySelector('#gigma-layout-preset-tree-viewmode-toggle');
           if (vmBtn && !vmBtn.__gigmaPreviewSearchRewired) {
             vmBtn.__gigmaPreviewSearchRewired = true;
             vmBtn.addEventListener('click', ()=>{
@@ -32291,21 +32239,21 @@ function openSearch(state){
 // === END GIGMA: Pane search ===
 // === GIGMA: Folder layout presets (save/load entire left+right pane state) ===
 /**
- * Return the current preset dictionary.
+ * Return the current layout preset dictionary.
  * Presets are stored in SillyTavern's extension_settings under the GIGMA namespace,
  * so they persist alongside other app settings (same mechanism Tracker Enhanced uses).
  */
 // === GIGMA: Folder layout presets (save/load entire left+right pane state) ===
 /**
- * Return the current preset dictionary for the requested kind.
+ * Return the current layout preset dictionary for the requested kind.
  * - "child" (default) = per-child presets (legacy behaviour).
  * - "parent"             = global/parent presets, stored separately.
  *
  * Presets are stored in SillyTavern's extension_settings under the GIGMA namespace,
  * so they persist alongside other app settings (same mechanism Tracker Enhanced uses).
  */
-function gigmaGetPresetStore(kind) {
-    const key = (kind === 'parent') ? 'masterPresetsById' : 'presetsById';
+function gigmaGetLayoutPresetStore(kind) {
+    const key = (kind === 'parent') ? 'parentPresetsById' : 'childPresetsById';
     try {
         if (gigmaExtensionSettings && typeof gigmaExtensionSettings === 'object') {
             const existing = gigmaExtensionSettings[key];
@@ -32326,13 +32274,13 @@ function gigmaGetPresetStore(kind) {
 (function gigmaChatTypeToggleOnce(){
   try{
     if (window.__gigmaChatTypeToggleObs) return;
-    function gigmaPopulateChatMasterSelect(select){
+    function gigmaPopulateChatParentPresetSelect(select){
       try{
-        if (!select || typeof gigmaGetPresetStore !== 'function') return;
+        if (!select || typeof gigmaGetLayoutPresetStore !== 'function') return;
       }catch(_){ return; }
       let presets = {};
       try{
-        presets = gigmaGetPresetStore('parent') || {};
+        presets = gigmaGetLayoutPresetStore('parent') || {};
       }catch(_){ presets = {}; }
       const entries = Object.keys(presets).map((id)=>({
         id,
@@ -32379,43 +32327,43 @@ function gigmaGetPresetStore(kind) {
       try{
         if (typeof gigmaSetRetroOrderMode !== 'function') return;
       }catch(_){ return; }
-      // If the main GIGMA presets toggle is currently set to Parent Preset (master),
+      // If the main GIGMA presets toggle is currently set to Parent preset,
       // treat all chat links as effectively decoupled so Retrospective Order
       // Adjustment mode is disabled for parent presets.
       let forceDetached = false;
       try{
-        const kindToggle = document.getElementById('gigma-preset-kind-toggle');
+        const kindToggle = document.getElementById('gigma-layout-preset-kind-toggle');
         if (kindToggle && kindToggle.dataset && kindToggle.dataset.gigmaPresetKind === 'parent'){
           forceDetached = true;
         }
       }catch(_){}
-      let anyMaster = false;
+      let hasAnyParentPresetLink = false;
       if (!forceDetached){
         try{
-          const selects = document.querySelectorAll('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-master-select');
+          const selects = document.querySelectorAll('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-parent-preset-select');
           selects.forEach((select)=>{
             try{
               const v = select && select.value;
               if (v && v !== 'decoupled'){
-                anyMaster = true;
+                hasAnyParentPresetLink = true;
               }
             }catch(_){}
           });
         }catch(_){}
       }
       try{
-        gigmaSetRetroOrderMode('child', anyMaster);
+        gigmaSetRetroOrderMode('child', hasAnyParentPresetLink);
       }catch(_){}
     }
-    function wireChatMasterSelects(root){
+    function wireChatParentPresetSelects(root){
       if (!root || !root.querySelectorAll) return;
-      const selects = root.querySelectorAll('.gigma-chat-master-select');
+      const selects = root.querySelectorAll('.gigma-chat-parent-preset-select');
       selects.forEach((select)=>{
-        if (!select || select.__gigmaChatMasterWired) return;
-        select.__gigmaChatMasterWired = true;
-        gigmaPopulateChatMasterSelect(select);
-        select.addEventListener('mousedown', ()=>{ try{ select.__gigmaPrevValue = (select && typeof select.value === 'string') ? select.value : ''; }catch(_e){} gigmaPopulateChatMasterSelect(select); });
-        select.addEventListener('focus', ()=>{ try{ select.__gigmaPrevValue = (select && typeof select.value === 'string') ? select.value : ''; }catch(_e){} gigmaPopulateChatMasterSelect(select); });
+        if (!select || select.__gigmaChatParentPresetWired) return;
+        select.__gigmaChatParentPresetWired = true;
+        gigmaPopulateChatParentPresetSelect(select);
+        select.addEventListener('mousedown', ()=>{ try{ select.__gigmaPrevValue = (select && typeof select.value === 'string') ? select.value : ''; }catch(_e){} gigmaPopulateChatParentPresetSelect(select); });
+        select.addEventListener('focus', ()=>{ try{ select.__gigmaPrevValue = (select && typeof select.value === 'string') ? select.value : ''; }catch(_e){} gigmaPopulateChatParentPresetSelect(select); });
         select.addEventListener('change', async () => {
           try{ if (typeof gigmaUpdateInheritSwitchButtons === 'function') gigmaUpdateInheritSwitchButtons(select); }catch(_){ }
           try { gigmaUpdateRetroOrderModeFromChatLinks(); } catch (_e) {}
@@ -32427,11 +32375,11 @@ function gigmaGetPresetStore(kind) {
             // Resolve preset kind (child vs parent)
             let presetKind = 'child';
             try{
-              if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function'){
-                const k = gigmaGetActivePresetKindForLorebookSettings();
+              if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function'){
+                const k = gigmaGetActiveLayoutPresetKindForLorebookSettings();
                 if (k === 'parent' || k === 'child') presetKind = k;
               }else{
-                const kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-preset-kind-toggle') : null;
+                const kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-layout-preset-kind-toggle') : null;
                 const k = kindBtn && kindBtn.dataset ? kindBtn.dataset.gigmaPresetKind : null;
                 if (k === 'parent' || k === 'child') presetKind = k;
               }
@@ -32473,22 +32421,22 @@ function gigmaGetPresetStore(kind) {
                 // If we are transitioning from a parent to decoupled, freeze chained budgets.
                 if (oldParent && oldParent !== 'decoupled' && newParent === 'decoupled') {
                   try{
-                    const childPresetName = (typeof gigmaGetActivePresetNameForLorebookSettings === 'function')
-                      ? gigmaGetActivePresetNameForLorebookSettings('child')
-                      : ((typeof gigmaGetLastPresetName === 'function') ? gigmaGetLastPresetName('child') : null);
-                    if (childPresetName) {
-                      gigmaFreezeChainedBudgetsFromParentIntoChild(childPresetName, oldParent);
+                    const childPresetId = (typeof gigmaGetActiveLayoutPresetIdForLorebookSettings === 'function')
+                      ? gigmaGetActiveLayoutPresetIdForLorebookSettings('child')
+                      : ((typeof gigmaGetLastLayoutPresetId === 'function') ? gigmaGetLastLayoutPresetId('child') : null);
+                    if (childPresetId) {
+                      gigmaFreezeChainedBudgetsFromParentIntoChild(childPresetId, oldParent);
                     }
                   }catch(_eFreeze){}
                 }
                 // Refresh runtime/UI so chained lorebooks reflect the new source.
                 try{
-                  const childPresetName = (typeof gigmaGetActivePresetNameForLorebookSettings === 'function')
-                    ? gigmaGetActivePresetNameForLorebookSettings('child')
-                    : ((typeof gigmaGetLastPresetName === 'function') ? gigmaGetLastPresetName('child') : null);
-                  const childPresets = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
-                  const childPreset = childPresetName ? childPresets[childPresetName] : null;
-                  const parentPresets = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('parent') || {}) : {};
+                  const childPresetId = (typeof gigmaGetActiveLayoutPresetIdForLorebookSettings === 'function')
+                    ? gigmaGetActiveLayoutPresetIdForLorebookSettings('child')
+                    : ((typeof gigmaGetLastLayoutPresetId === 'function') ? gigmaGetLastLayoutPresetId('child') : null);
+                  const childPresets = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
+                  const childPreset = childPresetId ? childPresets[childPresetId] : null;
+                  const parentPresets = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('parent') || {}) : {};
                   const parentPreset = (newParent && newParent !== 'decoupled') ? parentPresets[newParent] : null;
                   if (childPreset) {
                     gigmaApplyEffectiveBudgetsToVisibleRowsForChildPreset(childPreset, parentPreset, select);
@@ -32519,7 +32467,7 @@ function gigmaGetPresetStore(kind) {
           if (!m.addedNodes) return;
           m.addedNodes.forEach((n)=>{
             if (n && n.nodeType === 1){
-              wireChatMasterSelects(n);
+              wireChatParentPresetSelects(n);
             }
           });
         });
@@ -32528,11 +32476,11 @@ function gigmaGetPresetStore(kind) {
     obs.observe(document.documentElement, {subtree:true, childList:true});
     window.__gigmaChatTypeToggleObs = obs;
     // Wire any existing rows on load
-    wireChatMasterSelects(document);
+    wireChatParentPresetSelects(document);
   }catch(_){}
 })();
-function gigmaSetPresetStore(presets, kind) {
-    const key = (kind === 'parent') ? 'masterPresetsById' : 'presetsById';
+function gigmaSetLayoutPresetStore(presets, kind) {
+    const key = (kind === 'parent') ? 'parentPresetsById' : 'childPresetsById';
     try {
         if (!gigmaExtensionSettings || typeof gigmaExtensionSettings !== 'object') {
             console.warn('GIGMA: extension settings not available; presets not persisted.');
@@ -32584,19 +32532,19 @@ function gigmaSetPresetStore(presets, kind) {
     } catch (e) {
         console.warn('GIGMA: Failed to save preset store "' + key + '" to extension settings:', e);
     }
-    // Keep any chat "Inh. from:" master dropdowns in sync so they
+    // Keep any chat "Inh. from:" parent preset dropdowns in sync so they
     // do not display deleted parent presets.
     try {
         if (kind === 'parent' && typeof document !== 'undefined') {
-            const masterPresets = presets && typeof presets === 'object'
+            const parentPresets = presets && typeof presets === 'object'
                 ? presets
-                : (typeof gigmaGetPresetStore === 'function' ? gigmaGetPresetStore('parent') || {} : {});
-            const entries = Object.keys(masterPresets).map((id) => {
-                const snap = masterPresets[id];
+                : (typeof gigmaGetLayoutPresetStore === 'function' ? gigmaGetLayoutPresetStore('parent') || {} : {});
+            const entries = Object.keys(parentPresets).map((id) => {
+                const snap = parentPresets[id];
                 const nm = (snap && typeof snap.name === 'string') ? snap.name.trim() : '';
                 return { id, name: nm };
             }).sort((a, b) => a.name.localeCompare(b.name));
-            const selects = document.querySelectorAll('.gigma-chat-master-select');
+            const selects = document.querySelectorAll('.gigma-chat-parent-preset-select');
             selects.forEach((select) => {
                 if (!select) return;
                 const prevValue = select.value;
@@ -32607,7 +32555,7 @@ function gigmaSetPresetStore(presets, kind) {
                 noneOpt.textContent = 'None (Decoupled)';
                 select.appendChild(noneOpt);
                 let selectedValue = prevValue && prevValue !== '' ? prevValue : 'decoupled';
-                if (selectedValue && selectedValue !== 'decoupled' && !Object.prototype.hasOwnProperty.call(masterPresets, selectedValue)) {
+                if (selectedValue && selectedValue !== 'decoupled' && !Object.prototype.hasOwnProperty.call(parentPresets, selectedValue)) {
                     selectedValue = 'decoupled';
                 }
                 for (const ent of entries) {
@@ -32626,17 +32574,17 @@ try {
                 } catch (_eVal) {}
             });
         }
-    } catch (_eChatMasterSync) {}
-    // Keep any preset assignment rows in sync so they do not reference
+    } catch (_eChatParentPresetSync) {}
+    // Keep any assignment sections in sync so they do not reference
     // presets that were just removed from the store.
     try {
         if (typeof document !== 'undefined') {
-            const assignmentsContainer = document.getElementById('gigma-preset-assignments-container');
+            const assignmentsContainer = document.getElementById('gigma-assignment-sections-container');
             if (assignmentsContainer) {
-                const assignmentRows = assignmentsContainer.querySelectorAll('.gigma-preset-assignment');
+                const assignmentRows = assignmentsContainer.querySelectorAll('.gigma-assignment-section');
                 const currentPresets = presets && typeof presets === 'object'
                     ? presets
-                    : (typeof gigmaGetPresetStore === 'function' ? gigmaGetPresetStore(kind) || {} : {});
+                    : (typeof gigmaGetLayoutPresetStore === 'function' ? gigmaGetLayoutPresetStore(kind) || {} : {});
                 const availableIds = Object.keys(currentPresets).sort((a, b) => {
                     const an = (currentPresets[a] && typeof currentPresets[a].name === 'string') ? currentPresets[a].name.trim() : '';
                     const bn = (currentPresets[b] && typeof currentPresets[b].name === 'string') ? currentPresets[b].name.trim() : '';
@@ -32644,12 +32592,12 @@ try {
                 });
                 const LAST_CHILD_SENTINEL = '__last_opened_child_preset__';
                 const LAST_PARENT_SENTINEL = '__last_opened_parent_preset__';
-                const GLOBAL_LAST_SENTINEL = '__last_opened_preset__';
-                const GLOBAL_NONE_SENTINEL = '__st_default_preset__';
+                const GLOBAL_LAST_SENTINEL = '__last_opened_layout_preset__';
+                const GLOBAL_NONE_SENTINEL = '__st_default_layout_preset__';
                 // Snapshot current row values so we can preserve the special
                 // options and ensure their uniqueness:
                 //  - parent/child-specific "Last opened … preset" once per kind
-                //  - global "Last opened preset" once across all sections
+                //  - global "Last opened layout preset" once across all sections
                 //  - global "None (ST Default)" once across all sections.
                 const rowSnapshots = [];
                 let childSentinelUsed = false;
@@ -32660,8 +32608,8 @@ try {
                     if (!row) return;
                     let kindBtn = null;
                     let presetSelect = null;
-                    try { kindBtn = row.querySelector('.gigma-preset-kind-toggle'); } catch (_eKindBtn) {}
-                    try { presetSelect = row.querySelector('.gigma-child-preset-select'); } catch (_ePresetSel) {}
+                    try { kindBtn = row.querySelector('.gigma-layout-preset-kind-toggle'); } catch (_eKindBtn) {}
+                    try { presetSelect = row.querySelector('.gigma-assignment-section-layout-preset-select'); } catch (_ePresetSel) {}
                     if (!kindBtn || !presetSelect) return;
                     const rowKind = (kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') ? 'parent' : 'child';
                     const prevValue = presetSelect.value;
@@ -32689,7 +32637,7 @@ try {
                     const kindSentinelValue = isParentKind ? LAST_PARENT_SENTINEL : LAST_CHILD_SENTINEL;
                     const kindSentinelLabel = isParentKind ? 'Last opened parent preset' : 'Last opened child preset';
                     const kindSentinelAlreadyUsed = isParentKind ? parentSentinelUsed : childSentinelUsed;
-                    // Rebuild the options list to reflect the current preset store.
+                    // Rebuild the options list to reflect the current layout preset store.
                     presetSelect.innerHTML = '';
                     const placeholder = document.createElement('option');
                     placeholder.value = '';
@@ -32720,7 +32668,7 @@ try {
                     //
                     //  - Global "None (ST Default)" is available to all rows until
                     //    it is selected once anywhere.
-                    //  - Global "Last opened preset" is available to all rows until
+                    //  - Global "Last opened layout preset" is available to all rows until
                     //    it is selected once anywhere.
                     //  - Per-kind "Last opened parent/child preset" remains limited
                     //    to once per kind.
@@ -32738,7 +32686,7 @@ try {
                     if (showGlobal) {
                         const optGlobal = document.createElement('option');
                         optGlobal.value = GLOBAL_LAST_SENTINEL;
-                        optGlobal.textContent = gigmaFormatLastOpenedLabel('Last opened preset', (typeof gigmaGetLastOpenedPresetName === 'function') ? gigmaGetLastOpenedPresetName('global') : null);
+                        optGlobal.textContent = gigmaFormatLastOpenedLayoutPresetLabel('Last opened layout preset', (typeof gigmaGetLastOpenedLayoutPresetName === 'function') ? gigmaGetLastOpenedLayoutPresetName('global') : null);
                         if (selectedValue === GLOBAL_LAST_SENTINEL) {
                             optGlobal.selected = true;
                         }
@@ -32748,7 +32696,7 @@ try {
                     if (shouldShowKindSentinel) {
                         const optSentinel = document.createElement('option');
                         optSentinel.value = kindSentinelValue;
-                        optSentinel.textContent = gigmaFormatLastOpenedLabel(kindSentinelLabel, (typeof gigmaGetLastOpenedPresetName === 'function') ? gigmaGetLastOpenedPresetName(isParentKind ? 'parent' : 'child') : null);
+                        optSentinel.textContent = gigmaFormatLastOpenedLayoutPresetLabel(kindSentinelLabel, (typeof gigmaGetLastOpenedLayoutPresetName === 'function') ? gigmaGetLastOpenedLayoutPresetName(isParentKind ? 'parent' : 'child') : null);
                         if (selectedValue === kindSentinelValue) {
                             optSentinel.selected = true;
                         }
@@ -32770,8 +32718,8 @@ try {
 }
 // Track the last loaded layout preset for each kind so we can auto-apply it
 // when the GIGMA dialog opens again.
-function gigmaGetLastPresetName(kind) {
-    const key = (kind === 'parent') ? 'lastMasterPresetId' : 'lastPresetId';
+function gigmaGetLastLayoutPresetId(kind) {
+    const key = (kind === 'parent') ? 'lastParentPresetId' : 'lastChildPresetId';
     try {
         if (gigmaExtensionSettings && typeof gigmaExtensionSettings === 'object') {
             const id = gigmaExtensionSettings[key];
@@ -32785,8 +32733,8 @@ function gigmaGetLastPresetName(kind) {
     return null;
 }
 
-function gigmaSetLastPresetName(id, kind) {
-    const key = (kind === 'parent') ? 'lastMasterPresetId' : 'lastPresetId';
+function gigmaSetLastLayoutPresetId(id, kind) {
+    const key = (kind === 'parent') ? 'lastParentPresetId' : 'lastChildPresetId';
     try {
         if (!gigmaExtensionSettings || typeof gigmaExtensionSettings !== 'object') {
             return;
@@ -32797,7 +32745,7 @@ function gigmaSetLastPresetName(id, kind) {
         } else {
             delete gigmaExtensionSettings[key];
         }
-        // Track "last opened" IDs so the preset assignment dropdowns can
+        // Track "last opened" IDs so the assignment preset dropdowns can
         // display the most recently opened preset in their special options.
         try {
             if (cleanId) {
@@ -32809,14 +32757,14 @@ function gigmaSetLastPresetName(id, kind) {
                     gigmaExtensionSettings.lastOpenedChildPresetId = cleanId;
                     gigmaExtensionSettings.lastOpenedChildPresetAt = now;
                 }
-                gigmaExtensionSettings.lastOpenedPresetId = cleanId;
-                gigmaExtensionSettings.lastOpenedPresetKind = (kind === 'parent') ? 'parent' : 'child';
+                gigmaExtensionSettings.lastOpenedLayoutPresetId = cleanId;
+                gigmaExtensionSettings.lastOpenedLayoutPresetKind = (kind === 'parent') ? 'parent' : 'child';
                 gigmaExtensionSettings.lastOpenedPresetAt = now;
             }
         } catch (_eLastOpenedTrack) {}
         try {
-            if (typeof gigmaRefreshPresetAssignmentLastOpenedLabels === 'function') {
-                gigmaRefreshPresetAssignmentLastOpenedLabels();
+            if (typeof gigmaRefreshAssignmentSectionLastOpenedLayoutPresetLabels === 'function') {
+                gigmaRefreshAssignmentSectionLastOpenedLayoutPresetLabels();
             }
         } catch (_eLastOpenedRefresh) {}
         try {
@@ -32832,29 +32780,29 @@ function gigmaSetLastPresetName(id, kind) {
 }
 
 /**
- * Resolve last-opened preset names for labels shown in the Preset Assignment section.
+ * Resolve last-opened layout preset names for labels shown in assignment sections.
  * - kind: 'child' | 'parent' | 'global'
  * Returns null when not available.
  */
-function gigmaGetLastOpenedPresetName(kind) {
+function gigmaGetLastOpenedLayoutPresetName(kind) {
     try {
         if (!gigmaExtensionSettings || typeof gigmaExtensionSettings !== 'object') return null;
         const getId = (v) => (typeof v === 'string' && v.trim() !== '') ? v.trim() : null;
         const resolveName = (presetKind, presetId) => {
             if (!presetId) return null;
-            const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(presetKind) || {}) : {};
+            const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore(presetKind) || {}) : {};
             const snap = store ? store[presetId] : null;
             const nm = (snap && typeof snap.name === 'string') ? snap.name.trim() : '';
             return nm || null;
         };
         if (kind === 'parent') {
             const id = getId(gigmaExtensionSettings.lastOpenedParentPresetId)
-                || (typeof gigmaGetLastPresetName === 'function' ? gigmaGetLastPresetName('parent') : null);
+                || (typeof gigmaGetLastLayoutPresetId === 'function' ? gigmaGetLastLayoutPresetId('parent') : null);
             return resolveName('parent', id);
         }
         if (kind === 'child') {
             const id = getId(gigmaExtensionSettings.lastOpenedChildPresetId)
-                || (typeof gigmaGetLastPresetName === 'function' ? gigmaGetLastPresetName('child') : null);
+                || (typeof gigmaGetLastLayoutPresetId === 'function' ? gigmaGetLastLayoutPresetId('child') : null);
             return resolveName('child', id);
         }
         // Global: whichever was opened most recently across parent/child.
@@ -32866,9 +32814,9 @@ function gigmaGetLastOpenedPresetName(kind) {
             if (cAt > pAt) return resolveName('child', getId(gigmaExtensionSettings.lastOpenedChildPresetId));
             return resolveName('parent', getId(gigmaExtensionSettings.lastOpenedParentPresetId));
         }
-        // Fall back to lastOpenedPresetId + kind if present.
-        const k = gigmaExtensionSettings.lastOpenedPresetKind;
-        const id = getId(gigmaExtensionSettings.lastOpenedPresetId);
+        // Fall back to lastOpenedLayoutPresetId + kind if present.
+        const k = gigmaExtensionSettings.lastOpenedLayoutPresetKind;
+        const id = getId(gigmaExtensionSettings.lastOpenedLayoutPresetId);
         if (k === 'parent' || k === 'child') {
             return resolveName(k, id);
         }
@@ -32878,44 +32826,44 @@ function gigmaGetLastOpenedPresetName(kind) {
     }
 }
 
-function gigmaFormatLastOpenedLabel(baseLabel, name) {
+function gigmaFormatLastOpenedLayoutPresetLabel(baseLabel, name) {
     const clean = (typeof name === 'string') ? name.trim() : '';
     return clean ? `${baseLabel} (${clean})` : `${baseLabel} (none)`;
 }
 /**
- * Update the option labels for the special sentinel entries in the Preset Assignment section.
+ * Update the option labels for the special sentinel entries in assignment sections.
  * This updates in-place without rebuilding dropdown contents.
  */
-function gigmaRefreshPresetAssignmentLastOpenedLabels() {
+function gigmaRefreshAssignmentSectionLastOpenedLayoutPresetLabels() {
     try {
         if (typeof document === 'undefined') return;
-        const container = document.getElementById('gigma-preset-assignments-container');
+        const container = document.getElementById('gigma-assignment-sections-container');
         if (!container) return;
-        const GLOBAL_LAST_SENTINEL = '__last_opened_preset__';
+        const GLOBAL_LAST_SENTINEL = '__last_opened_layout_preset__';
         const LAST_CHILD_SENTINEL = '__last_opened_child_preset__';
         const LAST_PARENT_SENTINEL = '__last_opened_parent_preset__';
-        const globalName = gigmaGetLastOpenedPresetName('global');
-        const childName = gigmaGetLastOpenedPresetName('child');
-        const parentName = gigmaGetLastOpenedPresetName('parent');
-        const selects = Array.from(container.querySelectorAll('select.gigma-child-preset-select') || []);
+        const globalName = gigmaGetLastOpenedLayoutPresetName('global');
+        const childName = gigmaGetLastOpenedLayoutPresetName('child');
+        const parentName = gigmaGetLastOpenedLayoutPresetName('parent');
+        const selects = Array.from(container.querySelectorAll('select.gigma-assignment-section-layout-preset-select') || []);
         selects.forEach((sel) => {
             try {
                 const opts = Array.from(sel.options || []);
                 opts.forEach((opt) => {
                     if (!opt) return;
                     if (opt.value === GLOBAL_LAST_SENTINEL) {
-                        opt.textContent = gigmaFormatLastOpenedLabel('Last opened preset', globalName);
+                        opt.textContent = gigmaFormatLastOpenedLayoutPresetLabel('Last opened layout preset', globalName);
                     } else if (opt.value === LAST_CHILD_SENTINEL) {
-                        opt.textContent = gigmaFormatLastOpenedLabel('Last opened child preset', childName);
+                        opt.textContent = gigmaFormatLastOpenedLayoutPresetLabel('Last opened child preset', childName);
                     } else if (opt.value === LAST_PARENT_SENTINEL) {
-                        opt.textContent = gigmaFormatLastOpenedLabel('Last opened parent preset', parentName);
+                        opt.textContent = gigmaFormatLastOpenedLayoutPresetLabel('Last opened parent preset', parentName);
                     }
                 });
             } catch (_eSel) {}
         });
     } catch (_e) {}
 }
-// --- Preset assignment stores (per-character preset assignment snapshots) ---
+// --- Assignment preset stores (assignment preset snapshots) ---
 function gigmaGetAssignmentPresetStore() {
     const key = 'assignmentPresetsById';
     try {
@@ -32926,7 +32874,7 @@ function gigmaGetAssignmentPresetStore() {
             }
         }
     } catch (e) {
-        console.warn('GIGMA: Failed to obtain preset assignment store:', e);
+        console.warn('GIGMA: Failed to obtain assignment preset store:', e);
     }
     return {};
 }
@@ -32972,15 +32920,15 @@ function gigmaSetAssignmentPresetStore(presets) {
                 saveSettingsDebounced();
             }
         } catch (e) {
-            console.warn('GIGMA: Failed to persist preset assignment store via saveSettingsDebounced:', e);
+            console.warn('GIGMA: Failed to persist assignment preset store via saveSettingsDebounced:', e);
         }
     } catch (e) {
-        console.warn('GIGMA: Failed to store preset assignment store in extension settings:', e);
+        console.warn('GIGMA: Failed to store assignment preset store in extension settings:', e);
     }
 }
 
 
-// --- Preset assignment select synchronization (modal + Lorebook Budget drawer) ---
+// --- Assignment preset select synchronization (modal + Lorebook Budget drawer) ---
 function gigmaGetAssignmentPresetSelectElements() {
     const els = [];
     try {
@@ -33041,7 +32989,7 @@ function gigmaRefreshAllAssignmentPresetSelects() {
                 const placeholder = document.createElement('option');
                 placeholder.value = '';
                 placeholder.disabled = true;
-                placeholder.textContent = ids.length ? 'Select preset assignment…' : 'No assignment presets';
+                placeholder.textContent = ids.length ? 'Select assignment preset…' : 'No assignment presets';
                 placeholder.selected = true;
                 select.appendChild(placeholder);
 
@@ -33088,7 +33036,7 @@ function gigmaInitAssignmentPresetDrawerSelect() {
 
             const snapshot = presets[presetId];
             if (!snapshot) {
-                try { toastr.error('Selected preset assignment no longer exists.'); } catch (_eToast) {}
+                try { toastr.error('Selected assignment preset no longer exists.'); } catch (_eToast) {}
                 gigmaRefreshAllAssignmentPresetSelects();
                 return;
             }
@@ -33098,7 +33046,7 @@ function gigmaInitAssignmentPresetDrawerSelect() {
         });
     } catch (_e) {}
 }
-// --- end preset assignment select synchronization ---
+// --- end assignment preset select synchronization ---
 function gigmaGetLastAssignmentPresetId() {
     const key = 'lastAssignmentPresetId';
     try {
@@ -33136,8 +33084,8 @@ function gigmaSetLastAssignmentPresetId(id) {
         console.warn('GIGMA: Failed to store last assignment preset id in settings:', e);
     }
 }
-// --- end preset assignment stores ---
-// Track the last-used preset kind (master vs character) so the GIGMA modal
+// --- end assignment preset stores ---
+// Track the last-used layout preset kind (parent vs child) so the GIGMA modal
 // can restore the toggle state between openings.
 function gigmaGetLastPresetKind() {
     const key = 'lastPresetKind';
@@ -33278,12 +33226,12 @@ function gigmaGetRightScrollHost() {
         return null;
     }
 }
-function gigmaRefreshPresetSelect(kind) {
-    const isMaster = (kind === 'parent');
-    const selectId = isMaster ? 'gigma-parent-preset-select' : 'gigma-child-preset-select';
+function gigmaRefreshLayoutPresetSelect(kind) {
+    const isParentPresetKind = (kind === 'parent');
+    const selectId = isParentPresetKind ? 'gigma-parent-preset-select' : 'gigma-child-preset-select';
     const select = document.getElementById(selectId);
     if (!select) return;
-    const presets = gigmaGetPresetStore(kind);
+    const presets = gigmaGetLayoutPresetStore(kind);
     const prevValue = select.value;
     const entries = Object.keys(presets || {}).map((id) => {
         const snap = presets[id];
@@ -33294,7 +33242,7 @@ function gigmaRefreshPresetSelect(kind) {
     const placeholder = document.createElement('option');
     placeholder.value = '';
     placeholder.disabled = true;
-    placeholder.textContent = entries.length ? (isMaster ? 'Select Parent Preset…' : 'Select Child Preset…') : (isMaster ? 'No parent presets' : 'No child presets');
+    placeholder.textContent = entries.length ? (isParentPresetKind ? 'Select Parent Preset…' : 'Select Child Preset…') : (isParentPresetKind ? 'No parent presets' : 'No child presets');
     placeholder.selected = true;
     select.appendChild(placeholder);
 
@@ -33311,9 +33259,9 @@ function gigmaRefreshPresetSelect(kind) {
         select.appendChild(opt);
     }
 
-    if (!hasSelection && entries.length && typeof gigmaGetLastPresetName === 'function') {
+    if (!hasSelection && entries.length && typeof gigmaGetLastLayoutPresetId === 'function') {
         try {
-            const lastId = gigmaGetLastPresetName(kind);
+            const lastId = gigmaGetLastLayoutPresetId(kind);
             if (lastId && Object.prototype.hasOwnProperty.call(presets, lastId)) {
                 for (let i = 0; i < select.options.length; i++) {
                     const opt = select.options[i];
@@ -33374,10 +33322,10 @@ function gigmaCaptureCurrentLayout(presetKind) {
 
             try{
                 if (typeof gigmaGetActivePresetKindAndId === 'function' &&
-                    typeof gigmaGetPresetStore === 'function'){
+                    typeof gigmaGetLayoutPresetStore === 'function'){
                     const activePreset = gigmaGetActivePresetKindAndId();
                     if (activePreset && activePreset.presetId){
-                        const store = gigmaGetPresetStore(activePreset.kind) || {};
+                        const store = gigmaGetLayoutPresetStore(activePreset.kind) || {};
                         const existing = store[activePreset.presetId];
                         if (existing && typeof existing === 'object'){
                             const existingMap = existing.paneScrollAnchors;
@@ -33562,7 +33510,7 @@ try{
     if (__gigmaKind === 'child') {
     try {
             if (typeof document !== 'undefined') {
-                const chatScopeSelect = document.querySelector('.gigma-chat-scope-row .gigma-chat-master-select');
+                const chatScopeSelect = document.querySelector('.gigma-chat-scope-row .gigma-chat-parent-preset-select');
                 if (chatScopeSelect && typeof chatScopeSelect.value === 'string') {
                     const raw = (chatScopeSelect.value || '').trim();
                     snapshot.chatInheritOrderFromId = raw || 'decoupled';
@@ -33649,12 +33597,12 @@ try{
     }
 return snapshot;
 }
-function gigmaApplyChatMasterFromPreset(preset) {
+function gigmaApplyChatParentPresetSelectFromLayoutPreset(preset) {
     try {
         if (!preset || typeof document === 'undefined') {
             return;
         }
-        const select = document.querySelector('.gigma-chat-scope-row .gigma-chat-master-select');
+        const select = document.querySelector('.gigma-chat-scope-row .gigma-chat-parent-preset-select');
         if (!select) {
             return;
         }
@@ -33684,24 +33632,24 @@ function gigmaApplyChatMasterFromPreset(preset) {
         // Order Adjustment mode for child presets based on all chat links.
         try {
             if (typeof gigmaSetRetroOrderMode === 'function') {
-                let anyMaster = false;
+                let hasAnyParentPresetLink = false;
                 try {
-                    const all = document.querySelectorAll('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-master-select');
+                    const all = document.querySelectorAll('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-parent-preset-select');
                     all.forEach((el) => {
                         const v = el && el.value;
                         if (v && v !== 'decoupled') {
-                            anyMaster = true;
+                            hasAnyParentPresetLink = true;
                         }
                     });
                 } catch (_eScan) {}
-                gigmaSetRetroOrderMode('child', anyMaster);
+                gigmaSetRetroOrderMode('child', hasAnyParentPresetLink);
             }
         } catch (_eRetro) {}
         try{ if (typeof gigmaUpdateInheritSwitchButtons === 'function') gigmaUpdateInheritSwitchButtons(select); }catch(_){ }
     } catch (_eOuter) {}
 }
 // Apply saved per-parent ordering of rows and folders from a preset.
-// --- GIGMA: Read-only layout preset tree (used by Lorebook Budget Drawer) ---
+// --- GIGMA: Read-only layout layout preset tree (used by Lorebook Budget Drawer) ---
 function gigmaEscapeHtml(str) {
     try {
         return String(str).replace(/[&<>"']/g, function (ch) {
@@ -34519,26 +34467,26 @@ function gigmaDuplicateSentenceUpdateScopeControls(root) {
     customizeButton.textContent = count ? `Customize (${count})` : 'Customize';
 }
 
-function gigmaDuplicateSentencePresetTreeItemKey(element) {
+function gigmaDuplicateSentenceLayoutPresetTreeItemKey(element) {
     if (!element || !element.classList) return '';
     const stampedKey = String(element.getAttribute('data-gigma-selection-key') || '').trim();
     if (stampedKey) return stampedKey;
-    if (element.classList.contains('gigma-preset-tree-row')) {
+    if (element.classList.contains('gigma-layout-preset-tree-row')) {
         const worldId = String(element.getAttribute('data-world-id') || '').trim();
         if (worldId) return `row:${worldId}`;
         const worldName = String(element.getAttribute('data-world-name') || '').trim();
         if (worldName) return `rowname:${worldName}`;
     }
-    if (element.classList.contains('gigma-preset-tree-folder')) {
+    if (element.classList.contains('gigma-layout-preset-tree-folder')) {
         const folderId = String(element.getAttribute('data-folder-id') || '').trim();
         if (folderId) return `folder:${folderId}`;
     }
     return '';
 }
 
-function gigmaDuplicateSentencePresetTreeEnsureItemKey(element, fallbackIndex) {
+function gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(element, fallbackIndex) {
     if (!element || !element.classList) return '';
-    let key = gigmaDuplicateSentencePresetTreeItemKey(element);
+    let key = gigmaDuplicateSentenceLayoutPresetTreeItemKey(element);
     if (!key) {
         const fallback = Number.isFinite(fallbackIndex) ? String(fallbackIndex) : String(element.getAttribute('data-gigma-selection-ordinal') || '').trim();
         if (fallback) {
@@ -34554,10 +34502,10 @@ function gigmaDuplicateSentencePresetTreeEnsureItemKey(element, fallbackIndex) {
     return key;
 }
 
-function gigmaDuplicateSentencePresetTreeOwnCheckbox(element) {
+function gigmaDuplicateSentenceLayoutPresetTreeOwnCheckbox(element) {
     if (!element || !element.children) return null;
     for (const child of element.children) {
-        if (child && child.classList && child.classList.contains('gigma-preset-tree-select-box')) return child;
+        if (child && child.classList && child.classList.contains('gigma-layout-preset-tree-select-box')) return child;
     }
     return null;
 }
@@ -34578,7 +34526,7 @@ function gigmaDuplicateSentenceGetCustomPopupState() {
 
 function gigmaDuplicateSentenceCustomPopupGetAllSelectable(previewRoot) {
     if (!previewRoot?.querySelectorAll) return [];
-    return Array.from(previewRoot.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder'));
+    return Array.from(previewRoot.querySelectorAll('.gigma-layout-preset-tree-row, .gigma-layout-preset-tree-folder'));
 }
 
 function gigmaDuplicateSentenceCustomPopupCollectWithDescendants(elements) {
@@ -34588,8 +34536,8 @@ function gigmaDuplicateSentenceCustomPopupCollectWithDescendants(elements) {
         if (!element || !element.classList || seen.has(element)) continue;
         seen.add(element);
         out.push(element);
-        if (element.classList.contains('gigma-preset-tree-folder')) {
-            const descendants = element.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder');
+        if (element.classList.contains('gigma-layout-preset-tree-folder')) {
+            const descendants = element.querySelectorAll('.gigma-layout-preset-tree-row, .gigma-layout-preset-tree-folder');
             descendants.forEach((child) => {
                 if (!child || !child.classList || seen.has(child)) return;
                 seen.add(child);
@@ -34603,11 +34551,11 @@ function gigmaDuplicateSentenceCustomPopupCollectWithDescendants(elements) {
 function gigmaDuplicateSentenceCustomPopupApplyUi(previewRoot) {
     const popupState = gigmaDuplicateSentenceGetCustomPopupState();
     if (!previewRoot?.querySelectorAll) return;
-    previewRoot.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder').forEach((element, index) => {
-        const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(element, index);
+    previewRoot.querySelectorAll('.gigma-layout-preset-tree-row, .gigma-layout-preset-tree-folder').forEach((element, index) => {
+        const key = gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(element, index);
         const checked = !!(key && popupState.workingKeys.has(key));
         if (element.classList && element.classList.contains('gigma-selected')) element.classList.remove('gigma-selected');
-        const checkbox = gigmaDuplicateSentencePresetTreeOwnCheckbox(element);
+        const checkbox = gigmaDuplicateSentenceLayoutPresetTreeOwnCheckbox(element);
         if (checkbox) checkbox.checked = checked;
     });
 }
@@ -34618,21 +34566,21 @@ function gigmaDuplicateSentenceCustomPopupSetSelection(previewRoot, elements, an
     const targets = gigmaDuplicateSentenceCustomPopupCollectWithDescendants(elements);
     let fallbackIndex = 0;
     for (const element of targets) {
-        const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(element, fallbackIndex++);
+        const key = gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(element, fallbackIndex++);
         if (key) popupState.workingKeys.add(key);
     }
-    popupState.anchorKey = gigmaDuplicateSentencePresetTreeEnsureItemKey(anchorElement || elements?.[0] || null) || '';
+    popupState.anchorKey = gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(anchorElement || elements?.[0] || null) || '';
     gigmaDuplicateSentenceCustomPopupApplyUi(previewRoot);
 }
 
 function gigmaDuplicateSentenceCustomPopupToggleSelection(previewRoot, element) {
     const popupState = gigmaDuplicateSentenceGetCustomPopupState();
-    const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(element);
+    const key = gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(element);
     if (!key) return;
     const targets = gigmaDuplicateSentenceCustomPopupCollectWithDescendants([element]);
     const isSelected = popupState.workingKeys.has(key);
     for (const target of targets) {
-        const targetKey = gigmaDuplicateSentencePresetTreeEnsureItemKey(target);
+        const targetKey = gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(target);
         if (!targetKey) continue;
         if (isSelected) popupState.workingKeys.delete(targetKey);
         else popupState.workingKeys.add(targetKey);
@@ -34645,7 +34593,7 @@ function gigmaDuplicateSentenceCustomPopupRangeSelect(previewRoot, toElement) {
     const all = gigmaDuplicateSentenceCustomPopupGetAllSelectable(previewRoot);
     if (!all.length || !toElement) return;
     const popupState = gigmaDuplicateSentenceGetCustomPopupState();
-    let anchorElement = all.find((element) => gigmaDuplicateSentencePresetTreeEnsureItemKey(element) === popupState.anchorKey) || toElement;
+    let anchorElement = all.find((element) => gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(element) === popupState.anchorKey) || toElement;
     let iAnchor = all.indexOf(anchorElement);
     let iTo = all.indexOf(toElement);
     if (iAnchor === -1) {
@@ -34666,11 +34614,11 @@ function gigmaDuplicateSentenceCustomPopupRangeSelect(previewRoot, toElement) {
         result.push(element);
     };
     const addDescendants = (folderElement) => {
-        folderElement.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder').forEach((child) => add(child));
+        folderElement.querySelectorAll('.gigma-layout-preset-tree-row, .gigma-layout-preset-tree-folder').forEach((child) => add(child));
     };
     slice.forEach((element) => {
         if (!element || !element.classList) return;
-        const isFolder = element.classList.contains('gigma-preset-tree-folder');
+        const isFolder = element.classList.contains('gigma-layout-preset-tree-folder');
         const isEndpoint = element === anchorElement || element === toElement;
         if (isFolder && isEndpoint) {
             add(element);
@@ -34685,8 +34633,8 @@ function gigmaDuplicateSentenceCustomPopupRangeSelect(previewRoot, toElement) {
 function gigmaDuplicateSentenceCustomPopupCollectWorldNames(previewRoot, workingKeys) {
     const out = new Set();
     if (!previewRoot?.querySelectorAll || !(workingKeys instanceof Set)) return out;
-    previewRoot.querySelectorAll('.gigma-preset-tree-row').forEach((row) => {
-        const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(row);
+    previewRoot.querySelectorAll('.gigma-layout-preset-tree-row').forEach((row) => {
+        const key = gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(row);
         if (!key || !workingKeys.has(key)) return;
         const worldName = String(row.getAttribute('data-world-name') || '').trim();
         if (worldName) out.add(worldName);
@@ -34708,7 +34656,7 @@ function gigmaDuplicateSentenceCustomPopupIsTextInput(element) {
 
 function gigmaDuplicateSentenceCustomPopupIsSelectableVisible(element) {
     if (!element || !element.classList) return false;
-    if (!element.classList.contains('gigma-preset-tree-row') && !element.classList.contains('gigma-preset-tree-folder')) return false;
+    if (!element.classList.contains('gigma-layout-preset-tree-row') && !element.classList.contains('gigma-layout-preset-tree-folder')) return false;
     try {
         if (element.offsetParent === null) {
             if (!element.getClientRects || element.getClientRects().length === 0) return false;
@@ -34736,10 +34684,10 @@ function gigmaDuplicateSentenceCustomPopupCollectScopeFromContainer(levelContain
     for (let i = 0; i < children.length; i++) {
         const element = children[i];
         if (!element || !element.classList) continue;
-        if (!element.classList.contains('gigma-preset-tree-row') && !element.classList.contains('gigma-preset-tree-folder')) continue;
+        if (!element.classList.contains('gigma-layout-preset-tree-row') && !element.classList.contains('gigma-layout-preset-tree-folder')) continue;
         out.push(element);
         try {
-            out.push.apply(out, Array.from(element.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder')));
+            out.push.apply(out, Array.from(element.querySelectorAll('.gigma-layout-preset-tree-row, .gigma-layout-preset-tree-folder')));
         } catch (_) { }
     }
     return out;
@@ -34747,14 +34695,14 @@ function gigmaDuplicateSentenceCustomPopupCollectScopeFromContainer(levelContain
 
 function gigmaDuplicateSentenceCustomPopupGetHierarchyElements(previewRoot, pointerTarget) {
     if (!previewRoot || !(pointerTarget instanceof Element)) return [];
-    const treeRoot = (previewRoot.querySelector && previewRoot.querySelector('.gigma-preset-tree')) || previewRoot;
+    const treeRoot = (previewRoot.querySelector && previewRoot.querySelector('.gigma-layout-preset-tree')) || previewRoot;
     if (!treeRoot || !treeRoot.contains(pointerTarget)) return [];
 
-    const folder = pointerTarget.closest('.gigma-preset-tree-folder');
+    const folder = pointerTarget.closest('.gigma-layout-preset-tree-folder');
     if (folder && treeRoot.contains(folder)) {
         let headerPart = null;
         try {
-            headerPart = pointerTarget.closest('.gigma-preset-tree-budget, .gigma-preset-tree-icon, .gigma-preset-tree-label');
+            headerPart = pointerTarget.closest('.gigma-layout-preset-tree-budget, .gigma-layout-preset-tree-icon, .gigma-layout-preset-tree-label');
         } catch (_) { headerPart = null; }
         const onFolderHeader = (pointerTarget === folder) || !!(headerPart && headerPart.parentElement === folder);
         if (onFolderHeader) {
@@ -34771,7 +34719,7 @@ function gigmaDuplicateSentenceCustomPopupGetHierarchyElements(previewRoot, poin
     if (list && treeRoot.contains(list)) {
         levelContainer = list;
     } else {
-        const row = pointerTarget.closest('.gigma-preset-tree-row');
+        const row = pointerTarget.closest('.gigma-layout-preset-tree-row');
         if (row && row.parentElement && treeRoot.contains(row.parentElement)) {
             levelContainer = row.parentElement;
         }
@@ -34800,9 +34748,9 @@ function gigmaDuplicateSentenceCustomPopupGetHierarchyElements(previewRoot, poin
                     : null;
 
                 let previewRoot = null;
-                if (activeElement instanceof Element) previewRoot = activeElement.closest('#gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]');
-                if (!previewRoot && target instanceof Element) previewRoot = target.closest('#gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]');
-                if (!previewRoot && pointerTarget) previewRoot = pointerTarget.closest('#gigma-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]');
+                if (activeElement instanceof Element) previewRoot = activeElement.closest('#gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]');
+                if (!previewRoot && target instanceof Element) previewRoot = target.closest('#gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]');
+                if (!previewRoot && pointerTarget) previewRoot = pointerTarget.closest('#gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"]');
                 if (!previewRoot) return;
 
                 if (gigmaDuplicateSentenceCustomPopupIsTextInput(activeElement) || gigmaDuplicateSentenceCustomPopupIsTextInput(target)) return;
@@ -34828,11 +34776,11 @@ function gigmaDuplicateSentenceCustomPopupGetHierarchyElements(previewRoot, poin
 })();
 
 
-function gigmaResolveDuplicateSentencePresetTreePreview() {
+function gigmaResolveDuplicateSentenceLayoutPresetTreePreview() {
     let kind = 'child';
     try {
-        if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-            const detected = gigmaGetActivePresetKindForLorebookSettings();
+        if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+            const detected = gigmaGetActiveLayoutPresetKindForLorebookSettings();
             if (detected === 'parent' || detected === 'child') kind = detected;
         }
     } catch (_eKindDetect) { }
@@ -34846,22 +34794,22 @@ function gigmaResolveDuplicateSentencePresetTreePreview() {
 
     let presetNameForHeader = null;
     try {
-        if (typeof gigmaGetActivePresetNameForLorebookSettings === 'function') presetNameForHeader = gigmaGetActivePresetNameForLorebookSettings(kind);
+        if (typeof gigmaGetActiveLayoutPresetIdForLorebookSettings === 'function') presetNameForHeader = gigmaGetActiveLayoutPresetIdForLorebookSettings(kind);
     } catch (_ePresetName) {
         presetNameForHeader = null;
     }
     if (!presetNameForHeader) {
         try {
-            if (typeof gigmaGetLastPresetName === 'function') presetNameForHeader = gigmaGetLastPresetName(kind);
+            if (typeof gigmaGetLastLayoutPresetId === 'function') presetNameForHeader = gigmaGetLastLayoutPresetId(kind);
         } catch (_eLastPresetName) {
             presetNameForHeader = null;
         }
     }
 
     let storedSnapshot = null;
-    if (presetNameForHeader && typeof gigmaGetPresetStore === 'function') {
+    if (presetNameForHeader && typeof gigmaGetLayoutPresetStore === 'function') {
         try {
-            const store = gigmaGetPresetStore(kind) || {};
+            const store = gigmaGetLayoutPresetStore(kind) || {};
             const stored = store[presetNameForHeader];
             if (stored && typeof stored === 'object') storedSnapshot = JSON.parse(JSON.stringify(stored));
         } catch (_eStoredSnapshot) {
@@ -34869,19 +34817,19 @@ function gigmaResolveDuplicateSentencePresetTreePreview() {
         }
     }
 
-    const hasLivePresetTree = (() => {
+    const hasLiveLayoutPresetTree = (() => {
         try {
             const modalRoot = document.getElementById('gigma-modal-root');
             if (!modalRoot) return false;
             if (document.getElementById('gigma-ordering-list')) return true;
             return !!modalRoot.querySelector('.gigma-folder[data-folder-id], .gigma-row[data-world-id], .gigma-row[data-world]');
-        } catch (_eLivePresetTree) {
+        } catch (_eLiveLayoutPresetTree) {
             return false;
         }
     })();
 
     let snapshot = null;
-    if (hasLivePresetTree) {
+    if (hasLiveLayoutPresetTree) {
         try {
             if (typeof gigmaCaptureCurrentLayout === 'function') snapshot = gigmaCaptureCurrentLayout(kind);
             else if (typeof window !== 'undefined' && typeof window.gigmaCaptureCurrentLayout === 'function') snapshot = window.gigmaCaptureCurrentLayout(kind);
@@ -34908,7 +34856,7 @@ function gigmaResolveDuplicateSentencePresetTreePreview() {
     let presetDisplayForHeader = presetNameForHeader;
     try {
         if (presetDisplayForHeader) {
-            const storeForHeader = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(kind) || {}) : {};
+            const storeForHeader = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore(kind) || {}) : {};
             const snapForHeader = storeForHeader ? storeForHeader[presetDisplayForHeader] : null;
             const nmForHeader = (snapForHeader && typeof snapForHeader.name === 'string') ? snapForHeader.name.trim() : '';
             if (nmForHeader) presetDisplayForHeader = nmForHeader;
@@ -34935,10 +34883,10 @@ function gigmaInitDuplicateSentenceCustomSelectionPopup(sourceRoot, previewRoot)
 
     previewRoot.setAttribute('data-gigma-selection-mode', 'duplicate-scan');
 
-    const header = previewRoot.querySelector('.gigma-preset-tree-header');
-    if (header && !previewRoot.querySelector('#gigma-preset-tree-save-selection')) {
+    const header = previewRoot.querySelector('.gigma-layout-preset-tree-header');
+    if (header && !previewRoot.querySelector('#gigma-layout-preset-tree-save-selection')) {
         const saveButton = document.createElement('button');
-        saveButton.id = 'gigma-preset-tree-save-selection';
+        saveButton.id = 'gigma-layout-preset-tree-save-selection';
         saveButton.className = 'menu_button gigma-global-accept gigma-global-icon';
         saveButton.type = 'button';
         saveButton.setAttribute('aria-label', 'Save lorebook selection');
@@ -34947,15 +34895,15 @@ function gigmaInitDuplicateSentenceCustomSelectionPopup(sourceRoot, previewRoot)
         header.appendChild(saveButton);
     }
 
-    previewRoot.querySelectorAll('.gigma-preset-tree-row, .gigma-preset-tree-folder').forEach((element, index) => {
-        const itemKey = gigmaDuplicateSentencePresetTreeEnsureItemKey(element, index);
-        if (gigmaDuplicateSentencePresetTreeOwnCheckbox(element)) return;
+    previewRoot.querySelectorAll('.gigma-layout-preset-tree-row, .gigma-layout-preset-tree-folder').forEach((element, index) => {
+        const itemKey = gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(element, index);
+        if (gigmaDuplicateSentenceLayoutPresetTreeOwnCheckbox(element)) return;
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.className = 'gigma-preset-tree-select-box';
+        checkbox.className = 'gigma-layout-preset-tree-select-box';
         checkbox.setAttribute('aria-label', 'Select lorebook or folder');
         checkbox.setAttribute('data-item-key', itemKey);
-        const icon = element.querySelector(':scope > .gigma-preset-tree-icon');
+        const icon = element.querySelector(':scope > .gigma-layout-preset-tree-icon');
         if (icon && icon.parentNode === element) element.insertBefore(checkbox, icon);
         else element.insertBefore(checkbox, element.firstChild);
     });
@@ -34967,14 +34915,14 @@ function gigmaInitDuplicateSentenceCustomSelectionPopup(sourceRoot, previewRoot)
     const selectable = gigmaDuplicateSentenceCustomPopupGetAllSelectable(previewRoot);
     if (savedKeys.size) {
         selectable.forEach((element, index) => {
-            const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(element, index);
+            const key = gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(element, index);
             if (key && savedKeys.has(key)) popupState.workingKeys.add(key);
         });
     } else if (savedWorlds.size) {
         selectable.forEach((element, index) => {
-            const key = gigmaDuplicateSentencePresetTreeEnsureItemKey(element, index);
+            const key = gigmaDuplicateSentenceLayoutPresetTreeEnsureItemKey(element, index);
             if (!key) return;
-            if (element.classList.contains('gigma-preset-tree-row')) {
+            if (element.classList.contains('gigma-layout-preset-tree-row')) {
                 const worldName = String(element.getAttribute('data-world-name') || '').trim();
                 if (worldName && savedWorlds.has(worldName)) popupState.workingKeys.add(key);
             }
@@ -34989,36 +34937,36 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
     if (!state) return;
 
     gigmaInstallDuplicateSentenceStylesOnce();
-    const resolved = gigmaResolveDuplicateSentencePresetTreePreview();
+    const resolved = gigmaResolveDuplicateSentenceLayoutPresetTreePreview();
     const modalTitle = 'Customize lorebook selection';
     let html = '';
 
     if (!resolved.snapshot || typeof resolved.snapshot !== 'object') {
         const initialUnchainedStateEmpty = (resolved.kind === 'parent') ? 'selected' : 'show';
         html =
-            '<div id="gigma-preset-tree-preview-root" data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-            '<div class="gigma-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-            '<div class="gigma-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.kindLabel) + '</div>' +
-            '<div class="gigma-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;"></div>' +
-            '<button id="gigma-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
+            '<div id="gigma-layout-preset-tree-preview-root" data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
+            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
+            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.kindLabel) + '</div>' +
+            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;"></div>' +
+            '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
             '</div>' +
             '<div style="opacity:0.85; padding:0.5em;"><p style="margin:0;">No layout data available for custom selection.</p></div>' +
             '</div>';
     } else {
         const initialUnchainedState = (resolved.kind === 'parent') ? 'selected' : 'show';
-        const body = gigmaBuildPresetTreeHtml(resolved.snapshot, { kind: resolved.kind, viewMode: resolved.desiredViewMode, parentPresetName: (resolved.kind === 'parent' ? resolved.presetNameForHeader : null) });
+        const body = gigmaBuildLayoutPresetTreeHtml(resolved.snapshot, { kind: resolved.kind, viewMode: resolved.desiredViewMode, parentPresetId: (resolved.kind === 'parent' ? resolved.presetNameForHeader : null) });
         html =
-            '<div id="gigma-preset-tree-preview-root"' + (resolved.desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="' + gigmaEscapeHtml(resolved.desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-            '<div class="gigma-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-            '<div class="gigma-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.headerLabel) + '</div>' +
-            '<div class="gigma-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
-            '<button id="gigma-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
-            '<button id="gigma-preset-tree-expand-all" class="menu_button gigma-icon-btn" type="button" title="Expand all folders" aria-label="Expand all folders">▼</button>' +
-            '<button id="gigma-preset-tree-collapse-all" class="menu_button gigma-icon-btn" type="button" title="Collapse all folders" aria-label="Collapse all folders">▲</button>' +
-            '<button id="gigma-preset-tree-restore-folders" class="menu_button gigma-icon-btn" type="button" title="Restore folder states" aria-label="Restore folder states">⟲</button>' +
-            '<button id="gigma-preset-tree-viewmode-toggle" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" aria-pressed="' + (resolved.desiredViewMode === 'budget' ? 'true' : 'false') + '" title="Toggle Order/Budget view">' + (resolved.desiredViewMode === 'budget' ? 'Budget' : 'Order') + '</button>' +
+            '<div id="gigma-layout-preset-tree-preview-root"' + (resolved.desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="' + gigmaEscapeHtml(resolved.desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
+            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
+            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.headerLabel) + '</div>' +
+            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
+            '<button id="gigma-layout-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-layout-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-layout-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-layout-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-layout-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
+            '<button id="gigma-layout-preset-tree-expand-all" class="menu_button gigma-icon-btn" type="button" title="Expand all folders" aria-label="Expand all folders">▼</button>' +
+            '<button id="gigma-layout-preset-tree-collapse-all" class="menu_button gigma-icon-btn" type="button" title="Collapse all folders" aria-label="Collapse all folders">▲</button>' +
+            '<button id="gigma-layout-preset-tree-restore-folders" class="menu_button gigma-icon-btn" type="button" title="Restore folder states" aria-label="Restore folder states">⟲</button>' +
+            '<button id="gigma-layout-preset-tree-viewmode-toggle" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" aria-pressed="' + (resolved.desiredViewMode === 'budget' ? 'true' : 'false') + '" title="Toggle Order/Budget view">' + (resolved.desiredViewMode === 'budget' ? 'Budget' : 'Order') + '</button>' +
             '</div>' +
-            '<button id="gigma-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
+            '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
             '</div>' +
             body +
             '<div id="gigma-global-wi-stats-display-preview" class="gigma-global-wi-stats-display"></div>' +
@@ -35027,18 +34975,18 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
 
     const afterShow = function(){
         try{
-            const roots = document.querySelectorAll('#gigma-preset-tree-preview-root');
+            const roots = document.querySelectorAll('#gigma-layout-preset-tree-preview-root');
             const previewRoot = (roots && roots.length) ? roots[roots.length - 1] : null;
             if (!previewRoot) return;
-            try{ if (typeof window.gigmaLoadPresetTreePreviewButtonState === 'function') window.gigmaLoadPresetTreePreviewButtonState(previewRoot); }catch(_){ }
-            try{ if (typeof window.gigmaInstallPresetTreePreviewCloseHook === 'function') window.gigmaInstallPresetTreePreviewCloseHook(previewRoot); }catch(_){ }
-            try{ if (typeof window.gigmaInitPresetTreeChainedToggle === 'function') window.gigmaInitPresetTreeChainedToggle(); }catch(_){ }
-            try{ if (typeof window.gigmaInitPresetTreeUnchainedToggle === 'function') window.gigmaInitPresetTreeUnchainedToggle(); }catch(_){ }
-            try{ if (typeof window.gigmaInitPresetTreeDimToggles === 'function') window.gigmaInitPresetTreeDimToggles(); }catch(_){ }
-            try{ if (typeof window.gigmaInitPresetTreeViewMode === 'function') window.gigmaInitPresetTreeViewMode(); }catch(_){ }
-            try{ if (typeof window.gigmaInitPresetTreePreviewLorebookStatsUi === 'function') window.gigmaInitPresetTreePreviewLorebookStatsUi(); }catch(_){ }
-            try{ if (previewRoot && typeof gigmaRefreshPresetTreeBudgetPreviewFields === 'function') gigmaRefreshPresetTreeBudgetPreviewFields(previewRoot); }catch(_){ }
-            try{ if (previewRoot && typeof window.gigmaCapturePresetTreeFolderDefaults === 'function') window.gigmaCapturePresetTreeFolderDefaults(previewRoot); }catch(_){ }
+            try{ if (typeof window.gigmaLoadLayoutPresetTreePreviewButtonState === 'function') window.gigmaLoadLayoutPresetTreePreviewButtonState(previewRoot); }catch(_){ }
+            try{ if (typeof window.gigmaInstallLayoutPresetTreePreviewCloseHook === 'function') window.gigmaInstallLayoutPresetTreePreviewCloseHook(previewRoot); }catch(_){ }
+            try{ if (typeof window.gigmaInitLayoutPresetTreeChainedToggle === 'function') window.gigmaInitLayoutPresetTreeChainedToggle(); }catch(_){ }
+            try{ if (typeof window.gigmaInitLayoutPresetTreeUnchainedToggle === 'function') window.gigmaInitLayoutPresetTreeUnchainedToggle(); }catch(_){ }
+            try{ if (typeof window.gigmaInitLayoutPresetTreeDimToggles === 'function') window.gigmaInitLayoutPresetTreeDimToggles(); }catch(_){ }
+            try{ if (typeof window.gigmaInitLayoutPresetTreeViewMode === 'function') window.gigmaInitLayoutPresetTreeViewMode(); }catch(_){ }
+            try{ if (typeof window.gigmaInitLayoutPresetTreePreviewLorebookStatsUi === 'function') window.gigmaInitLayoutPresetTreePreviewLorebookStatsUi(); }catch(_){ }
+            try{ if (previewRoot && typeof gigmaRefreshLayoutPresetTreeBudgetPreviewFields === 'function') gigmaRefreshLayoutPresetTreeBudgetPreviewFields(previewRoot); }catch(_){ }
+            try{ if (previewRoot && typeof window.gigmaCaptureLayoutPresetTreeFolderDefaults === 'function') window.gigmaCaptureLayoutPresetTreeFolderDefaults(previewRoot); }catch(_){ }
             gigmaInitDuplicateSentenceCustomSelectionPopup(sourceRoot, previewRoot);
         }catch(_){ }
     };
@@ -35064,9 +35012,9 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
             allowVerticalScrolling: true,
             onClosing: function () {
                 try{
-                    const roots = document.querySelectorAll('#gigma-preset-tree-preview-root');
+                    const roots = document.querySelectorAll('#gigma-layout-preset-tree-preview-root');
                     const previewRoot = (roots && roots.length) ? roots[roots.length - 1] : null;
-                    if (previewRoot && typeof window.gigmaSavePresetTreePreviewButtonState === 'function') window.gigmaSavePresetTreePreviewButtonState(previewRoot);
+                    if (previewRoot && typeof window.gigmaSaveLayoutPresetTreePreviewButtonState === 'function') window.gigmaSaveLayoutPresetTreePreviewButtonState(previewRoot);
                 }catch(_){ }
                 return true;
             },
@@ -36397,7 +36345,7 @@ function gigmaRefreshParentUnchainedChildPresetOptions(parentPresetId, desiredSe
         let eligible = [];
         let childPresets = {};
         try{
-            childPresets = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+            childPresets = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
             eligible = Object.keys(childPresets || {}).filter((id) => {
                 const snap = childPresets[id];
                 const v = (snap && typeof snap.chatInheritOrderFromId === 'string') ? snap.chatInheritOrderFromId.trim() : '';
@@ -36435,7 +36383,7 @@ function gigmaRefreshParentUnchainedChildPresetOptions(parentPresetId, desiredSe
 }
 
 /** Apply parent "unchained lorebooks" UI state from a loaded parent preset snapshot. */
-function gigmaApplyParentUnchainedSettingsFromPreset(preset, parentPresetName){
+function gigmaApplyParentUnchainedSettingsFromPreset(preset, parentPresetId){
     try{
         if (!preset || typeof document === 'undefined') return;
         // Ensure controls are ready before applying.
@@ -36468,7 +36416,7 @@ function gigmaApplyParentUnchainedSettingsFromPreset(preset, parentPresetName){
         const desired = Array.isArray(preset.parentUnchainedLorebooksChildPresetIds)
             ? preset.parentUnchainedLorebooksChildPresetIds.map(v => (v == null ? '' : String(v)).trim()).filter(v => v)
             : [];
-        gigmaRefreshParentUnchainedChildPresetOptions(parentPresetName, desired);
+        gigmaRefreshParentUnchainedChildPresetOptions(parentPresetId, desired);
         // Ensure Select2 reflects any programmatic selection.
         if (select) {
             try{
@@ -36499,7 +36447,7 @@ function gigmaUpdateParentUnchainedUiVisibility(){
         }catch(_){ parentName = ''; }
         let hasChildren = false;
         try{
-            const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+            const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
             if (parentName){
                 for (const k of Object.keys(store)){
                     const snap = store[k];
@@ -36584,7 +36532,7 @@ function gigmaWireSelect2ChoiceToChildPresetSwitch(multi){
             if (!id) return;
             stop(e);
             try{ $(multi).select2('close'); }catch(_){ }
-            const kindBtn = document.getElementById('gigma-preset-kind-toggle');
+            const kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
             if (kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') { try{ kindBtn.click(); }catch(_){ } }
             const childSel = document.getElementById('gigma-child-preset-select');
             if (!childSel) return;
@@ -36682,10 +36630,10 @@ try{
     }catch(_){}
 }
 /* ---------------- Parent presets: unchained lorebook placeholders ---------------- */
-function gigmaFormatParentUnchainedGhostEntry(loreName, childPresetName){
+function gigmaFormatParentUnchainedGhostEntry(loreName, childPresetId){
     try{
         const lore = (loreName == null ? '' : String(loreName)).replace(/\u00AD/g,'').slice(0, 10);
-        const child = (childPresetName == null ? '' : String(childPresetName)).replace(/\u00AD/g,'').slice(0, 10);
+        const child = (childPresetId == null ? '' : String(childPresetId)).replace(/\u00AD/g,'').slice(0, 10);
         return lore + ' - ' + child;
     }catch(_){
         return '';
@@ -36696,7 +36644,7 @@ function gigmaUpdateParentUnchainedGhostText(placeholderEl, childPresetId){
     try{
         if (!placeholderEl) return;
         const id = (childPresetId == null ? '' : String(childPresetId)).trim();
-        const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+        const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
         const snap = store ? store[id] : null;
         const nm = (snap && typeof snap.name === 'string') ? snap.name.trim() : '';
         const child = nm.replace(/\u00AD/g,'');
@@ -36807,11 +36755,11 @@ function gigmaReflowParentUnchainedGhostMarkers(){
         }
     }catch(_){}
 }
-function gigmaGetOrCreateParentUnchainedPlaceholderRow(worldId, childPresetName){
+function gigmaGetOrCreateParentUnchainedPlaceholderRow(worldId, childPresetId){
     try{
         if (typeof document === 'undefined') return null;
         const id = (worldId == null ? '' : String(worldId)).trim();
-        const child = (childPresetName == null ? '' : String(childPresetName)).trim();
+        const child = (childPresetId == null ? '' : String(childPresetId)).trim();
         if (!id || !child) return null;
         if (!window.__gigmaParentUnchainedPlaceholderByKey) window.__gigmaParentUnchainedPlaceholderByKey = {};
         const key = child + '|' + id;
@@ -36819,7 +36767,7 @@ function gigmaGetOrCreateParentUnchainedPlaceholderRow(worldId, childPresetName)
                 if (el && el.isConnected) {
             // Ensure unchained placeholder labels show the same usage icons + bound-owner tag as normal lorebooks.
             try{
-                const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+                const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
                 const p = store && store[child];
                 const childShort = (p && typeof p.name === 'string') ? p.name.trim().slice(0, 15) : '';
                 const label = el.querySelector('.gigma-row-label');
@@ -36859,7 +36807,7 @@ function gigmaGetOrCreateParentUnchainedPlaceholderRow(worldId, childPresetName)
         label.style.flex = '1 1 auto';
         label.style.minWidth = '0';
         // Render the unchained label with the same usage icons + bound-owner tag as normal lorebooks.
-        const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+        const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
         const p = store && store[child];
         const childShort = (p && typeof p.name === 'string') ? p.name.trim().slice(0, 15) : '';
         __gigmaRenderUnchainedRowLabel(label, name, childShort, true, true);
@@ -37213,19 +37161,19 @@ async function gigmaConvertActivePresetToOtherKind(fromKind){
         var srcKind = (fromKind === 'parent') ? 'parent' : 'child';
         var dstKind = (srcKind === 'parent') ? 'child' : 'parent';
         if (!Array.isArray(world_names) || !world_names.length) {
-            try{ toastr.error('No lorebooks available to save as a preset.'); }catch(_){ }
+            try{ toastr.error('No lorebooks available to save as a layout preset.'); }catch(_){ }
             return;
         }
         if (typeof gigmaCaptureCurrentLayout !== 'function') return;
         var snapshot = gigmaCaptureCurrentLayout(srcKind);
         if (!snapshot) {
-            try{ toastr.error('Load lorebooks and adjust the layout before saving a preset.'); }catch(_){ }
+            try{ toastr.error('Load lorebooks and adjust the layout before saving a layout preset.'); }catch(_){ }
             return;
         }
 
         var srcSelect = document.getElementById(srcKind === 'parent' ? 'gigma-parent-preset-select' : 'gigma-child-preset-select');
         var srcId = (srcSelect && typeof srcSelect.value === 'string') ? srcSelect.value.trim() : '';
-        var srcStore = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(srcKind) || {}) : {};
+        var srcStore = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore(srcKind) || {}) : {};
         var srcSnap = (srcId && srcStore && srcStore[srcId]) ? srcStore[srcId] : null;
         var defaultName = (srcSnap && typeof srcSnap.name === 'string') ? srcSnap.name.trim() : '';
 
@@ -37248,9 +37196,9 @@ async function gigmaConvertActivePresetToOtherKind(fromKind){
             return;
         }
 
-        if (typeof gigmaGetPresetStore !== 'function' || typeof gigmaSetPresetStore !== 'function') return;
-        var presets = gigmaGetPresetStore(dstKind) || {};
-        var existingId = (typeof gigmaFindPresetIdByName === 'function') ? gigmaFindPresetIdByName(presets, desiredName) : null;
+        if (typeof gigmaGetLayoutPresetStore !== 'function' || typeof gigmaSetLayoutPresetStore !== 'function') return;
+        var presets = gigmaGetLayoutPresetStore(dstKind) || {};
+        var existingId = (typeof gigmaFindLayoutPresetIdByName === 'function') ? gigmaFindLayoutPresetIdByName(presets, desiredName) : null;
         var existedBeforeSave = !!(existingId && Object.prototype.hasOwnProperty.call(presets, existingId));
         var targetId = existingId || ((typeof gigmaGeneratePresetId === 'function') ? gigmaGeneratePresetId(presets) : null);
         if (!targetId) return;
@@ -37263,7 +37211,7 @@ async function gigmaConvertActivePresetToOtherKind(fromKind){
                 var safeName = String(desiredName).replace(/[&<>"']/g, function(ch){
                     return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch] || ch);
                 });
-                var overwrite = await popupApi2.show.confirm('Overwrite layout preset', 'Preset "<b>' + safeName + '</b>" already exists. Overwrite it?');
+                var overwrite = await popupApi2.show.confirm('Overwrite layout preset', 'Layout preset "<b>' + safeName + '</b>" already exists. Overwrite it?');
                 if (!overwrite) return;
             }catch(_eConf){ return; }
         }
@@ -37272,7 +37220,7 @@ async function gigmaConvertActivePresetToOtherKind(fromKind){
         snapshot.id = targetId;
         snapshot.name = desiredName;
         presets[targetId] = snapshot;
-        gigmaSetPresetStore(presets, dstKind);
+        gigmaSetLayoutPresetStore(presets, dstKind);
 
         try{
             if (dstKind === 'parent' && typeof gigmaUpdateChildrenUnchainedPositionsFromParentSnapshot === 'function') {
@@ -37280,10 +37228,10 @@ async function gigmaConvertActivePresetToOtherKind(fromKind){
             }
         }catch(_eProp){}
 
-        try{ if (typeof gigmaRefreshPresetSelect === 'function') gigmaRefreshPresetSelect(dstKind); }catch(_eRef){}
+        try{ if (typeof gigmaRefreshLayoutPresetSelect === 'function') gigmaRefreshLayoutPresetSelect(dstKind); }catch(_eRef){}
         try{ if (typeof gigmaSaveAllLorebookBudgetSettingsFromHeaders === 'function') gigmaSaveAllLorebookBudgetSettingsFromHeaders(dstKind, targetId); }catch(_eBud){}
-        try{ if (typeof gigmaSetLastPresetName === 'function') gigmaSetLastPresetName(targetId, dstKind); }catch(_eLast){}
-        try{ if (typeof gigmaShowPresetStatus === 'function') gigmaShowPresetStatus('Saved as ' + (dstKind === 'parent' ? 'parent' : 'child') + ' preset "' + desiredName + '".', 'success'); }catch(_eStat){}
+        try{ if (typeof gigmaSetLastLayoutPresetId === 'function') gigmaSetLastLayoutPresetId(targetId, dstKind); }catch(_eLast){}
+        try{ if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') gigmaShowScopedLayoutOrAssignmentPresetStatus('Saved as ' + (dstKind === 'parent' ? 'parent' : 'child') + ' preset "' + desiredName + '".', 'success'); }catch(_eStat){}
     }catch(_){ }
 }
 
@@ -37381,7 +37329,7 @@ function gigmaRemoveChildUrowTokensFromParent(parentId, childId){
         if (!pid || pid === 'decoupled') return;
         const cid = (typeof childId === 'string') ? childId.trim() : '';
         if (!cid) return;
-        const parentStore = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('parent') || {}) : {};
+        const parentStore = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('parent') || {}) : {};
         const parentPreset = (parentStore && Object.prototype.hasOwnProperty.call(parentStore, pid)) ? parentStore[pid] : null;
         if (!parentPreset || typeof parentPreset !== 'object') return;
         const childrenOrder = (parentPreset.childrenOrder && typeof parentPreset.childrenOrder === 'object') ? parentPreset.childrenOrder : null;
@@ -37397,7 +37345,7 @@ function gigmaRemoveChildUrowTokensFromParent(parentId, childId){
         if (!changed) return;
         parentPreset.childrenOrder = childrenOrder;
         parentStore[pid] = parentPreset;
-        if (typeof gigmaSetPresetStore === 'function') gigmaSetPresetStore(parentStore, 'parent');
+        if (typeof gigmaSetLayoutPresetStore === 'function') gigmaSetLayoutPresetStore(parentStore, 'parent');
     }catch(_){ }
 }
 
@@ -37407,7 +37355,7 @@ function gigmaPrepareChildSnapshotForInheritedOrderSave(snapshot){
         const parentId = (typeof snapshot.chatInheritOrderFromId === 'string') ? snapshot.chatInheritOrderFromId.trim() : '';
         if (!parentId || parentId === 'decoupled') return;
 
-        const parentStore = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('parent') || {}) : {};
+        const parentStore = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('parent') || {}) : {};
         const parentPreset = (parentStore && Object.prototype.hasOwnProperty.call(parentStore, parentId)) ? parentStore[parentId] : null;
         if (!parentPreset || typeof parentPreset !== 'object') return;
 
@@ -37541,7 +37489,7 @@ function gigmaPrepareChildSnapshotForInheritedOrderSave(snapshot){
             }
 
             parentStore[parentId] = parentPreset;
-            if (typeof gigmaSetPresetStore === 'function') gigmaSetPresetStore(parentStore, 'parent');
+            if (typeof gigmaSetLayoutPresetStore === 'function') gigmaSetLayoutPresetStore(parentStore, 'parent');
         }catch(_){ }
 
         delete snapshot.unchainedPositions;
@@ -37553,7 +37501,7 @@ function gigmaUpdateChildrenUnchainedPositionsFromParentSnapshot(parentSnapshot,
         if (!parentSnapshot || typeof parentSnapshot !== 'object') return;
         const pName = (parentName == null ? '' : String(parentName)).trim();
         if (!pName) return;
-        const childStore = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+        const childStore = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
         let changed = false;
         for (const childName of Object.keys(childStore || {})){
             const childPreset = childStore[childName];
@@ -37568,8 +37516,8 @@ function gigmaUpdateChildrenUnchainedPositionsFromParentSnapshot(parentSnapshot,
             }
             gigmaStripLayoutFieldsForInheritedChildSnapshot(childPreset);
         }
-        if (changed && typeof gigmaSetPresetStore === 'function') {
-            gigmaSetPresetStore(childStore, 'child');
+        if (changed && typeof gigmaSetLayoutPresetStore === 'function') {
+            gigmaSetLayoutPresetStore(childStore, 'child');
         }
     }catch(_){ }
 }
@@ -37592,7 +37540,7 @@ function gigmaSyncParentUnchainedLorebooksInParent(){
             refreshEmptyFolderPlaceholders();
         };
 
-        const kindBtn = document.getElementById('gigma-preset-kind-toggle');
+        const kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
         const isParent = !!(kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent');
         if (!isParent) {
             cleanupAndRefresh();
@@ -37613,7 +37561,7 @@ function gigmaSyncParentUnchainedLorebooksInParent(){
             return;
         }
 
-        const parentStore = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('parent') || {}) : {};
+        const parentStore = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('parent') || {}) : {};
         const parentPreset = (parentStore && Object.prototype.hasOwnProperty.call(parentStore, parentName)) ? parentStore[parentName] : null;
         const childrenOrder = (parentPreset && parentPreset.childrenOrder && typeof parentPreset.childrenOrder === 'object') ? parentPreset.childrenOrder : {};
 
@@ -37627,7 +37575,7 @@ function gigmaSyncParentUnchainedLorebooksInParent(){
             ? gigmaIsEditableUnchainedLorebooksEnabled('parent', 'order')
             : false;
 
-        const childStore = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+        const childStore = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
         const inheriting = Object.keys(childStore).filter((k) => {
             try{
                 const snap = childStore[k];
@@ -37814,7 +37762,7 @@ function gigmaListChildPresetsInheritingBudgetFromParent(parentPresetId){
     try{
         const parentId = (typeof parentPresetId === 'string') ? parentPresetId.trim() : '';
         if (!parentId) return out;
-        const childPresets = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+        const childPresets = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
         for (const id of Object.keys(childPresets || {})){
             const snap = childPresets[id];
             const v = (snap && typeof snap.budgetInheritFromId === 'string') ? snap.budgetInheritFromId.trim() : '';
@@ -37822,7 +37770,7 @@ function gigmaListChildPresetsInheritingBudgetFromParent(parentPresetId){
         }
     }catch(_){}
     try{
-        const childPresets = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+        const childPresets = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
         out.sort((a,b)=>{
             const an = (childPresets[a] && typeof childPresets[a].name === 'string') ? childPresets[a].name.trim() : '';
             const bn = (childPresets[b] && typeof childPresets[b].name === 'string') ? childPresets[b].name.trim() : '';
@@ -37837,10 +37785,10 @@ function gigmaListChildPresetsInheritingBudgetFromParent(parentPresetId){
  * the current parent preset has child presets inheriting budget from it.
  * Returns true when the section exists after this call.
  */
-function gigmaEnsureParentBudgetUnchainedSection(parentPresetName){
+function gigmaEnsureParentBudgetUnchainedSection(parentPresetId){
     try{
         if (typeof document === 'undefined') return false;
-        const parentName = (typeof parentPresetName === 'string') ? parentPresetName.trim() : '';
+        const parentName = (typeof parentPresetId === 'string') ? parentPresetId.trim() : '';
         const inheriting = gigmaListChildPresetsInheritingBudgetFromParent(parentName);
         const existing = gigmaGetParentBudgetUnchainedSection();
         if (!inheriting.length){
@@ -37920,7 +37868,7 @@ function gigmaRefreshParentBudgetUnchainedChildPresetOptions(parentPresetId, des
         let eligible = [];
         let childPresets = {};
         try{
-            childPresets = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+            childPresets = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
             eligible = Object.keys(childPresets || {}).filter((id) => {
                 const snap = childPresets[id];
                 const v = (snap && typeof snap.budgetInheritFromId === 'string') ? snap.budgetInheritFromId.trim() : '';
@@ -37985,10 +37933,10 @@ function gigmaUpdateParentBudgetUnchainedUiVisibility(){
     }catch(_){}
 }
 
-function gigmaInitParentBudgetUnchainedControls(parentPresetName){
+function gigmaInitParentBudgetUnchainedControls(parentPresetId){
     try{
         if (typeof document === 'undefined') return;
-        const parentName = (typeof parentPresetName === 'string') ? parentPresetName.trim() : '';
+        const parentName = (typeof parentPresetId === 'string') ? parentPresetId.trim() : '';
         if (!gigmaEnsureParentBudgetUnchainedSection(parentName)) return;
 
         const visSel = gigmaGetParentBudgetUnchainedVisibilitySelect();
@@ -38045,10 +37993,10 @@ function gigmaInitParentBudgetUnchainedControls(parentPresetName){
 
     }catch(_){}
 }
-function gigmaApplyParentBudgetUnchainedSettingsFromPreset(preset, parentPresetName){
+function gigmaApplyParentBudgetUnchainedSettingsFromPreset(preset, parentPresetId){
     try{
         if (!preset || typeof document === 'undefined') return;
-        const parentName = (typeof parentPresetName === 'string') ? parentPresetName.trim() : '';
+        const parentName = (typeof parentPresetId === 'string') ? parentPresetId.trim() : '';
         if (!gigmaEnsureParentBudgetUnchainedSection(parentName)) return;
         gigmaInitParentBudgetUnchainedControls(parentName);
 
@@ -38081,18 +38029,18 @@ function gigmaApplyParentBudgetUnchainedSettingsFromPreset(preset, parentPresetN
 
     }catch(_){}
 }
-function gigmaGetOrCreateParentBudgetUnchainedRow(worldId, worldName, childPresetName){
+function gigmaGetOrCreateParentBudgetUnchainedRow(worldId, worldName, childPresetId){
     try{
         if (typeof document === 'undefined') return null;
         const id = (worldId == null ? '' : String(worldId)).trim();
-        const child = (childPresetName == null ? '' : String(childPresetName)).trim();
+        const child = (childPresetId == null ? '' : String(childPresetId)).trim();
         if (!id || !child) return null;
         if (!window.__gigmaParentBudgetUnchainedRowByKey) window.__gigmaParentBudgetUnchainedRowByKey = {};
         const key = child + '|' + id;
         let el = window.__gigmaParentBudgetUnchainedRowByKey[key];
         if (el && el.isConnected) {
             try{
-                const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+                const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
                 const p = store && store[child];
                 const childShort = (p && typeof p.name === 'string') ? p.name.trim().slice(0, 15) : '';
                 const label = el.querySelector('.gigma-row-label');
@@ -38130,7 +38078,7 @@ function gigmaGetOrCreateParentBudgetUnchainedRow(worldId, worldName, childPrese
 
         // Label: show unchained icon + usage icons + bound-owner tag.
         try{
-            const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+            const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
             const p = store && store[child];
             const childShort = (p && typeof p.name === 'string') ? p.name.trim().slice(0, 15) : '';
             const label = el.querySelector('.gigma-row-label');
@@ -38156,7 +38104,7 @@ function gigmaSyncParentBudgetUnchainedLorebooksInParent(){
             }catch(_){ }
         };
 
-        const kindBtn = document.getElementById('gigma-preset-kind-toggle');
+        const kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
         const isParent = !!(kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent');
         if (!isParent) { cleanup(); return; }
         if (!gigmaIsBudgetModeActive()) { cleanup(); return; }
@@ -38175,7 +38123,7 @@ function gigmaSyncParentBudgetUnchainedLorebooksInParent(){
             ? gigmaIsEditableUnchainedLorebooksEnabled('parent', 'budget')
             : false;
 
-        const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+        const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
         const inheriting = gigmaListChildPresetsInheritingBudgetFromParent(parentName);
 
         const existing = new Map();
@@ -38306,17 +38254,17 @@ function gigmaSyncParentBudgetUnchainedLorebooksInParent(){
 function gigmaUpdateInheritAreaVisibility(){
     try{
         if (typeof document === 'undefined') return;
-        const kindBtn = document.getElementById('gigma-preset-kind-toggle');
+        const kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
         const kind = (kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') ? 'parent' : 'child';
-        const isMaster = (kind === 'parent');
+        const isParentPresetKind = (kind === 'parent');
         const inBudget = gigmaIsBudgetModeActive();
         const childWrap = document.getElementById('gigma-inherit-child');
         const parentWrap = document.getElementById('gigma-inherit-parent');
-        if (childWrap) childWrap.style.display = isMaster ? 'none' : 'flex';
-        if (parentWrap) parentWrap.style.display = (isMaster && !inBudget) ? 'flex' : 'none';
+        if (childWrap) childWrap.style.display = isParentPresetKind ? 'none' : 'flex';
+        if (parentWrap) parentWrap.style.display = (isParentPresetKind && !inBudget) ? 'flex' : 'none';
         // Budget-mode Parent presets: show a separate "unchained lorebooks" section (created only when needed).
         try{
-            if (isMaster && inBudget){
+            if (isParentPresetKind && inBudget){
                 const pName = (function(){
                     try{
                         const s = document.getElementById('gigma-parent-preset-select');
@@ -38332,7 +38280,7 @@ function gigmaUpdateInheritAreaVisibility(){
             }
         }catch(_){ }
         // Make sure Parent controls exist + options are correct when Parent preset is active.
-        if (isMaster) {
+        if (isParentPresetKind) {
             try{ gigmaInitParentUnchainedControls(); }catch(_){}
             try{
                 if (inBudget){
@@ -38383,13 +38331,13 @@ function gigmaInsertSoftHyphens(str) {
     }
 }
 
-function gigmaPresetTreeBudgetPreviewPlaceholderHtml(mode, rawVal, worldId, worldName){
+function gigmaLayoutPresetTreeBudgetPreviewPlaceholderHtml(mode, rawVal, worldId, worldName){
     var m = mode || 'default';
     if (!gigmaIsPercentageBudgetMode(m)) return '';
-    return '<span class="gigma-preset-tree-budget-pill gigma-budget-preview-pill" data-gigma-budget-mode="' + gigmaEscapeHtml(String(m)) + '" data-gigma-budget-value="' + gigmaEscapeHtml(String(rawVal || 0)) + '" data-world-id="' + gigmaEscapeHtml(String(worldId || '')) + '" data-world-name="' + gigmaEscapeHtml(String(worldName || '')) + '" style="display:none;" aria-label="Budget preview"></span>';
+    return '<span class="gigma-layout-preset-tree-budget-pill gigma-budget-preview-pill" data-gigma-budget-mode="' + gigmaEscapeHtml(String(m)) + '" data-gigma-budget-value="' + gigmaEscapeHtml(String(rawVal || 0)) + '" data-world-id="' + gigmaEscapeHtml(String(worldId || '')) + '" data-world-name="' + gigmaEscapeHtml(String(worldName || '')) + '" style="display:none;" aria-label="Budget preview"></span>';
 }
 
-function gigmaPresetTreeBudgetPillHtml(mode, rawVal, label, randomTrim, worldId, worldName){
+function gigmaLayoutPresetTreeBudgetPillHtml(mode, rawVal, label, randomTrim, worldId, worldName){
     // Used by the preset preview tree (including injected parent budget rows).
     var m = mode || 'default';
     var v = (typeof rawVal === 'number' && Number.isFinite(rawVal)) ? rawVal : gigmaParseBudgetValueForMode(m, rawVal);
@@ -38450,14 +38398,14 @@ function gigmaPresetTreeBudgetPillHtml(mode, rawVal, label, randomTrim, worldId,
         cls = 'gigma-budget-fixed';
     }
 
-    if (!text) return '<span class="gigma-preset-tree-budget"></span>';
+    if (!text) return '<span class="gigma-layout-preset-tree-budget"></span>';
     var r = (randomTrim && m !== 'default' && m !== 'off')
-        ? '<span class="gigma-preset-tree-budget-pill gigma-budget-random-pill" title="Random">R</span>'
+        ? '<span class="gigma-layout-preset-tree-budget-pill gigma-budget-random-pill" title="Random">R</span>'
         : '';
-    return '<span class="gigma-preset-tree-budget">' + r + gigmaPresetTreeBudgetPreviewPlaceholderHtml(m, rawVal, worldId, worldName) + '<span class="gigma-preset-tree-budget-pill' + (cls ? (' ' + cls) : '') + '" title="' + gigmaEscapeHtml(String(title || '')) + '">' + gigmaEscapeHtml(String(text || '')) + '</span></span>';
+    return '<span class="gigma-layout-preset-tree-budget">' + r + gigmaLayoutPresetTreeBudgetPreviewPlaceholderHtml(m, rawVal, worldId, worldName) + '<span class="gigma-layout-preset-tree-budget-pill' + (cls ? (' ' + cls) : '') + '" title="' + gigmaEscapeHtml(String(title || '')) + '">' + gigmaEscapeHtml(String(text || '')) + '</span></span>';
 }
 
-function gigmaPresetTreeBudgetBadgeHtml(worldId){
+function gigmaLayoutPresetTreeBudgetBadgeHtml(worldId){
     var mode = 'default';
     var rawVal = 0;
     var label = '';
@@ -38466,7 +38414,7 @@ function gigmaPresetTreeBudgetBadgeHtml(worldId){
 
     try{
         var origin = '';
-        try{ origin = window.__gigmaLastPresetTreeOrigin || ''; }catch(_eOrigin){ origin = ''; }
+        try{ origin = window.__gigmaLastLayoutPresetTreeOrigin || ''; }catch(_eOrigin){ origin = ''; }
 
         // Prefer the current ordering-modal row state when the preview comes from the modal.
         if (origin !== 'drawer' && typeof document !== 'undefined' && worldId != null) {
@@ -38533,10 +38481,10 @@ function gigmaPresetTreeBudgetBadgeHtml(worldId){
         }
     }catch(_e){}
 
-    return gigmaPresetTreeBudgetPillHtml(mode, rawVal, label, randomTrim, worldId, gigmaResolveLorebookNameById(worldId, ''));
+    return gigmaLayoutPresetTreeBudgetPillHtml(mode, rawVal, label, randomTrim, worldId, gigmaResolveLorebookNameById(worldId, ''));
 }
 
-function gigmaRefreshPresetTreeBudgetPreviewFields(rootEl) {
+function gigmaRefreshLayoutPresetTreeBudgetPreviewFields(rootEl) {
     try {
         if (!rootEl || !rootEl.querySelectorAll) return;
         var els = rootEl.querySelectorAll('.gigma-budget-preview-pill[data-gigma-budget-mode]');
@@ -38548,14 +38496,14 @@ function gigmaRefreshPresetTreeBudgetPreviewFields(rootEl) {
                 var worldName = el.getAttribute('data-world-name') || '';
                 var resolvedName = gigmaResolveLorebookNameById(worldId, worldName);
                 gigmaRefreshBudgetPreviewDisplay(el, mode, rawVal, resolvedName, { includeUnitInText: true });
-            } catch (_ePresetTreeBudgetPreviewOne) {}
+            } catch (_eLayoutPresetTreeBudgetPreviewOne) {}
         });
-    } catch (_ePresetTreeBudgetPreview) {}
+    } catch (_eLayoutPresetTreeBudgetPreview) {}
 }
 
-function gigmaRenderPresetTree(rootNode) {
+function gigmaRenderLayoutPresetTree(rootNode) {
     if (!rootNode || !Array.isArray(rootNode.children)) {
-        return '<div class="gigma-preset-tree gigma-preset-tree-empty">No layout data available.</div>';
+        return '<div class="gigma-layout-preset-tree gigma-layout-preset-tree-empty">No layout data available.</div>';
     }
     var gigmaPreviewRowNumber = 0;
     function renderNode(node) {
@@ -38577,19 +38525,19 @@ function gigmaRenderPresetTree(rootNode) {
             }
             var extraClasses = '';
             if (node.unsorted) {
-                extraClasses = ' gigma-preset-tree-folder-unsorted';
+                extraClasses = ' gigma-layout-preset-tree-folder-unsorted';
             }
             if (node.collapsed) {
-                extraClasses += ' gigma-preset-tree-folder-collapsed';
+                extraClasses += ' gigma-layout-preset-tree-folder-collapsed';
             }
             if (isEmpty) {
-                extraClasses += ' gigma-preset-tree-folder-empty';
+                extraClasses += ' gigma-layout-preset-tree-folder-empty';
             }
             var labelHtml = safeLabel + (isEmpty ? ' (empty)' : '');
-            return '<li class="gigma-preset-tree-folder' + extraClasses + '" data-folder-id="' + gigmaEscapeHtml(String(node.id || '')) + '">' +
-                '<span class="gigma-preset-tree-budget"></span>' +
-                '<span class="gigma-preset-tree-icon">' + icon + '</span>' +
-                '<span class="gigma-preset-tree-label">' + labelHtml + '</span>' +
+            return '<li class="gigma-layout-preset-tree-folder' + extraClasses + '" data-folder-id="' + gigmaEscapeHtml(String(node.id || '')) + '">' +
+                '<span class="gigma-layout-preset-tree-budget"></span>' +
+                '<span class="gigma-layout-preset-tree-icon">' + icon + '</span>' +
+                '<span class="gigma-layout-preset-tree-label">' + labelHtml + '</span>' +
                 childrenHtml +
                 '</li>';
         } else if (node.type === 'row') {
@@ -38626,28 +38574,28 @@ try{
         dataAttrs += ' data-gigma-unchained-budget="' + (node.unchainedBudget ? '1' : '0') + '"';
     }
 }catch(_eRowModeAttrs){}
-var rowCls = 'gigma-preset-tree-row';
+var rowCls = 'gigma-layout-preset-tree-row';
             try{
-                if (node && node.unchained) rowCls += ' gigma-preset-tree-row-unchained';
-                else rowCls += ' gigma-preset-tree-row-chained';
-                if (node && node.unchainedSelected) rowCls += ' gigma-preset-tree-row-unchained-selected';
-                if (node && node.modeOnly === 'order') rowCls += ' gigma-preset-tree-row-orderonly';
-                if (node && node.modeOnly === 'budget') rowCls += ' gigma-preset-tree-row-budgetonly';
+                if (node && node.unchained) rowCls += ' gigma-layout-preset-tree-row-unchained';
+                else rowCls += ' gigma-layout-preset-tree-row-chained';
+                if (node && node.unchainedSelected) rowCls += ' gigma-layout-preset-tree-row-unchained-selected';
+                if (node && node.modeOnly === 'order') rowCls += ' gigma-layout-preset-tree-row-orderonly';
+                if (node && node.modeOnly === 'budget') rowCls += ' gigma-layout-preset-tree-row-budgetonly';
             }catch(_eRowCls){}
             var iconHtml = (node && node.unchained) ? ('<i class="fa-solid fa-link-slash"></i>' + __gigmaUsageIconsHtml(flags)) : '<i class="fa-solid fa-file-lines"></i>';
-            var budgetSpan = '<span class="gigma-preset-tree-budget"></span>';
+            var budgetSpan = '<span class="gigma-layout-preset-tree-budget"></span>';
             try{
                 if (node && typeof node.budgetMode === 'string') {
-                    budgetSpan = gigmaPresetTreeBudgetPillHtml(node.budgetMode, (typeof node.budgetValue === 'number' ? node.budgetValue : gigmaParseBudgetValueForMode(node.budgetMode, node.budgetValue || '0')), node.budgetLabel || '', false, node.worldId || '', nameRaw || '');
+                    budgetSpan = gigmaLayoutPresetTreeBudgetPillHtml(node.budgetMode, (typeof node.budgetValue === 'number' ? node.budgetValue : gigmaParseBudgetValueForMode(node.budgetMode, node.budgetValue || '0')), node.budgetLabel || '', false, node.worldId || '', nameRaw || '');
                 } else if (!isPlaceholder && node && node.worldId){
-                    budgetSpan = gigmaPresetTreeBudgetBadgeHtml(node.worldId);
+                    budgetSpan = gigmaLayoutPresetTreeBudgetBadgeHtml(node.worldId);
                 }
             }catch(_eBud){}
 
             var originHtml = '';
             try{
                 if (rootNode && rootNode.presetKind === 'parent' && node && node.unchainedChildName){
-                    originHtml = ' <span class="gigma-preset-tree-unchained-origin">' + gigmaEscapeHtml(String((((typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {})[String(node.unchainedChildName || '')] || {}).name || node.unchainedChildName)) + '</span>';
+                    originHtml = ' <span class="gigma-layout-preset-tree-unchained-origin">' + gigmaEscapeHtml(String((((typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {})[String(node.unchainedChildName || '')] || {}).name || node.unchainedChildName)) + '</span>';
                 }
             }catch(_eOrigin){}
             var boundHtml = '';
@@ -38670,14 +38618,14 @@ var rowCls = 'gigma-preset-tree-row';
                         cls = 'gigma-persona-world-icon';
                     }
                     if (bn && fa) {
-                        boundHtml = ' <span class="gigma-preset-tree-unchained-origin"><i class="fa-solid ' + fa + ' gigma-active-world-globe ' + cls + '" aria-hidden="true"></i>' + gigmaEscapeHtml(String(bn).slice(0, 15)) + '</span>';
+                        boundHtml = ' <span class="gigma-layout-preset-tree-unchained-origin"><i class="fa-solid ' + fa + ' gigma-active-world-globe ' + cls + '" aria-hidden="true"></i>' + gigmaEscapeHtml(String(bn).slice(0, 15)) + '</span>';
                     }
                 }
             }catch(_eBound){}
 return '<li class="' + rowCls + '"' + dataAttrs + '>' +
                 budgetSpan +
-                '<span class="gigma-preset-tree-icon">' + iconHtml + '</span>' +
-                '<span class="gigma-preset-tree-label">' + safeName + originHtml + boundHtml + '</span>' +
+                '<span class="gigma-layout-preset-tree-icon">' + iconHtml + '</span>' +
+                '<span class="gigma-layout-preset-tree-label">' + safeName + originHtml + boundHtml + '</span>' +
                 '</li>';
         }
         return '';
@@ -38686,17 +38634,17 @@ return '<li class="' + rowCls + '"' + dataAttrs + '>' +
     if (rootNode.children.length) {
         bodyHtml = '<ul>' + rootNode.children.map(renderNode).join('') + '</ul>';
     } else {
-        bodyHtml = '<div class="gigma-preset-tree-empty">This preset does not contain any lorebooks yet.</div>';
+        bodyHtml = '<div class="gigma-layout-preset-tree-empty">This preset does not contain any lorebooks yet.</div>';
     }
     return '' +
-        '<div class="gigma-preset-tree">' +
+        '<div class="gigma-layout-preset-tree">' +
         bodyHtml +
         '</div>';
 }
-function gigmaBuildPresetTreeHtml(preset, opts) {
+function gigmaBuildLayoutPresetTreeHtml(preset, opts) {
     try {
         if (!preset || typeof preset !== 'object') {
-            return '<div class="gigma-preset-tree gigma-preset-tree-empty">No layout data available.</div>';
+            return '<div class="gigma-layout-preset-tree gigma-layout-preset-tree-empty">No layout data available.</div>';
         }
         // Initialize world ID maps from globals or stored map.
         if (!window.gigmaWorldIdByName) {
@@ -38719,8 +38667,8 @@ function gigmaBuildPresetTreeHtml(preset, opts) {
         try {
             if (typeof gigmaBuildEffectivePresetForTree === 'function') {
                 var effName = '';
-                if (kind === 'parent' && opts && typeof opts.parentPresetName === 'string') {
-                    effName = opts.parentPresetName.trim();
+                if (kind === 'parent' && opts && typeof opts.parentPresetId === 'string') {
+                    effName = opts.parentPresetId.trim();
                 }
                 var needEffective = (kind === 'parent');
                 if (kind === 'child') {
@@ -38732,7 +38680,7 @@ function gigmaBuildPresetTreeHtml(preset, opts) {
                     preset = gigmaBuildEffectivePresetForTree(kind, effName, preset) || preset;
                 }
             }
-        } catch (_eEffPresetTree) {}
+        } catch (_eEffLayoutPresetTree) {}
 
         var parentSelectedChildPresets = new Set();
         var parentSelectedChildPresetsBudget = new Set();
@@ -39038,8 +38986,8 @@ function makeRowNodeFromToken(token) {
             try {
                 var parentName = '';
                 try {
-                    if (opts && typeof opts.parentPresetName === 'string') {
-                        parentName = (opts.parentPresetName || '').trim();
+                    if (opts && typeof opts.parentPresetId === 'string') {
+                        parentName = (opts.parentPresetId || '').trim();
                     }
                 } catch (_ePN) { parentName = ''; }
                 if (!parentName) {
@@ -39056,7 +39004,7 @@ function makeRowNodeFromToken(token) {
                     }
                 } catch (_eInh) { inheritingBudget = []; }
                 if (Array.isArray(inheritingBudget) && inheritingBudget.length) {
-                    var childStore = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+                    var childStore = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
                     var insertedBudget = new Set();
                     for (var bi = 0; bi < inheritingBudget.length; bi++) {
                         var childName = (inheritingBudget[bi] == null ? '' : String(inheritingBudget[bi])).trim();
@@ -39161,10 +39109,10 @@ function makeRowNodeFromToken(token) {
                 rootNode.children.push(node);
             }
         });
-        return gigmaRenderPresetTree(rootNode);
+        return gigmaRenderLayoutPresetTree(rootNode);
     } catch (e) {
-        console.warn('GIGMA: failed to build preset tree HTML', e);
-        return '<div class="gigma-preset-tree gigma-preset-tree-empty">Error while building preset tree.</div>';
+        console.warn('GIGMA: failed to build layout preset tree HTML', e);
+        return '<div class="gigma-layout-preset-tree gigma-layout-preset-tree-empty">Error while building layout preset tree.</div>';
     }
 }
 
@@ -39188,7 +39136,7 @@ function gigmaBuildEffectivePresetForTree(kind, presetName, preset) {
             parentName = '';
         }
         if (!parentName || parentName === 'decoupled') return preset;
-        var parentStore = (typeof gigmaGetPresetStore === 'function') ? gigmaGetPresetStore('parent') : {};
+        var parentStore = (typeof gigmaGetLayoutPresetStore === 'function') ? gigmaGetLayoutPresetStore('parent') : {};
         if (!parentStore || typeof parentStore !== 'object') parentStore = {};
         var parentPreset = Object.prototype.hasOwnProperty.call(parentStore, parentName) ? parentStore[parentName] : null;
         if (!parentPreset || typeof parentPreset !== 'object') return preset;
@@ -39343,10 +39291,10 @@ function gigmaBuildEffectivePresetForTree(kind, presetName, preset) {
     }
 }
 
-async function gigmaShowLastPresetTreePopup() {
+async function gigmaShowLastLayoutPresetTreePopup() {
     var __gigmaModalLeftAnchorForPreview = null;
     try{
-        if (typeof window !== 'undefined' && window && window.__gigmaLastPresetTreeOrigin === 'modal' && typeof gigmaCaptureLeftPaneScrollAnchor === 'function'){
+        if (typeof window !== 'undefined' && window && window.__gigmaLastLayoutPresetTreeOrigin === 'modal' && typeof gigmaCaptureLeftPaneScrollAnchor === 'function'){
             __gigmaModalLeftAnchorForPreview = gigmaCaptureLeftPaneScrollAnchor();
         }
     }catch(_){ }
@@ -39354,14 +39302,14 @@ async function gigmaShowLastPresetTreePopup() {
     try {
         // Reset any previous lorebook selection so only clicks
         // in this preview session are applied on close.
-        try { window.__gigmaLastPresetTreeSelection = null; } catch (_eResetSel) {}
+        try { window.__gigmaLastLayoutPresetTreeSelection = null; } catch (_eResetSel) {}
         // Determine which preset kind (child vs parent) to show.
         // Prefer the same helper used by lorebook settings so the
         // drawer and ordering modal stay consistent.
         var kind = 'child';
         try {
-            if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-                var detected = gigmaGetActivePresetKindForLorebookSettings();
+            if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+                var detected = gigmaGetActiveLayoutPresetKindForLorebookSettings();
                 if (detected === 'parent' || detected === 'child') {
                     kind = detected;
                 }
@@ -39372,8 +39320,8 @@ async function gigmaShowLastPresetTreePopup() {
         try {
             // If the preview was opened from the lorebook drawer, use the drawer's kind toggle
             // so the preview matches what the user currently selected there.
-            if (typeof window !== 'undefined' && window && window.__gigmaLastPresetTreeOrigin === 'drawer') {
-                var _drawerKindBtn = document.getElementById('gigma-lorebook-drawer-preset-kind-toggle');
+            if (typeof window !== 'undefined' && window && window.__gigmaLastLayoutPresetTreeOrigin === 'drawer') {
+                var _drawerKindBtn = document.getElementById('gigma-lorebook-drawer-layout-preset-kind-toggle');
                 var _dk = (_drawerKindBtn && _drawerKindBtn.dataset) ? _drawerKindBtn.dataset.gigmaPresetKind : null;
                 if (_dk === 'parent' || _dk === 'child') {
                     kind = _dk;
@@ -39396,12 +39344,12 @@ async function gigmaShowLastPresetTreePopup() {
             snapshot = null;
         }
         try {
-            // Drawer preview must reflect the currently selected preset (and not a stale modal layout snapshot).
-            if (typeof window !== 'undefined' && window && window.__gigmaLastPresetTreeOrigin === 'drawer') {
+            // Drawer preview must reflect the currently selected layout preset (and not a stale modal layout snapshot).
+            if (typeof window !== 'undefined' && window && window.__gigmaLastLayoutPresetTreeOrigin === 'drawer') {
                 var _drawerSel = document.getElementById('gigma-lorebook-drawer-preset-select');
                 var _presetId = (_drawerSel && typeof _drawerSel.value === 'string') ? _drawerSel.value.trim() : '';
-                if (_presetId && typeof gigmaGetPresetStore === 'function') {
-                    var _store = gigmaGetPresetStore(kind) || {};
+                if (_presetId && typeof gigmaGetLayoutPresetStore === 'function') {
+                    var _store = gigmaGetLayoutPresetStore(kind) || {};
                     var _snap = _store && _store[_presetId];
                     if (_snap && typeof _snap === 'object') snapshot = _snap;
                 }
@@ -39416,12 +39364,12 @@ async function gigmaShowLastPresetTreePopup() {
             var __gigmaPreviewDimChained = (__gigmaPreviewModalDim && (__gigmaPreviewModalDim.dimChained === '1' || __gigmaPreviewModalDim.dimChained === '0')) ? __gigmaPreviewModalDim.dimChained : '0';
             var __gigmaPreviewDimUnchained = (__gigmaPreviewModalDim && (__gigmaPreviewModalDim.dimUnchained === '1' || __gigmaPreviewModalDim.dimUnchained === '0')) ? __gigmaPreviewModalDim.dimUnchained : ((kind === 'parent') ? '1' : '0');
             html =
-                '<div id="gigma-preset-tree-preview-root" data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained + '" data-dim-unchained="' + __gigmaPreviewDimUnchained + '" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="' + __gigmaPreviewDimChained + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-                '<div class="gigma-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-                '<div class="gigma-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(kindLabel) + '</div>' +
-                '<div class="gigma-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
+                '<div id="gigma-layout-preset-tree-preview-root" data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained + '" data-dim-unchained="' + __gigmaPreviewDimUnchained + '" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="' + __gigmaPreviewDimChained + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
+                '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
+                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(kindLabel) + '</div>' +
+                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
                 '</div>' +
-                '<button id="gigma-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
+                '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
                 '</div>' +
                 '<div style="opacity:0.85; padding:0.5em;">' +
                 '<p style="margin:0;">No current modal layout found. Open the Giglio Machine modal to preview its current state.</p>' +
@@ -39432,7 +39380,7 @@ async function gigmaShowLastPresetTreePopup() {
             var desiredViewMode = 'order';
             try{
                 var originVM = '';
-                try{ originVM = window.__gigmaLastPresetTreeOrigin || ''; }catch(_){ originVM = ''; }
+                try{ originVM = window.__gigmaLastLayoutPresetTreeOrigin || ''; }catch(_){ originVM = ''; }
                 if (originVM === 'drawer'){
                     desiredViewMode = 'budget';
                 } else {
@@ -39457,19 +39405,19 @@ async function gigmaShowLastPresetTreePopup() {
             var __gigmaPreviewDimChained2 = (__gigmaPreviewModalDim2 && (__gigmaPreviewModalDim2.dimChained === '1' || __gigmaPreviewModalDim2.dimChained === '0')) ? __gigmaPreviewModalDim2.dimChained : '0';
             var __gigmaPreviewDimUnchained2 = (__gigmaPreviewModalDim2 && (__gigmaPreviewModalDim2.dimUnchained === '1' || __gigmaPreviewModalDim2.dimUnchained === '0')) ? __gigmaPreviewModalDim2.dimUnchained : ((kind === 'parent') ? '1' : '0');
 
-            // Keep the same header text as the legacy preview: show the active preset label + name.
+            // Keep the same header text as the legacy preview: show the active layout preset label + name.
             var presetNameForHeader = null;
             try {
-                if (typeof gigmaGetActivePresetNameForLorebookSettings === 'function') {
-                    presetNameForHeader = gigmaGetActivePresetNameForLorebookSettings(kind);
+                if (typeof gigmaGetActiveLayoutPresetIdForLorebookSettings === 'function') {
+                    presetNameForHeader = gigmaGetActiveLayoutPresetIdForLorebookSettings(kind);
                 }
             } catch (_eHdrName) {
                 presetNameForHeader = null;
             }
             if (!presetNameForHeader) {
                 try {
-                    if (typeof gigmaGetLastPresetName === 'function') {
-                        presetNameForHeader = gigmaGetLastPresetName(kind);
+                    if (typeof gigmaGetLastLayoutPresetId === 'function') {
+                        presetNameForHeader = gigmaGetLastLayoutPresetId(kind);
                     }
                 } catch (_eHdrName2) {
                     presetNameForHeader = null;
@@ -39478,7 +39426,7 @@ async function gigmaShowLastPresetTreePopup() {
             var presetDisplayForHeader = presetNameForHeader;
             try {
                 if (presetDisplayForHeader) {
-                    var storeForHeader = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(kind) || {}) : {};
+                    var storeForHeader = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore(kind) || {}) : {};
                     var snapForHeader = storeForHeader ? storeForHeader[presetDisplayForHeader] : null;
                     var nmForHeader = (snapForHeader && typeof snapForHeader.name === 'string') ? snapForHeader.name.trim() : '';
                     if (nmForHeader) presetDisplayForHeader = nmForHeader;
@@ -39493,19 +39441,19 @@ async function gigmaShowLastPresetTreePopup() {
             } catch (_eHdrSoft) {}
             var headerLabel = presetNameForHeader ? (kindLabel + ' ' + presetDisplayForHeader) : kindLabel;
 
-            var body = gigmaBuildPresetTreeHtml(snapshot, { kind: kind, viewMode: desiredViewMode, parentPresetName: (kind === 'parent' ? presetNameForHeader : null) });
+            var body = gigmaBuildLayoutPresetTreeHtml(snapshot, { kind: kind, viewMode: desiredViewMode, parentPresetId: (kind === 'parent' ? presetNameForHeader : null) });
             html =
-                '<div id="gigma-preset-tree-preview-root"' + (desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained2 + '" data-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" data-default-viewmode="' + gigmaEscapeHtml(desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="' + __gigmaPreviewDimChained2 + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-                '<div class="gigma-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-                '<div class="gigma-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(headerLabel) + '</div>' +
-                '<div class="gigma-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
-                '<button id="gigma-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
-                '<button id="gigma-preset-tree-expand-all" class="menu_button gigma-icon-btn" type="button" title="Expand all folders" aria-label="Expand all folders">▼</button>' +
-                '<button id="gigma-preset-tree-collapse-all" class="menu_button gigma-icon-btn" type="button" title="Collapse all folders" aria-label="Collapse all folders">▲</button>' +
-                '<button id="gigma-preset-tree-restore-folders" class="menu_button gigma-icon-btn" type="button" title="Restore folder states" aria-label="Restore folder states">⟲</button>' +
-                '<button id="gigma-preset-tree-viewmode-toggle" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" aria-pressed="' + (desiredViewMode === 'budget' ? 'true' : 'false') + '" title="Toggle Order/Budget view">' + (desiredViewMode === 'budget' ? 'Budget' : 'Order') + '</button>' +
+                '<div id="gigma-layout-preset-tree-preview-root"' + (desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained2 + '" data-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" data-default-viewmode="' + gigmaEscapeHtml(desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="' + __gigmaPreviewDimChained2 + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
+                '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
+                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(headerLabel) + '</div>' +
+                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
+                '<button id="gigma-layout-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-layout-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-layout-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-layout-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-layout-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
+                '<button id="gigma-layout-preset-tree-expand-all" class="menu_button gigma-icon-btn" type="button" title="Expand all folders" aria-label="Expand all folders">▼</button>' +
+                '<button id="gigma-layout-preset-tree-collapse-all" class="menu_button gigma-icon-btn" type="button" title="Collapse all folders" aria-label="Collapse all folders">▲</button>' +
+                '<button id="gigma-layout-preset-tree-restore-folders" class="menu_button gigma-icon-btn" type="button" title="Restore folder states" aria-label="Restore folder states">⟲</button>' +
+                '<button id="gigma-layout-preset-tree-viewmode-toggle" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" aria-pressed="' + (desiredViewMode === 'budget' ? 'true' : 'false') + '" title="Toggle Order/Budget view">' + (desiredViewMode === 'budget' ? 'Budget' : 'Order') + '</button>' +
                 '</div>' +
-                '<button id="gigma-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
+                '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
                 '</div>' +
                 body +
                 '<div id="gigma-global-wi-stats-display-preview" class="gigma-global-wi-stats-display"></div>' +
@@ -39523,12 +39471,12 @@ async function gigmaShowLastPresetTreePopup() {
                     cancelButton: true,
                     allowVerticalScrolling: true
                 });
-                requestAnimationFrame(function(){ try{ var __prs = document.querySelectorAll('#gigma-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr){ try{ if (typeof window.gigmaLoadPresetTreePreviewButtonState === 'function') window.gigmaLoadPresetTreePreviewButtonState(__pr); }catch(_){ } try{ if (typeof window.gigmaInstallPresetTreePreviewCloseHook === 'function') window.gigmaInstallPresetTreePreviewCloseHook(__pr); }catch(_){ } } }catch(_){ } try{ if (typeof window.gigmaInitPresetTreeChainedToggle === 'function') window.gigmaInitPresetTreeChainedToggle();
-                try{ if (typeof window.gigmaInitPresetTreeUnchainedToggle === 'function') window.gigmaInitPresetTreeUnchainedToggle(); }catch(_){ }                 try{ if (typeof window.gigmaInitPresetTreeDimToggles === 'function') window.gigmaInitPresetTreeDimToggles(); }catch(_){ } }catch(_){ } try{ if (typeof window.gigmaInitPresetTreeViewMode === 'function') window.gigmaInitPresetTreeViewMode(); }catch(_){ } try{ if (typeof window.gigmaInitPresetTreePreviewLorebookStatsUi === 'function') window.gigmaInitPresetTreePreviewLorebookStatsUi(); }catch(_){ }  try{ var __prsPreview = document.querySelectorAll('#gigma-preset-tree-preview-root'); var __prPreview = (__prsPreview && __prsPreview.length) ? __prsPreview[__prsPreview.length - 1] : null; if (__prPreview && typeof gigmaRefreshPresetTreeBudgetPreviewFields === 'function') gigmaRefreshPresetTreeBudgetPreviewFields(__prPreview); }catch(_){ }  try{ var __prs = document.querySelectorAll('#gigma-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr && typeof window.gigmaCapturePresetTreeFolderDefaults === 'function') window.gigmaCapturePresetTreeFolderDefaults(__pr); }catch(_){ }  try{ if (__gigmaModalLeftAnchorForPreview){ var _prs = document.querySelectorAll('#gigma-preset-tree-preview-root'); var _pr = (_prs && _prs.length) ? _prs[_prs.length - 1] : null; if (_pr && typeof gigmaRestorePresetTreePreviewScrollAnchor === 'function'){ var _k = __gigmaModalLeftAnchorForPreview.key; var _key = null; if (_k && _k.indexOf('r:') === 0) _key = 'row:' + _k.slice(2); else if (_k && _k.indexOf('f:') === 0) _key = 'folder:' + _k.slice(2); if (_key) gigmaRestorePresetTreePreviewScrollAnchor({ key: _key, pct: __gigmaModalLeftAnchorForPreview.pct }, _pr); } } }catch(_){ }});
+                requestAnimationFrame(function(){ try{ var __prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr){ try{ if (typeof window.gigmaLoadLayoutPresetTreePreviewButtonState === 'function') window.gigmaLoadLayoutPresetTreePreviewButtonState(__pr); }catch(_){ } try{ if (typeof window.gigmaInstallLayoutPresetTreePreviewCloseHook === 'function') window.gigmaInstallLayoutPresetTreePreviewCloseHook(__pr); }catch(_){ } } }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreeChainedToggle === 'function') window.gigmaInitLayoutPresetTreeChainedToggle();
+                try{ if (typeof window.gigmaInitLayoutPresetTreeUnchainedToggle === 'function') window.gigmaInitLayoutPresetTreeUnchainedToggle(); }catch(_){ }                 try{ if (typeof window.gigmaInitLayoutPresetTreeDimToggles === 'function') window.gigmaInitLayoutPresetTreeDimToggles(); }catch(_){ } }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreeViewMode === 'function') window.gigmaInitLayoutPresetTreeViewMode(); }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreePreviewLorebookStatsUi === 'function') window.gigmaInitLayoutPresetTreePreviewLorebookStatsUi(); }catch(_){ }  try{ var __prsPreview = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __prPreview = (__prsPreview && __prsPreview.length) ? __prsPreview[__prsPreview.length - 1] : null; if (__prPreview && typeof gigmaRefreshLayoutPresetTreeBudgetPreviewFields === 'function') gigmaRefreshLayoutPresetTreeBudgetPreviewFields(__prPreview); }catch(_){ }  try{ var __prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr && typeof window.gigmaCaptureLayoutPresetTreeFolderDefaults === 'function') window.gigmaCaptureLayoutPresetTreeFolderDefaults(__pr); }catch(_){ }  try{ if (__gigmaModalLeftAnchorForPreview){ var _prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var _pr = (_prs && _prs.length) ? _prs[_prs.length - 1] : null; if (_pr && typeof gigmaRestoreLayoutPresetTreePreviewScrollAnchor === 'function'){ var _k = __gigmaModalLeftAnchorForPreview.key; var _key = null; if (_k && _k.indexOf('r:') === 0) _key = 'row:' + _k.slice(2); else if (_k && _k.indexOf('f:') === 0) _key = 'folder:' + _k.slice(2); if (_key) gigmaRestoreLayoutPresetTreePreviewScrollAnchor({ key: _key, pct: __gigmaModalLeftAnchorForPreview.pct }, _pr); } } }catch(_){ }});
                 await _p;
                 try {
-                    if (typeof window.gigmaApplyLastPresetTreeSelection === 'function') {
-                        window.gigmaApplyLastPresetTreeSelection();
+                    if (typeof window.gigmaApplyLastLayoutPresetTreeSelection === 'function') {
+                        window.gigmaApplyLastLayoutPresetTreeSelection();
                     }
                 } catch (_eAfterHtml) {}
                 return;
@@ -39544,30 +39492,30 @@ async function gigmaShowLastPresetTreePopup() {
                 large: false,
                 allowVerticalScrolling: true,
                 onClosing: function () {
-                    try{ var __prs = document.querySelectorAll('#gigma-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr && typeof window.gigmaSavePresetTreePreviewButtonState === 'function') window.gigmaSavePresetTreePreviewButtonState(__pr); }catch(_){ }
+                    try{ var __prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr && typeof window.gigmaSaveLayoutPresetTreePreviewButtonState === 'function') window.gigmaSaveLayoutPresetTreePreviewButtonState(__pr); }catch(_){ }
                     try {
-                        if (typeof window.gigmaApplyLastPresetTreeSelection === 'function') {
-                            window.gigmaApplyLastPresetTreeSelection();
+                        if (typeof window.gigmaApplyLastLayoutPresetTreeSelection === 'function') {
+                            window.gigmaApplyLastLayoutPresetTreeSelection();
                         }
                     } catch (_eClosingApply) {}
                     return true;
                 }
             });
             popup.show();
-            requestAnimationFrame(function(){ try{ var __prs = document.querySelectorAll('#gigma-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr){ try{ if (typeof window.gigmaLoadPresetTreePreviewButtonState === 'function') window.gigmaLoadPresetTreePreviewButtonState(__pr); }catch(_){ } try{ if (typeof window.gigmaInstallPresetTreePreviewCloseHook === 'function') window.gigmaInstallPresetTreePreviewCloseHook(__pr); }catch(_){ } } }catch(_){ } try{ if (typeof window.gigmaInitPresetTreeChainedToggle === 'function') window.gigmaInitPresetTreeChainedToggle();
-                try{ if (typeof window.gigmaInitPresetTreeUnchainedToggle === 'function') window.gigmaInitPresetTreeUnchainedToggle(); }catch(_){ }                 try{ if (typeof window.gigmaInitPresetTreeDimToggles === 'function') window.gigmaInitPresetTreeDimToggles(); }catch(_){ } }catch(_){ } try{ if (typeof window.gigmaInitPresetTreeViewMode === 'function') window.gigmaInitPresetTreeViewMode(); }catch(_){ } try{ if (typeof window.gigmaInitPresetTreePreviewLorebookStatsUi === 'function') window.gigmaInitPresetTreePreviewLorebookStatsUi(); }catch(_){ }  try{ var __prsPreview = document.querySelectorAll('#gigma-preset-tree-preview-root'); var __prPreview = (__prsPreview && __prsPreview.length) ? __prsPreview[__prsPreview.length - 1] : null; if (__prPreview && typeof gigmaRefreshPresetTreeBudgetPreviewFields === 'function') gigmaRefreshPresetTreeBudgetPreviewFields(__prPreview); }catch(_){ }  try{ var __prs = document.querySelectorAll('#gigma-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr && typeof window.gigmaCapturePresetTreeFolderDefaults === 'function') window.gigmaCapturePresetTreeFolderDefaults(__pr); }catch(_){ }  try{ if (__gigmaModalLeftAnchorForPreview){ var _prs = document.querySelectorAll('#gigma-preset-tree-preview-root'); var _pr = (_prs && _prs.length) ? _prs[_prs.length - 1] : null; if (_pr && typeof gigmaRestorePresetTreePreviewScrollAnchor === 'function'){ var _k = __gigmaModalLeftAnchorForPreview.key; var _key = null; if (_k && _k.indexOf('r:') === 0) _key = 'row:' + _k.slice(2); else if (_k && _k.indexOf('f:') === 0) _key = 'folder:' + _k.slice(2); if (_key) gigmaRestorePresetTreePreviewScrollAnchor({ key: _key, pct: __gigmaModalLeftAnchorForPreview.pct }, _pr); } } }catch(_){ }});
+            requestAnimationFrame(function(){ try{ var __prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr){ try{ if (typeof window.gigmaLoadLayoutPresetTreePreviewButtonState === 'function') window.gigmaLoadLayoutPresetTreePreviewButtonState(__pr); }catch(_){ } try{ if (typeof window.gigmaInstallLayoutPresetTreePreviewCloseHook === 'function') window.gigmaInstallLayoutPresetTreePreviewCloseHook(__pr); }catch(_){ } } }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreeChainedToggle === 'function') window.gigmaInitLayoutPresetTreeChainedToggle();
+                try{ if (typeof window.gigmaInitLayoutPresetTreeUnchainedToggle === 'function') window.gigmaInitLayoutPresetTreeUnchainedToggle(); }catch(_){ }                 try{ if (typeof window.gigmaInitLayoutPresetTreeDimToggles === 'function') window.gigmaInitLayoutPresetTreeDimToggles(); }catch(_){ } }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreeViewMode === 'function') window.gigmaInitLayoutPresetTreeViewMode(); }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreePreviewLorebookStatsUi === 'function') window.gigmaInitLayoutPresetTreePreviewLorebookStatsUi(); }catch(_){ }  try{ var __prsPreview = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __prPreview = (__prsPreview && __prsPreview.length) ? __prsPreview[__prsPreview.length - 1] : null; if (__prPreview && typeof gigmaRefreshLayoutPresetTreeBudgetPreviewFields === 'function') gigmaRefreshLayoutPresetTreeBudgetPreviewFields(__prPreview); }catch(_){ }  try{ var __prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr && typeof window.gigmaCaptureLayoutPresetTreeFolderDefaults === 'function') window.gigmaCaptureLayoutPresetTreeFolderDefaults(__pr); }catch(_){ }  try{ if (__gigmaModalLeftAnchorForPreview){ var _prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var _pr = (_prs && _prs.length) ? _prs[_prs.length - 1] : null; if (_pr && typeof gigmaRestoreLayoutPresetTreePreviewScrollAnchor === 'function'){ var _k = __gigmaModalLeftAnchorForPreview.key; var _key = null; if (_k && _k.indexOf('r:') === 0) _key = 'row:' + _k.slice(2); else if (_k && _k.indexOf('f:') === 0) _key = 'folder:' + _k.slice(2); if (_key) gigmaRestoreLayoutPresetTreePreviewScrollAnchor({ key: _key, pct: __gigmaModalLeftAnchorForPreview.pct }, _pr); } } }catch(_){ }});
             return;
         } catch (_ePopup) {
             // fall through
         }
     } catch (e) {
-        console.warn('GIGMA: failed to show last preset tree popup', e);
+        console.warn('GIGMA: failed to show last layout preset tree popup', e);
         try {
             toastr.error('Could not open layout preset tree view.');
         } catch (_eToast) {}
     }
 }
-// --- end GIGMA: preset tree helpers ---
+// --- end GIGMA: layout preset tree helpers ---
 // The childrenOrder map is of the form:
 //   { PARENT_ID: ['row:WorldName', 'folder:folderId', ...], ROOT: [...] }
 function gigmaApplyChildrenOrderFromPreset(childrenOrder) {
@@ -39877,7 +39825,7 @@ try {
         try {
             gigmaApplyChildrenOrderFromPreset(preset.childrenOrder);
         } catch (_eOrder) {
-            console.warn('GIGMA: failed to apply childrenOrder from preset', _eOrder);
+            console.warn('GIGMA: failed to apply childrenOrder from the current layout preset', _eOrder);
         }
     }    // After applying explicit ordering, append lorebooks that are not mentioned
     // in the preset's explicit sibling ordering into the Unsorted Folder.
@@ -39906,7 +39854,7 @@ try {
     } catch (_eUI) {}
     try{ if (typeof gigmaSyncParentUnchainedLorebooksInParent === 'function') gigmaSyncParentUnchainedLorebooksInParent(); }catch(_){ }
 } catch (e) {
-    console.error('GIGMA: Failed to rebuild ordering list from preset:', e);
+    console.error('GIGMA: Failed to rebuild ordering list from the current layout preset:', e);
 }
     // Restore per-mode lock/checkbox states (Order vs Budget) from the preset.
     try{
@@ -39950,7 +39898,7 @@ async function gigmaApplyPresetConsideringInheritance(kind, presetName, preset, 
             await gigmaApplyLayoutPreset(preset);
             return;
         }
-        const parentStore = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('parent') || {}) : {};
+        const parentStore = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('parent') || {}) : {};
         const parentPreset = parentStore && Object.prototype.hasOwnProperty.call(parentStore, parentId) ? parentStore[parentId] : null;
         if (!parentPreset || typeof parentPreset !== 'object') {
             await gigmaApplyLayoutPreset(preset);
@@ -40076,17 +40024,17 @@ async function gigmaApplyPresetConsideringInheritance(kind, presetName, preset, 
         try{ await gigmaApplyLayoutPreset(preset); }catch(_){ }
     }
 }
-// --- GIGMA: inline preset status message (no popup, auto-hide) ---
+// --- GIGMA: inline saved preset status message (no popup, auto-hide) ---
 (function gigmaPresetStatusOnce(){
     try{
-        if (document.getElementById('gigma-preset-status-style')) return;
+        if (document.getElementById('gigma-scoped-layout-or-assignment-preset-status-style')) return;
         const css = document.createElement('style');
-        css.id = 'gigma-preset-status-style';
+        css.id = 'gigma-scoped-layout-or-assignment-preset-status-style';
         css.textContent = `
-            .gigma-preset-controls{
+            .gigma-layout-or-assignment-preset-controls{
                 position:relative;
             }
-            .gigma-preset-status{
+            .gigma-scoped-layout-or-assignment-preset-status{
                 position:absolute;
                 left:0;
                 right:0;
@@ -40101,54 +40049,54 @@ async function gigmaApplyPresetConsideringInheritance(kind, presetName, preset, 
                 pointer-events:none;
             }
             /* In narrow view, keep preset status on a single line and clip with ellipsis */
-            dialog.gigma-narrow .gigma-preset-status{
+            dialog.gigma-narrow .gigma-scoped-layout-or-assignment-preset-status{
                 white-space:nowrap;
                 overflow:hidden;
                 text-overflow:ellipsis;
             }
-            .gigma-preset-status.gigma-visible{
+            .gigma-scoped-layout-or-assignment-preset-status.gigma-visible{
                 opacity:0.92;
                 transform:translateY(0);
             }
-            .gigma-preset-status-success{
+            .gigma-scoped-layout-or-assignment-preset-status-success{
                 color:var(--SmartThemeAccentColor, #8fda7b);
             }
-            .gigma-preset-status-error{
+            .gigma-scoped-layout-or-assignment-preset-status-error{
                 color:#ff8686;
             }
         `;
         document.head.appendChild(css);
     }catch(_){}
 })();
-function gigmaShowPresetStatus(message, type, scope){
+function gigmaShowScopedLayoutOrAssignmentPresetStatus(message, type, scope){
     try{
         // Decide where to anchor the inline status message.
-        // By default, messages are shown under the main Presets (UP!) controls.
-        // When scope === 'assignment', messages are anchored under the Preset Assignments controls.
+        // By default, messages are shown under the main layout preset controls.
+        // When scope === 'assignment', messages are anchored under the Assignment presets controls.
         let container = null;
         const requestedScope = (typeof scope === 'string') ? scope : null;
         if (requestedScope === 'assignment'){
-            // Explicitly target the Preset Assignments toolbar.
+            // Explicitly target the Assignment presets toolbar.
             container = document.getElementById('gigma-assignment-preset-controls') || null;
         } else {
-            // Default: point to the active Parent/Child preset controls row.
+            // Default: point to the active parent/child preset controls row.
             try{
-                const kindToggle = document.getElementById('gigma-preset-kind-toggle');
+                const kindToggle = document.getElementById('gigma-layout-preset-kind-toggle');
                 const activeKind = (kindToggle && kindToggle.dataset && kindToggle.dataset.gigmaPresetKind)
                     ? kindToggle.dataset.gigmaPresetKind
                     : null;
                 if (activeKind === 'parent'){
-                    container = document.getElementById('gigma-preset-controls-parent') || null;
+                    container = document.getElementById('gigma-layout-preset-controls-parent') || null;
                 } else if (activeKind === 'child'){
-                    container = document.getElementById('gigma-preset-controls-child') || null;
+                    container = document.getElementById('gigma-layout-preset-controls-child') || null;
                 }
             }catch(_){}
             // If the active kind is unknown (e.g. very early in wiring), prefer whatever
             // preset controls are currently visible, falling back to parent controls.
             if (!container){
                 try{
-                    const parentControls = document.getElementById('gigma-preset-controls-parent');
-                    const childControls  = document.getElementById('gigma-preset-controls-child');
+                    const parentControls = document.getElementById('gigma-layout-preset-controls-parent');
+                    const childControls  = document.getElementById('gigma-layout-preset-controls-child');
                     if (childControls && childControls.style && childControls.style.display !== 'none'){
                         container = childControls;
                     } else if (parentControls){
@@ -40158,8 +40106,8 @@ function gigmaShowPresetStatus(message, type, scope){
             }
             // Absolute fallback: mirror the previous behavior if everything else fails.
             if (!container){
-                container = document.querySelector('.gigma-preset-controls[data-gigma-active-preset="1"]')
-                    || document.querySelector('.gigma-preset-controls');
+                container = document.querySelector('.gigma-layout-or-assignment-preset-controls[data-gigma-active-layout-or-assignment-preset="1"]')
+                    || document.querySelector('.gigma-layout-or-assignment-preset-controls');
             }
         }
         if (!container){
@@ -40169,15 +40117,15 @@ function gigmaShowPresetStatus(message, type, scope){
         let slot = container._gigmaStatusEl;
         if (!slot || !slot.isConnected){
             slot = document.createElement('div');
-            slot.className = 'gigma-preset-status gigma-preset-status-success';
+            slot.className = 'gigma-scoped-layout-or-assignment-preset-status gigma-scoped-layout-or-assignment-preset-status-success';
             container.appendChild(slot);
             container._gigmaStatusEl = slot;
         }
         const kind = (type === 'error') ? 'error' : 'success';
         let _msg = (message == null ? '' : String(message));
         slot.textContent = _msg;
-        slot.classList.remove('gigma-preset-status-success','gigma-preset-status-error','gigma-visible');
-        slot.classList.add(kind === 'error' ? 'gigma-preset-status-error' : 'gigma-preset-status-success');
+        slot.classList.remove('gigma-scoped-layout-or-assignment-preset-status-success','gigma-scoped-layout-or-assignment-preset-status-error','gigma-visible');
+        slot.classList.add(kind === 'error' ? 'gigma-scoped-layout-or-assignment-preset-status-error' : 'gigma-scoped-layout-or-assignment-preset-status-success');
         // trigger transition
         void slot.offsetWidth;
         slot.classList.add('gigma-visible');
@@ -40191,7 +40139,7 @@ function gigmaShowPresetStatus(message, type, scope){
         }, 2500);
     }catch(_){}
 }
-// --- end GIGMA: inline preset status ---
+// --- end GIGMA: inline saved preset status ---
 /**
  * Insert soft hyphens into a short status string so that the browser can
  * break lines with a visible hyphen when the text reaches the edge of its
@@ -40228,8 +40176,8 @@ function gigmaSoftHyphenate(text, interval){
     }
 }
 const gigmaRetroOrderMode = {
-    master: false,
-    character: false,
+    parent: false,
+    child: false,
 };
 function gigmaSetRetroOrderMode(kind, enabled) {
     if (!kind) return;
@@ -40261,11 +40209,11 @@ function gigmaUpdateResetButtonLabel(){
         // Parent/Child preset kind (default to child to preserve legacy behaviour)
         let presetKind = 'child';
         try{
-            if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function'){
-                const k = gigmaGetActivePresetKindForLorebookSettings();
+            if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function'){
+                const k = gigmaGetActiveLayoutPresetKindForLorebookSettings();
                 if (k === 'parent' || k === 'child') presetKind = k;
             }else{
-                const kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-preset-kind-toggle') : null;
+                const kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-layout-preset-kind-toggle') : null;
                 const k = kindBtn && kindBtn.dataset ? kindBtn.dataset.gigmaPresetKind : null;
                 if (k === 'parent' || k === 'child') presetKind = k;
             }
@@ -40283,12 +40231,12 @@ function gigmaUpdateResetButtonLabel(){
                 // Order inheritance selector lives in the chat scope row (not the lorebook scope row).
                 let sel = null;
                 try{
-                    sel = scopeRoot.querySelector('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-master-select');
+                    sel = scopeRoot.querySelector('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-parent-preset-select');
                 }catch(_eQ1){ sel = null; }
                 if (!sel){
-                    // Fallback: pick the first chat-master select that is NOT inside a lorebook scope row.
+                    // Fallback: pick the first chat-parent-preset select that is NOT inside a lorebook scope row.
                     try{
-                        const all = Array.from(scopeRoot.querySelectorAll('.gigma-chat-master-select') || []);
+                        const all = Array.from(scopeRoot.querySelectorAll('.gigma-chat-parent-preset-select') || []);
                         sel = all.find(s => !(s && s.closest && s.closest('.gigma-lorebook-scope-row'))) || null;
                     }catch(_eQ2){ sel = null; }
                 }
@@ -40347,9 +40295,9 @@ function gigmaGetInheritBudgetSelect(anchorEl) {
             ? anchorEl.closest('dialog')
             : document;
         // Prefer the most specific selector (both classes on the row) to avoid
-        // matching unrelated chat-master dropdowns.
-        return root.querySelector('.gigma-chat-scope-row.gigma-lorebook-scope-row .gigma-chat-master-select')
-            || root.querySelector('.gigma-lorebook-scope-row .gigma-chat-master-select')
+        // matching unrelated chat-parent preset dropdowns.
+        return root.querySelector('.gigma-chat-scope-row.gigma-lorebook-scope-row .gigma-chat-parent-preset-select')
+            || root.querySelector('.gigma-lorebook-scope-row .gigma-chat-parent-preset-select')
             || null;
     } catch (_e) {
         return null;
@@ -40390,11 +40338,11 @@ function gigmaUpdateInheritSwitchButtons(anchorEl){
         const root = (anchorEl && typeof anchorEl.closest === 'function' && anchorEl.closest('dialog'))
             ? anchorEl.closest('dialog')
             : document;
-        const kindBtn = root.querySelector('#gigma-preset-kind-toggle') || document.getElementById('gigma-preset-kind-toggle');
+        const kindBtn = root.querySelector('#gigma-layout-preset-kind-toggle') || document.getElementById('gigma-layout-preset-kind-toggle');
         const kind = (kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') ? 'parent' : 'child';
 
-        const orderSelect = root.querySelector('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-master-select');
-        const budgetSelect = root.querySelector('.gigma-chat-scope-row.gigma-lorebook-scope-row .gigma-chat-master-select');
+        const orderSelect = root.querySelector('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-parent-preset-select');
+        const budgetSelect = root.querySelector('.gigma-chat-scope-row.gigma-lorebook-scope-row .gigma-chat-parent-preset-select');
         const orderBtn = root.querySelector('#gigma-switch-order-parent');
         const budgetBtn = root.querySelector('#gigma-switch-budget-parent');
 
@@ -40440,7 +40388,7 @@ function gigmaWireInheritSwitchButtons(anchorEl){
                         if (wantBudget !== isBudgetNow) gigmaToggleBudgetMode(btn);
                     }catch(_){ }
 
-                    const kindBtn = document.getElementById('gigma-preset-kind-toggle');
+                    const kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
                     const isParentActive = !!(kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent');
                     if (!isParentActive && kindBtn && typeof kindBtn.click === 'function') kindBtn.click();
 
@@ -40467,10 +40415,10 @@ function gigmaGetInheritOrderSelect(anchorEl) {
             ? anchorEl.closest('dialog')
             : document;
         // Prefer the explicit chat-scope row that is NOT the lorebook-scope row.
-        return root.querySelector('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-master-select')
+        return root.querySelector('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-parent-preset-select')
             || (function () {
                 try {
-                    const all = Array.from(root.querySelectorAll('.gigma-chat-master-select') || []);
+                    const all = Array.from(root.querySelectorAll('.gigma-chat-parent-preset-select') || []);
                     return all.find(s => !(s && s.closest && s.closest('.gigma-lorebook-scope-row'))) || null;
                 } catch (_e) {
                     return null;
@@ -40481,7 +40429,7 @@ function gigmaGetInheritOrderSelect(anchorEl) {
         return null;
     }
 }
-function gigmaBuildDefaultPresetSnapshot(kind){
+function gigmaBuildDefaultLayoutPresetSnapshot(kind){
     try{
         const k = (kind === 'parent') ? 'parent' : 'child';
         if (!Array.isArray(world_names) || !world_names.length) return null;
@@ -40530,15 +40478,15 @@ function gigmaGetMultiPresetDeleteCloseSvg(){
     return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"></path></svg>';
 }
 
-function gigmaGetCurrentModalPresetKind(){
+function gigmaGetCurrentModalLayoutPresetKind(){
     try{
-        if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-            const k = gigmaGetActivePresetKindForLorebookSettings();
+        if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+            const k = gigmaGetActiveLayoutPresetKindForLorebookSettings();
             if (k === 'parent' || k === 'child') return k;
         }
     }catch(_){ }
     try{
-        const btn = document.getElementById('gigma-preset-kind-toggle');
+        const btn = document.getElementById('gigma-layout-preset-kind-toggle');
         const k = btn && btn.dataset ? btn.dataset.gigmaPresetKind : '';
         if (k === 'parent' || k === 'child') return k;
     }catch(_){ }
@@ -40546,9 +40494,9 @@ function gigmaGetCurrentModalPresetKind(){
 }
 
 
-function gigmaGetSortedPresetEntries(kind){
+function gigmaGetSortedLayoutPresetEntries(kind){
     const k = (kind === 'parent') ? 'parent' : 'child';
-    const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(k) || {}) : {};
+    const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore(k) || {}) : {};
     return Object.keys(store || {}).map((id) => {
         const snap = store[id];
         const name = (snap && typeof snap.name === 'string' && snap.name.trim() !== '') ? snap.name.trim() : String(id || '');
@@ -40629,7 +40577,7 @@ function gigmaGetVisibleMultiPresetDeleteEntries(root){
     const state = gigmaEnsureMultiPresetDeleteState(root);
     if (!state) return [];
     if (state.mode === 'assignment') return gigmaGetSortedAssignmentPresetEntries();
-    return gigmaGetSortedPresetEntries(state.currentKind === 'parent' ? 'parent' : 'child');
+    return gigmaGetSortedLayoutPresetEntries(state.currentKind === 'parent' ? 'parent' : 'child');
 }
 
 function gigmaToggleAllVisibleMultiPresetDeleteItems(root){
@@ -40727,7 +40675,7 @@ function gigmaRenderMultiPresetDeletePopup(root){
         }
         const kind = (state.currentKind === 'parent') ? 'parent' : 'child';
         root.dataset.currentKind = kind;
-        const entries = gigmaGetSortedPresetEntries(kind);
+        const entries = gigmaGetSortedLayoutPresetEntries(kind);
         const selected = state.selections[kind];
         for (const selectedId of Array.from(selected || [])) {
             if (!entries.some((entry) => entry.id === selectedId)) selected.delete(selectedId);
@@ -40791,7 +40739,7 @@ function gigmaResolveNextPresetIdAfterBulkDelete(orderedIds, nextStore, currentV
 
 function gigmaDeletePresetIds(kind, ids){
     const k = (kind === 'parent') ? 'parent' : 'child';
-    const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore(k) || {}) : {};
+    const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore(k) || {}) : {};
     const orderedIds = Object.keys(store || {}).sort((a, b) => {
         const an = (store[a] && typeof store[a].name === 'string' && store[a].name.trim() !== '') ? store[a].name.trim() : String(a || '');
         const bn = (store[b] && typeof store[b].name === 'string' && store[b].name.trim() !== '') ? store[b].name.trim() : String(b || '');
@@ -40812,7 +40760,7 @@ function gigmaDeletePresetIds(kind, ids){
     }
     const nextStore = { ...store };
     for (const id of targetIds) delete nextStore[id];
-    if (typeof gigmaSetPresetStore === 'function') gigmaSetPresetStore(nextStore, k);
+    if (typeof gigmaSetLayoutPresetStore === 'function') gigmaSetLayoutPresetStore(nextStore, k);
     return { kind: k, deletedIds: targetIds, deletedNames, currentValue, nextPresetId: gigmaResolveNextPresetIdAfterBulkDelete(orderedIds, nextStore, currentValue, deletedSet), activeDeleted: deletedSet.has(currentValue) };
 }
 
@@ -40846,7 +40794,7 @@ function gigmaStripDeletedChildPresetReferencesFromParents(childIds){
         if (!ids.length) return;
         const childSet = new Set(ids);
         const prefixList = ids.map((id) => 'urowid:' + encodeURIComponent(id) + ':');
-        const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('parent') || {}) : {};
+        const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('parent') || {}) : {};
         let changed = false;
         const nextStore = { ...store };
         for (const presetId of Object.keys(store || {})) {
@@ -40894,7 +40842,7 @@ function gigmaStripDeletedChildPresetReferencesFromParents(childIds){
                 changed = true;
             }
         }
-        if (changed && typeof gigmaSetPresetStore === 'function') gigmaSetPresetStore(nextStore, 'parent');
+        if (changed && typeof gigmaSetLayoutPresetStore === 'function') gigmaSetLayoutPresetStore(nextStore, 'parent');
     }catch(_){ }
 }
 
@@ -40903,7 +40851,7 @@ function gigmaDecoupleChildrenFromDeletedParentPresets(parentIds){
         const ids = Array.from(new Set((Array.isArray(parentIds) ? parentIds : []).map((id) => (id == null ? '' : String(id)).trim()).filter((id) => id)));
         if (!ids.length) return;
         const parentSet = new Set(ids);
-        const store = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+        const store = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
         let changed = false;
         const nextStore = { ...store };
         for (const presetId of Object.keys(store || {})) {
@@ -40928,7 +40876,7 @@ function gigmaDecoupleChildrenFromDeletedParentPresets(parentIds){
                 changed = true;
             }
         }
-        if (changed && typeof gigmaSetPresetStore === 'function') gigmaSetPresetStore(nextStore, 'child');
+        if (changed && typeof gigmaSetLayoutPresetStore === 'function') gigmaSetLayoutPresetStore(nextStore, 'child');
     }catch(_){ }
 }
 
@@ -40937,10 +40885,10 @@ function gigmaFinalizePresetDeleteUi(result, dispatchIfActive){
     try{
         if (!result) return;
         const kind = result.kind === 'parent' ? 'parent' : 'child';
-        if (typeof gigmaRefreshPresetSelect === 'function') gigmaRefreshPresetSelect(kind);
+        if (typeof gigmaRefreshLayoutPresetSelect === 'function') gigmaRefreshLayoutPresetSelect(kind);
         const selectId = kind === 'parent' ? 'gigma-parent-preset-select' : 'gigma-child-preset-select';
         const select = (typeof document !== 'undefined') ? document.getElementById(selectId) : null;
-        if (typeof gigmaSetLastPresetName === 'function') gigmaSetLastPresetName(result.nextPresetId || null, kind);
+        if (typeof gigmaSetLastLayoutPresetId === 'function') gigmaSetLastLayoutPresetId(result.nextPresetId || null, kind);
         if (select) {
             try { select.value = result.nextPresetId || ''; } catch (_){ }
             if (dispatchIfActive && result.activeDeleted && result.nextPresetId) {
@@ -41107,7 +41055,7 @@ async function gigmaDeleteSelectedPresetsFromPopup(root){
             } catch (_){ }
             try {
                 const msg = 'Deleted ' + counts.assignment + ' assignment preset' + (counts.assignment === 1 ? '' : 's') + '.';
-                if (typeof gigmaShowPresetStatus === 'function') gigmaShowPresetStatus(msg, 'success', 'assignment');
+                if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') gigmaShowScopedLayoutOrAssignmentPresetStatus(msg, 'success', 'assignment');
                 else toastr.success(msg);
             } catch (_){ }
             state.selections.assignment.clear();
@@ -41119,12 +41067,12 @@ async function gigmaDeleteSelectedPresetsFromPopup(root){
         const parentIds = Array.from(state.selections.parent || []);
         const counts = { child: childIds.length, parent: parentIds.length };
         if (counts.child + counts.parent < 1) {
-            try { toastr.error('Select at least one preset to delete.'); } catch (_){ }
+            try { toastr.error('Select at least one layout preset to delete.'); } catch (_){ }
             return;
         }
         const confirmed = await gigmaConfirmMultiPresetDelete(counts, mode);
         if (!confirmed) return;
-        const activeKind = gigmaGetCurrentModalPresetKind();
+        const activeKind = gigmaGetCurrentModalLayoutPresetKind();
         const childResult = childIds.length ? gigmaDeletePresetIds('child', childIds) : null;
         const parentResult = parentIds.length ? gigmaDeletePresetIds('parent', parentIds) : null;
         if (childIds.length) gigmaStripDeletedChildPresetReferencesFromParents(childIds);
@@ -41140,7 +41088,7 @@ async function gigmaDeleteSelectedPresetsFromPopup(root){
         if (counts.child) parts.push('Deleted ' + counts.child + ' child preset' + (counts.child === 1 ? '' : 's') + '.');
         if (counts.parent) parts.push('Deleted ' + counts.parent + ' parent preset' + (counts.parent === 1 ? '' : 's') + '.');
         try {
-            if (typeof gigmaShowPresetStatus === 'function') gigmaShowPresetStatus(parts.join(' '), 'success');
+            if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') gigmaShowScopedLayoutOrAssignmentPresetStatus(parts.join(' '), 'success');
             else toastr.success(parts.join(' '));
         } catch (_){ }
         state.selections.child.clear();
@@ -41152,7 +41100,7 @@ async function gigmaDeleteSelectedPresetsFromPopup(root){
         try {
             const state = gigmaEnsureMultiPresetDeleteState(root);
             const mode = state && gigmaGetMultiPresetDeleteMode(state.mode) === 'assignment' ? 'assignment' : 'layout';
-            toastr.error(mode === 'assignment' ? 'Could not delete the selected assignment presets.' : 'Could not delete the selected presets.');
+            toastr.error(mode === 'assignment' ? 'Could not delete the selected assignment presets.' : 'Could not delete the selected layout presets.');
         } catch (__){ }
     }
 }
@@ -41170,7 +41118,7 @@ function gigmaHandleMultiPresetDeleteItemClick(root, item, shiftKey){
         const presetId = item.dataset ? String(item.dataset.presetId || '').trim() : '';
         const index = Number.parseInt(item.dataset ? String(item.dataset.index || '') : '', 10);
         if (!presetId || !Number.isFinite(index)) return;
-        const entries = kind === 'assignment' ? gigmaGetSortedAssignmentPresetEntries() : gigmaGetSortedPresetEntries(kind);
+        const entries = kind === 'assignment' ? gigmaGetSortedAssignmentPresetEntries() : gigmaGetSortedLayoutPresetEntries(kind);
         const set = state.selections[kind];
         const anchor = state.anchors[kind];
         if (shiftKey && Number.isFinite(anchor)) {
@@ -41241,7 +41189,7 @@ async function gigmaShowMultiPresetDeletePopup(initialKind, mode){
                         const popup = document.getElementById('gigma-modal-settings-popup');
                         if (popup) popup.style.display = 'none';
                     } catch (_){ }
-                    await gigmaShowMultiPresetDeletePopup(gigmaGetCurrentModalPresetKind(), openBtn && openBtn.id === 'gigma-modal-settings-assignment-delete-btn' ? 'assignment' : 'layout');
+                    await gigmaShowMultiPresetDeletePopup(gigmaGetCurrentModalLayoutPresetKind(), openBtn && openBtn.id === 'gigma-modal-settings-assignment-delete-btn' ? 'assignment' : 'layout');
                     return;
                 }
                 const closeBtn = target.closest('#gigma-multi-preset-delete-close');
@@ -41323,15 +41271,15 @@ function gigmaInitPresetControls(kind) {
         return;
     }
 
-    const isMaster = (kind === 'parent');
-    const selectId = isMaster ? 'gigma-parent-preset-select' : 'gigma-child-preset-select';
-    const saveId = isMaster ? 'gigma-parent-preset-save' : 'gigma-child-preset-save';
-    const editId = isMaster ? 'gigma-parent-preset-edit' : 'gigma-child-preset-edit';
-    const deleteId = isMaster ? 'gigma-parent-preset-delete' : 'gigma-child-preset-delete';
-    const quickId = isMaster ? 'gigma-parent-preset-quicksave' : 'gigma-child-preset-quicksave';
+    const isParentPresetKind = (kind === 'parent');
+    const selectId = isParentPresetKind ? 'gigma-parent-preset-select' : 'gigma-child-preset-select';
+    const saveId = isParentPresetKind ? 'gigma-parent-preset-save' : 'gigma-child-preset-save';
+    const editId = isParentPresetKind ? 'gigma-parent-preset-edit' : 'gigma-child-preset-edit';
+    const deleteId = isParentPresetKind ? 'gigma-parent-preset-delete' : 'gigma-child-preset-delete';
+    const quickId = isParentPresetKind ? 'gigma-parent-preset-quicksave' : 'gigma-child-preset-quicksave';
 
-        const newId = isMaster ? 'gigma-parent-preset-new' : 'gigma-child-preset-new';
-    const restoreId = isMaster ? 'gigma-parent-preset-restore' : 'gigma-child-preset-restore';
+        const newId = isParentPresetKind ? 'gigma-parent-preset-new' : 'gigma-child-preset-new';
+    const restoreId = isParentPresetKind ? 'gigma-parent-preset-restore' : 'gigma-child-preset-restore';
 
 const select = document.getElementById(selectId);
     const saveBtn = document.getElementById(saveId);
@@ -41343,12 +41291,12 @@ const select = document.getElementById(selectId);
 if (!select || !saveBtn || !editBtn || !deleteBtn) return;
 
     if (saveBtn.dataset.gigmaPresetWired === '1') {
-        gigmaRefreshPresetSelect(kind);
+        gigmaRefreshLayoutPresetSelect(kind);
         return;
     }
     saveBtn.dataset.gigmaPresetWired = '1';
 
-    function gigmaFindPresetIdByName(store, name) {
+    function gigmaFindLayoutPresetIdByName(store, name) {
         const target = (typeof name === 'string') ? name.trim() : '';
         if (!target) return null;
         for (const id of Object.keys(store || {})) {
@@ -41363,17 +41311,17 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
         const presetId = select.value;
         if (!presetId) return;
 
-        const presets = gigmaGetPresetStore(kind);
+        const presets = gigmaGetLayoutPresetStore(kind);
         const preset = presets[presetId];
         if (!preset) {
-            toastr.error('Selected preset no longer exists.');
-            gigmaRefreshPresetSelect(kind);
+            toastr.error('Selected ' + (isParentPresetKind ? 'parent preset' : 'child preset') + ' no longer exists.');
+            gigmaRefreshLayoutPresetSelect(kind);
             return;
         }
 
         try {
-            if (typeof gigmaSetLastPresetName === 'function') {
-                gigmaSetLastPresetName(presetId, kind);
+            if (typeof gigmaSetLastLayoutPresetId === 'function') {
+                gigmaSetLastLayoutPresetId(presetId, kind);
             }
         } catch (_e) {}
 
@@ -41387,7 +41335,7 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
             try { await gigmaApplyLayoutPreset(preset); } catch (_eFallback) {}
         }
 
-        if (isMaster && typeof gigmaApplyParentUnchainedSettingsFromPreset === 'function') {
+        if (isParentPresetKind && typeof gigmaApplyParentUnchainedSettingsFromPreset === 'function') {
             try {
                 gigmaApplyParentUnchainedSettingsFromPreset(preset, presetId);
                 try { gigmaApplyParentBudgetUnchainedSettingsFromPreset(preset, presetId); } catch (_eParentBudgetUnchainedPresetChange) {}
@@ -41398,15 +41346,15 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
             if (typeof gigmaUpdateInheritAreaVisibility === 'function') gigmaUpdateInheritAreaVisibility();
         } catch (_e) {}
 
-        if (!isMaster) {
+        if (!isParentPresetKind) {
             try {
-                if (typeof gigmaApplyChatMasterFromPreset === 'function') {
-                    gigmaApplyChatMasterFromPreset(preset);
+                if (typeof gigmaApplyChatParentPresetSelectFromLayoutPreset === 'function') {
+                    gigmaApplyChatParentPresetSelectFromLayoutPreset(preset);
                 }
             } catch (_eChatPresetChange) {}
         }
 
-        if (!isMaster) {
+        if (!isParentPresetKind) {
             try {
                 const inheritSelect = (typeof gigmaGetInheritBudgetSelect === 'function') ? gigmaGetInheritBudgetSelect(select) : null;
                 if (inheritSelect) {
@@ -41447,10 +41395,10 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
             const presetId = select.value;
             if (!presetId) {
                 try {
-                    if (typeof gigmaShowPresetStatus === 'function') {
-                        gigmaShowPresetStatus('Select a ' + (isMaster ? 'parent preset' : 'child preset') + ' to restore.', 'error');
+                    if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
+                        gigmaShowScopedLayoutOrAssignmentPresetStatus('Select a ' + (isParentPresetKind ? 'parent preset' : 'child preset') + ' to restore.', 'error');
                     } else {
-                        toastr.error('Select a ' + (isMaster ? 'parent preset' : 'child preset') + ' to restore.');
+                        toastr.error('Select a ' + (isParentPresetKind ? 'parent preset' : 'child preset') + ' to restore.');
                     }
                 } catch (_eStatus) {}
                 return;
@@ -41464,19 +41412,19 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
                 const popupApi = ctx && ctx.Popup ? ctx.Popup : Popup;
                 confirmed = await popupApi.show.confirm(
                     'Restore layout preset',
-                    'Restore the current preset to its last saved state? Unsaved changes will be lost.'
+                    'Restore the current ' + (isParentPresetKind ? 'parent preset' : 'child preset') + ' to its last saved state? Unsaved changes will be lost.'
                 );
             } catch (_eConfirm) {
-                confirmed = window.confirm('Restore the current preset to its last saved state? Unsaved changes will be lost.');
+                confirmed = window.confirm('Restore the current ' + (isParentPresetKind ? 'parent preset' : 'child preset') + ' to its last saved state? Unsaved changes will be lost.');
             }
             if (!confirmed) return;
 
             try {
                 select.dispatchEvent(new Event('change', { bubbles: true }));
-                gigmaShowPresetStatus('Restored preset.', 'success');
+                gigmaShowScopedLayoutOrAssignmentPresetStatus('Restored ' + (isParentPresetKind ? 'parent preset.' : 'child preset.'), 'success');
             } catch (_eApply) {
                 try {
-                    gigmaShowPresetStatus('Failed to restore preset.', 'error');
+                    gigmaShowScopedLayoutOrAssignmentPresetStatus('Failed to restore ' + (isParentPresetKind ? 'parent preset.' : 'child preset.'), 'error');
                 } catch (_eStatus2) {}
             }
         });
@@ -41485,13 +41433,13 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
     if (newBtn) {
         newBtn.addEventListener('click', async () => {
             if (!Array.isArray(world_names) || !world_names.length) {
-                toastr.error('No lorebooks available to save as a preset.');
+                toastr.error('No lorebooks available to save as a layout preset.');
                 return;
             }
 
-            const snapshot = gigmaBuildDefaultPresetSnapshot(isMaster ? 'parent' : 'child');
+            const snapshot = gigmaBuildDefaultLayoutPresetSnapshot(isParentPresetKind ? 'parent' : 'child');
             if (!snapshot) {
-                toastr.error('Load lorebooks before creating a new preset.');
+                toastr.error('Load lorebooks before creating a new layout preset.');
                 return;
             }
 
@@ -41501,8 +41449,8 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
                 const popupApi = ctx && ctx.Popup ? ctx.Popup : null;
                 if (!popupApi || !popupApi.show || typeof popupApi.show.input !== 'function') return;
                 nameRaw = await popupApi.show.input(
-                    isMaster ? 'New parent preset' : 'New child preset',
-                    isMaster ? 'Parent preset name:' : 'Child preset name:',
+                    isParentPresetKind ? 'New parent preset' : 'New child preset',
+                    isParentPresetKind ? 'Parent preset name:' : 'Child preset name:',
                     ''
                 );
             }catch(_eInput){ return; }
@@ -41514,17 +41462,17 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
                 return;
             }
 
-            const presets = gigmaGetPresetStore(kind);
+            const presets = gigmaGetLayoutPresetStore(kind);
             const presetId = (typeof gigmaGeneratePresetId === 'function') ? gigmaGeneratePresetId() : desiredName;
 
             snapshot.id = presetId;
             snapshot.name = desiredName;
 
             presets[presetId] = snapshot;
-            gigmaSetPresetStore(presets, kind);
+            gigmaSetLayoutPresetStore(presets, kind);
 
-            gigmaRefreshPresetSelect(kind);
-            gigmaShowPresetStatus(`Created preset "${snapshot.name}".`, 'success');
+            gigmaRefreshLayoutPresetSelect(kind);
+            gigmaShowScopedLayoutOrAssignmentPresetStatus(`Created ${isParentPresetKind ? 'parent preset' : 'child preset'} "${snapshot.name}".`, 'success');
 
             // Open the newly created preset immediately.
             try { select.value = presetId; } catch (_eSel) {}
@@ -41535,16 +41483,16 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
     if (quickSaveBtn) {
         quickSaveBtn.addEventListener('click', async () => {
             if (!Array.isArray(world_names) || !world_names.length) {
-                toastr.error('No lorebooks available to save as a preset.');
+                toastr.error('No lorebooks available to save as a layout preset.');
                 return;
             }
-            const snapshot = gigmaCaptureCurrentLayout(isMaster ? 'parent' : 'child');
+            const snapshot = gigmaCaptureCurrentLayout(isParentPresetKind ? 'parent' : 'child');
             if (!snapshot) {
-                toastr.error('Load lorebooks and adjust the layout before saving a preset.');
+                toastr.error('Load lorebooks and adjust the layout before saving a layout preset.');
                 return;
             }
 
-            const presets = gigmaGetPresetStore(kind);
+            const presets = gigmaGetLayoutPresetStore(kind);
             const presetId = select.value;
             if (!presetId || !presets[presetId]) {
                 try { if (saveBtn && typeof saveBtn.click === 'function') saveBtn.click(); } catch (_e) {}
@@ -41555,7 +41503,7 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
             snapshot.id = presetId;
             snapshot.name = (existing && typeof existing.name === 'string') ? existing.name.trim() : '';
 
-            if (!isMaster) {
+            if (!isParentPresetKind) {
                 try {
                     const inheritSelect = (typeof gigmaGetInheritBudgetSelect === 'function') ? gigmaGetInheritBudgetSelect(quickSaveBtn) : null;
                     if (inheritSelect && typeof inheritSelect.value === 'string') {
@@ -41568,23 +41516,23 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
             }
 
             try {
-                if (!isMaster && typeof gigmaPrepareChildSnapshotForInheritedOrderSave === 'function') {
+                if (!isParentPresetKind && typeof gigmaPrepareChildSnapshotForInheritedOrderSave === 'function') {
                     gigmaPrepareChildSnapshotForInheritedOrderSave(snapshot);
                 }
             } catch (_eInheritOrderQuick) {}
 
             presets[presetId] = snapshot;
-            gigmaSetPresetStore(presets, kind);
+            gigmaSetLayoutPresetStore(presets, kind);
 
             try {
-                if (isMaster && typeof gigmaUpdateChildrenUnchainedPositionsFromParentSnapshot === 'function') {
+                if (isParentPresetKind && typeof gigmaUpdateChildrenUnchainedPositionsFromParentSnapshot === 'function') {
                     gigmaUpdateChildrenUnchainedPositionsFromParentSnapshot(snapshot, presetId);
                 }
             } catch (_ePropQuick) {}
 
-            gigmaRefreshPresetSelect(kind);
+            gigmaRefreshLayoutPresetSelect(kind);
             try { select.value = presetId; } catch (_e) {}
-            gigmaShowPresetStatus(`Quick-saved preset "${snapshot.name}".`, 'success');
+            gigmaShowScopedLayoutOrAssignmentPresetStatus(`Quick-saved ${isParentPresetKind ? 'parent preset' : 'child preset'} "${snapshot.name}".`, 'success');
 
             try {
                 if (typeof gigmaSaveAllLorebookBudgetSettingsFromHeaders === 'function') {
@@ -41601,16 +41549,16 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
 
     saveBtn.addEventListener('click', async () => {
         if (!Array.isArray(world_names) || !world_names.length) {
-            toastr.error('No lorebooks available to save as a preset.');
+            toastr.error('No lorebooks available to save as a layout preset.');
             return;
         }
-        const snapshot = gigmaCaptureCurrentLayout(isMaster ? 'parent' : 'child');
+        const snapshot = gigmaCaptureCurrentLayout(isParentPresetKind ? 'parent' : 'child');
         if (!snapshot) {
-            toastr.error('Load lorebooks and adjust the layout before saving a preset.');
+            toastr.error('Load lorebooks and adjust the layout before saving a layout preset.');
             return;
         }
 
-        if (!isMaster) {
+        if (!isParentPresetKind) {
             try {
                 const inheritSelect = (typeof gigmaGetInheritBudgetSelect === 'function') ? gigmaGetInheritBudgetSelect(saveBtn) : null;
                 if (inheritSelect && typeof inheritSelect.value === 'string') {
@@ -41622,19 +41570,19 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
             } catch (_eInheritSave) {}
         }
 
-        const presets = gigmaGetPresetStore(kind);
+        const presets = gigmaGetLayoutPresetStore(kind);
         const currentId = select.value;
         const defaultName = (currentId && presets[currentId] && typeof presets[currentId].name === 'string') ? presets[currentId].name.trim() : '';
         let nameRaw;
         try {
             nameRaw = await SillyTavern.getContext().Popup.show.input(
-                isMaster ? 'Save parent preset' : 'Save child preset',
-                isMaster ? 'Parent preset name:' : 'Child preset name:',
+                isParentPresetKind ? 'Save parent preset' : 'Save child preset',
+                isParentPresetKind ? 'Parent preset name:' : 'Child preset name:',
                 defaultName
             );
         } catch (_ePopup) {
             console.warn('GIGMA: falling back to native prompt for preset name:', _ePopup);
-            nameRaw = window.prompt('Save current folder layout as preset. Name:', defaultName);
+            nameRaw = window.prompt('Save current folder layout as layout preset. Name:', defaultName);
         }
         if (nameRaw === null || nameRaw === undefined) return;
         const desiredName = String(nameRaw).trim();
@@ -41643,7 +41591,7 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
             return;
         }
 
-        const existingIdByName = gigmaFindPresetIdByName(presets, desiredName);
+        const existingIdByName = gigmaFindLayoutPresetIdByName(presets, desiredName);
         const targetId = existingIdByName || gigmaGeneratePresetId();
         const existedBeforeSave = !!existingIdByName;
 
@@ -41663,7 +41611,7 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
                 }[ch] || ch));
                 overwrite = await popupApi.show.confirm(
                     'Overwrite layout preset',
-                    `Preset "<b>${safeName}</b>" already exists. Overwrite it?`
+                    `Layout preset "<b>${safeName}</b>" already exists. Overwrite it?`
                 );
             } catch (_eConfirm) {
                 overwrite = window.confirm(`Preset "${desiredName}" already exists. Overwrite it?`);
@@ -41675,24 +41623,24 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
         snapshot.name = desiredName;
 
         try {
-            if (!isMaster && typeof gigmaPrepareChildSnapshotForInheritedOrderSave === 'function') {
+            if (!isParentPresetKind && typeof gigmaPrepareChildSnapshotForInheritedOrderSave === 'function') {
                 gigmaPrepareChildSnapshotForInheritedOrderSave(snapshot);
             }
         } catch (_eInheritOrderSave) {}
 
         presets[targetId] = snapshot;
-        gigmaSetPresetStore(presets, kind);
+        gigmaSetLayoutPresetStore(presets, kind);
 
         try {
-            if (isMaster) {
+            if (isParentPresetKind) {
                 gigmaUpdateChildrenUnchainedPositionsFromParentSnapshot(snapshot, targetId);
             }
         } catch (_ePropSave) {}
 
-        gigmaRefreshPresetSelect(kind);
+        gigmaRefreshLayoutPresetSelect(kind);
         try { select.value = targetId; } catch (_e) {}
-        if (isMaster) gigmaUpdateParentUnchainedUiVisibility();
-        gigmaShowPresetStatus(`Saved preset "${desiredName}".`, 'success');
+        if (isParentPresetKind) gigmaUpdateParentUnchainedUiVisibility();
+        gigmaShowScopedLayoutOrAssignmentPresetStatus(`Saved ${isParentPresetKind ? 'parent preset' : 'child preset'} "${desiredName}".`, 'success');
 
         try {
             if (typeof gigmaSaveAllLorebookBudgetSettingsFromHeaders === 'function') {
@@ -41706,13 +41654,13 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
         }
 
         try {
-            if (typeof gigmaSetLastPresetName === 'function') {
-                gigmaSetLastPresetName(targetId, kind);
+            if (typeof gigmaSetLastLayoutPresetId === 'function') {
+                gigmaSetLastLayoutPresetId(targetId, kind);
             }
         } catch (_eSetLastOnSave) {}
 
         try {
-            if (isMaster && !existedBeforeSave) {
+            if (isParentPresetKind && !existedBeforeSave) {
                 try { if (typeof gigmaInitParentUnchainedControls === 'function') gigmaInitParentUnchainedControls(); } catch (_eInitAfterNewSave) {}
                 try {
                     if (typeof gigmaApplyParentUnchainedSettingsFromPreset === 'function') {
@@ -41730,20 +41678,20 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
         const presetId = select.value;
         if (!presetId) {
             try {
-                if (typeof gigmaShowPresetStatus === 'function') {
-                    gigmaShowPresetStatus('Select a ' + (isMaster ? 'parent preset' : 'child preset') + ' to rename.', 'error');
+                if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
+                    gigmaShowScopedLayoutOrAssignmentPresetStatus('Select a ' + (isParentPresetKind ? 'parent preset' : 'child preset') + ' to rename.', 'error');
                 } else {
-                    toastr.error('Select a ' + (isMaster ? 'parent preset' : 'child preset') + ' to rename.');
+                    toastr.error('Select a ' + (isParentPresetKind ? 'parent preset' : 'child preset') + ' to rename.');
                 }
             } catch (_eStatus) {}
             return;
         }
 
-        const presets = gigmaGetPresetStore(kind);
+        const presets = gigmaGetLayoutPresetStore(kind);
         const snap = presets[presetId];
         if (!snap) {
-            toastr.error('Selected preset no longer exists.');
-            gigmaRefreshPresetSelect(kind);
+            toastr.error('Selected ' + (isParentPresetKind ? 'parent preset' : 'child preset') + ' no longer exists.');
+            gigmaRefreshLayoutPresetSelect(kind);
             return;
         }
 
@@ -41770,7 +41718,7 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
             }
             if (newName === originalName) return;
 
-            const conflictId = gigmaFindPresetIdByName(presets, newName);
+            const conflictId = gigmaFindLayoutPresetIdByName(presets, newName);
             if (!conflictId || conflictId === presetId) {
                 currentName = newName;
                 break;
@@ -41804,21 +41752,21 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
             currentName = newName;
         }
 
-        const wasLastPreset = (typeof gigmaGetLastPresetName === 'function' && gigmaGetLastPresetName(kind) === presetId);
+        const wasLastPreset = (typeof gigmaGetLastLayoutPresetId === 'function' && gigmaGetLastLayoutPresetId(kind) === presetId);
         snap.name = currentName;
         presets[presetId] = snap;
 
-        gigmaSetPresetStore(presets, kind);
-        gigmaRefreshPresetSelect(kind);
+        gigmaSetLayoutPresetStore(presets, kind);
+        gigmaRefreshLayoutPresetSelect(kind);
         try { select.value = presetId; } catch (_e) {}
 
-        if (wasLastPreset && typeof gigmaSetLastPresetName === 'function') {
-            try { gigmaSetLastPresetName(presetId, kind); } catch (_eSetLast) {}
+        if (wasLastPreset && typeof gigmaSetLastLayoutPresetId === 'function') {
+            try { gigmaSetLastLayoutPresetId(presetId, kind); } catch (_eSetLast) {}
         }
 
-        gigmaShowPresetStatus(`Renamed preset "${originalName}" to "${currentName}".`, 'success');
+        gigmaShowScopedLayoutOrAssignmentPresetStatus(`Renamed ${isParentPresetKind ? 'parent preset' : 'child preset'} "${originalName}" to "${currentName}".`, 'success');
         try {
-            if (isMaster) {
+            if (isParentPresetKind) {
                 try { if (typeof gigmaInitParentUnchainedControls === 'function') gigmaInitParentUnchainedControls(); } catch (_eInitAfterRename) {}
                 try { if (typeof gigmaUpdateParentUnchainedUiVisibility === 'function') gigmaUpdateParentUnchainedUiVisibility(); } catch (_eVisAfterRename) {}
                 try { if (typeof gigmaSyncParentUnchainedLorebooksInParent === 'function') gigmaSyncParentUnchainedLorebooksInParent(); } catch (_eSyncAfterRename) {}
@@ -41829,14 +41777,14 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
     deleteBtn.addEventListener('click', async () => {
         const presetId = select.value;
         if (!presetId) {
-            toastr.error('Select a preset to delete.');
+            toastr.error('Select a ' + (isParentPresetKind ? 'parent preset' : 'child preset') + ' to delete.');
             return;
         }
-        const presets = gigmaGetPresetStore(kind);
+        const presets = gigmaGetLayoutPresetStore(kind);
         const snap = presets[presetId];
         if (!snap) {
-            toastr.error('Selected preset no longer exists.');
-            gigmaRefreshPresetSelect(kind);
+            toastr.error('Selected ' + (isParentPresetKind ? 'parent preset' : 'child preset') + ' no longer exists.');
+            gigmaRefreshLayoutPresetSelect(kind);
             return;
         }
         const displayName = (snap && typeof snap.name === 'string') ? snap.name.trim() : '';
@@ -41855,10 +41803,10 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
             }[ch] || ch));
             confirmed = await popupApi.show.confirm(
                 'Delete layout preset',
-                `Delete preset "<b>${safeName}</b>"?`
+                `Delete layout preset "<b>${safeName}</b>"?`
             );
         } catch (_eConfirm) {
-            confirmed = window.confirm(`Delete preset "${displayName}"?`);
+            confirmed = window.confirm(`Delete layout preset "${displayName}"?`);
         }
         if (!confirmed) return;
 
@@ -41879,32 +41827,32 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
         }catch(_eCleanup){}
 
         delete presets[presetId];
-        gigmaSetPresetStore(presets, kind);
+        gigmaSetLayoutPresetStore(presets, kind);
 
         try {
-            if (typeof gigmaSetLastPresetName === 'function') {
-                gigmaSetLastPresetName(nextPresetId || null, kind);
+            if (typeof gigmaSetLastLayoutPresetId === 'function') {
+                gigmaSetLastLayoutPresetId(nextPresetId || null, kind);
             }
         } catch (_eLastDel) {}
 
         try { select.value = nextPresetId || ''; } catch (_eNextSel) {}
-        gigmaRefreshPresetSelect(kind);
+        gigmaRefreshLayoutPresetSelect(kind);
         if (nextPresetId) {
             try { select.value = nextPresetId; } catch (_eValNext) {}
             try { select.dispatchEvent(new Event('change')); } catch (_eDispatchNext) {}
         }
 
-        gigmaShowPresetStatus(`Deleted preset "${displayName}".`, 'success');
+        gigmaShowScopedLayoutOrAssignmentPresetStatus(`Deleted ${isParentPresetKind ? 'parent preset' : 'child preset'} "${displayName}".`, 'success');
 
         try {
-            if (isMaster) {
+            if (isParentPresetKind) {
                 try { if (typeof gigmaUpdateParentUnchainedUiVisibility === 'function') gigmaUpdateParentUnchainedUiVisibility(); } catch (_eVisAfterDel) {}
                 try { if (typeof gigmaSyncParentUnchainedLorebooksInParent === 'function') gigmaSyncParentUnchainedLorebooksInParent(); } catch (_eSyncAfterDel) {}
             }
         } catch (_eAfterDelete) {}
     });
 
-    gigmaRefreshPresetSelect(kind);
+    gigmaRefreshLayoutPresetSelect(kind);
 }
 
 // --- GIGMA: modal dim state (chained/unchained) ---
@@ -42028,7 +41976,7 @@ function gigmaInitModalDimToggles(){
                 gigmaSaveModalDimState(kind, vm, st);
 
                 // Apply only if this kind is currently active.
-                var kindBtn = document.getElementById('gigma-preset-kind-toggle');
+                var kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
                 var active = (kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') ? 'parent' : 'child';
                 if (active === kind) gigmaApplyModalDimStateForKind(kind);
                 else gigmaApplyModalDimButtons(kind, st);
@@ -42167,9 +42115,9 @@ function gigmaIsEditableChainedLorebooksEnabled(kind, viewMode){
   }
 }
 
-function gigmaGetActivePresetKindForEditableUnchained(){
+function gigmaGetActiveLayoutPresetKindForEditableUnchained(){
   try{
-    var kindBtn = document.getElementById('gigma-preset-kind-toggle');
+    var kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
     return (kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent') ? 'parent' : 'child';
   }catch(_){
     return 'child';
@@ -42216,7 +42164,7 @@ function gigmaIsRowUnchainedForMode(row, mode){
 function gigmaIsRowReadOnlyUnchained(row, kindOverride, viewModeOverride){
   try{
     if (!row || !row.classList || !row.classList.contains('gigma-row')) return false;
-    var kind = gigmaNormalizeEditableUnchainedKind(kindOverride || gigmaGetActivePresetKindForEditableUnchained());
+    var kind = gigmaNormalizeEditableUnchainedKind(kindOverride || gigmaGetActiveLayoutPresetKindForEditableUnchained());
     var mode = gigmaNormalizeEditableUnchainedViewMode(viewModeOverride || gigmaGetActiveViewModeForEditableUnchained());
 
     var isUnchained = false;
@@ -42253,7 +42201,7 @@ function gigmaIsRowReadOnlyUnchained(row, kindOverride, viewModeOverride){
 function gigmaApplyUnchainedReadonlyStateToRows(kindOverride, viewModeOverride){
   try{
     if (typeof document === 'undefined') return;
-    var kind = gigmaNormalizeEditableUnchainedKind(kindOverride || gigmaGetActivePresetKindForEditableUnchained());
+    var kind = gigmaNormalizeEditableUnchainedKind(kindOverride || gigmaGetActiveLayoutPresetKindForEditableUnchained());
     var mode = gigmaNormalizeEditableUnchainedViewMode(viewModeOverride || gigmaGetActiveViewModeForEditableUnchained());
 
     var root = document.getElementById('gigma-modal-root');
@@ -42345,7 +42293,7 @@ function gigmaApplyEditableChainedToggleButtonUi(kind, viewMode){
 
 function gigmaApplyEditableUnchainedStateForActiveContext(kindOverride, viewModeOverride){
   try{
-    var kind = gigmaNormalizeEditableUnchainedKind(kindOverride || gigmaGetActivePresetKindForEditableUnchained());
+    var kind = gigmaNormalizeEditableUnchainedKind(kindOverride || gigmaGetActiveLayoutPresetKindForEditableUnchained());
     var mode = gigmaNormalizeEditableUnchainedViewMode(viewModeOverride || gigmaGetActiveViewModeForEditableUnchained());
     gigmaApplyEditableUnchainedToggleButtonUi('child', mode);
     gigmaApplyEditableUnchainedToggleButtonUi('parent', mode);
@@ -42386,7 +42334,7 @@ function gigmaInitEditableUnchainedToggles(){
             gigmaSaveEditableUnchainedLorebooksState(kind, mode, nextU);
           }
 
-          if (gigmaGetActivePresetKindForEditableUnchained() === kind) {
+          if (gigmaGetActiveLayoutPresetKindForEditableUnchained() === kind) {
             gigmaApplyEditableUnchainedStateForActiveContext(kind, mode);
             if (!isChained){
               try{ if (typeof gigmaSyncParentUnchainedLorebooksInParent === 'function') gigmaSyncParentUnchainedLorebooksInParent(); }catch(_){ }
@@ -42406,30 +42354,30 @@ function gigmaInitEditableUnchainedToggles(){
 
 // --- end: GIGMA editable unchained lorebooks state ---
 // --- end: GIGMA modal dim state ---
-function gigmaInitPresetKindToggle() {
+function gigmaInitLayoutPresetKindToggle() {
     try {
-        const btn = document.getElementById('gigma-preset-kind-toggle');
-        const masterControls = document.getElementById('gigma-preset-controls-parent');
-        const charControls = document.getElementById('gigma-preset-controls-child');
-        const masterSelect = document.getElementById('gigma-parent-preset-select');
+        const btn = document.getElementById('gigma-layout-preset-kind-toggle');
+        const parentPresetControls = document.getElementById('gigma-layout-preset-controls-parent');
+        const charControls = document.getElementById('gigma-layout-preset-controls-child');
+        const parentPresetSelect = document.getElementById('gigma-parent-preset-select');
         const charSelect = document.getElementById('gigma-child-preset-select');
-        if (!btn || !masterControls || !charControls || !masterSelect || !charSelect) return;
+        if (!btn || !parentPresetControls || !charControls || !parentPresetSelect || !charSelect) return;
         if (btn.dataset.gigmaKindWired === '1') return;
         btn.dataset.gigmaKindWired = '1';
         const applyKind = async (kind, opts) => {
-            const isMaster = (kind === 'parent');
+            const isParentPresetKind = (kind === 'parent');
             const fromToggle = !!(opts && opts.fromToggle);
             btn.dataset.gigmaPresetKind = kind;
             gigmaSetLastPresetKind(kind);
-            btn.textContent = isMaster ? 'Parent Preset:' : 'Child Preset:';
-            if (masterSelect && charSelect) {
-                masterSelect.style.display = isMaster ? '' : 'none';
-                charSelect.style.display = isMaster ? 'none' : '';
+            btn.textContent = isParentPresetKind ? 'Parent Preset:' : 'Child Preset:';
+            if (parentPresetSelect && charSelect) {
+                parentPresetSelect.style.display = isParentPresetKind ? '' : 'none';
+                charSelect.style.display = isParentPresetKind ? 'none' : '';
             }
-            masterControls.style.display = isMaster ? 'flex' : 'none';
-            charControls.style.display = isMaster ? 'none' : 'flex';
-            masterControls.dataset.gigmaActivePreset = isMaster ? '1' : '0';
-            charControls.dataset.gigmaActivePreset = isMaster ? '0' : '1';
+            parentPresetControls.style.display = isParentPresetKind ? 'flex' : 'none';
+            charControls.style.display = isParentPresetKind ? 'none' : 'flex';
+            parentPresetControls.dataset.gigmaActivePreset = isParentPresetKind ? '1' : '0';
+            charControls.dataset.gigmaActivePreset = isParentPresetKind ? '0' : '1';
             try{ if (typeof gigmaInitModalDimToggles === 'function') gigmaInitModalDimToggles(); }catch(_){ }
             try{ if (typeof gigmaInitModalPresetConvertButtons === 'function') gigmaInitModalPresetConvertButtons(); }catch(_){ }
             try{ if (typeof gigmaApplyModalDimStateForKind === 'function') gigmaApplyModalDimStateForKind(kind); }catch(_){ }
@@ -42451,11 +42399,11 @@ function gigmaInitPresetKindToggle() {
                     gigmaUpdateInheritAreaVisibility();
                 }
             }catch(_){}
-// Ensure Retrospective Order Adjustment mode matches the active preset kind.
+// Ensure Retrospective Order Adjustment mode matches the active layout preset kind.
             // Parent presets are always detached and must never enable retro mode.
             try {
                 if (typeof gigmaSetRetroOrderMode === 'function') {
-                    if (isMaster) {
+                    if (isParentPresetKind) {
                         // When viewing Parent Presets, disable all Retrospective Order modes
                         // so lorebooks behave as if "Inherit from:" were "None (Detached)".
                         try { gigmaSetRetroOrderMode('child', false); } catch (_eR1) {}
@@ -42463,19 +42411,19 @@ function gigmaInitPresetKindToggle() {
                     } else {
                         // When switching back to Child Presets, recompute retro mode based on
                         // the current "Inherit order from:" dropdown selection(s).
-                        let anyMaster = false;
+                        let hasAnyParentPresetLink = false;
                         try {
-                            const selects = document.querySelectorAll('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-master-select');
+                            const selects = document.querySelectorAll('.gigma-chat-scope-row:not(.gigma-lorebook-scope-row) .gigma-chat-parent-preset-select');
                             selects.forEach((select) => {
                                 try {
                                     const v = select && select.value;
                                     if (v && v !== 'decoupled') {
-                                        anyMaster = true;
+                                        hasAnyParentPresetLink = true;
                                     }
                                 } catch (_) {}
                             });
                         } catch (_) {}
-                        try { gigmaSetRetroOrderMode('child', anyMaster); } catch (_eR3) {}
+                        try { gigmaSetRetroOrderMode('child', hasAnyParentPresetLink); } catch (_eR3) {}
                     }
                 }
             } catch (_eRetroKind) {}
@@ -42485,73 +42433,73 @@ function gigmaInitPresetKindToggle() {
                 }
             }catch(_){}
             try{ if (typeof gigmaApplyBudgetChildRestrictions === 'function') gigmaApplyBudgetChildRestrictions(); }catch(_){}
-            // Non-fatal; ignore failures when storing inheritance on preset.tify chat scope rows so they can show/hide the "Parent Preset" option appropriately
+            // Notify chat scope rows so they can show/hide the "Parent Preset" option appropriately
             try{
-                if (typeof window !== 'undefined' && typeof window.gigmaSyncChatLinkMasterOption === 'function'){
-                    window.gigmaSyncChatLinkMasterOption(kind);
+                if (typeof window !== 'undefined' && typeof window.gigmaSyncChatLinkParentPresetOption === 'function'){
+                    window.gigmaSyncChatLinkParentPresetOption(kind);
                 }
             }catch(_){}
-            // When switching between master/character via the toggle button,
+            // When switching between parent/child via the toggle button,
             // automatically load the most recently used preset for the target kind.
             if (fromToggle) {
                 try {
-                    if (typeof gigmaGetPresetStore === 'function') {
-                        const presets = gigmaGetPresetStore(kind);
+                    if (typeof gigmaGetLayoutPresetStore === 'function') {
+                        const presets = gigmaGetLayoutPresetStore(kind);
                         if (presets && typeof presets === 'object' && Object.keys(presets).length > 0) {
-                            let lastName = null;
-                            if (typeof gigmaGetLastPresetName === 'function') {
+                            let lastLayoutPresetId = null;
+                            if (typeof gigmaGetLastLayoutPresetId === 'function') {
                                 try {
-                                    const candidate = gigmaGetLastPresetName(kind);
+                                    const candidate = gigmaGetLastLayoutPresetId(kind);
                                     if (candidate && Object.prototype.hasOwnProperty.call(presets, candidate)) {
-                                        lastName = candidate;
+                                        lastLayoutPresetId = candidate;
                                     }
                                 } catch (_eLast) {}
                             }
-                            if (lastName) {
-                                const selectId = isMaster
+                            if (lastLayoutPresetId) {
+                                const selectId = isParentPresetKind
                                     ? 'gigma-parent-preset-select'
                                     : 'gigma-child-preset-select';
                                 const select = document.getElementById(selectId);
                                 if (select) {
-                                    try { select.value = lastName; } catch (_eVal) {}
+                                    try { select.value = lastLayoutPresetId; } catch (_eVal) {}
                                 }
-                                const preset = presets[lastName];
+                                const preset = presets[lastLayoutPresetId];
                                 if (preset && typeof gigmaApplyLayoutPreset === 'function') {
                                     try {
                                         if (typeof gigmaApplyPresetConsideringInheritance === 'function') {
-                                            await gigmaApplyPresetConsideringInheritance(kind, lastName, preset, select);
+                                            await gigmaApplyPresetConsideringInheritance(kind, lastLayoutPresetId, preset, select);
                                         } else {
                                             await gigmaApplyLayoutPreset(preset);
                                         }
                                         // Parent Presets: restore the saved "unchained lorebooks" display + selection state.
-                                        if (isMaster && typeof gigmaApplyParentUnchainedSettingsFromPreset === 'function') {
-                                            try { gigmaApplyParentUnchainedSettingsFromPreset(preset, lastName);
-                                            try { gigmaApplyParentBudgetUnchainedSettingsFromPreset(preset, lastName); } catch (_eParentBudgetUnchainedToggle) {} } catch (_eParentUnchainedToggle) {}
+                                        if (isParentPresetKind && typeof gigmaApplyParentUnchainedSettingsFromPreset === 'function') {
+                                            try { gigmaApplyParentUnchainedSettingsFromPreset(preset, lastLayoutPresetId);
+                                            try { gigmaApplyParentBudgetUnchainedSettingsFromPreset(preset, lastLayoutPresetId); } catch (_eParentBudgetUnchainedToggle) {} } catch (_eParentUnchainedToggle) {}
                                         }
                                         // When toggling back to Child Presets, also restore the main
                                         // "Inherit order from" selection from the loaded preset.
-                                        if (!isMaster && typeof gigmaApplyChatMasterFromPreset === 'function') {
+                                        if (!isParentPresetKind && typeof gigmaApplyChatParentPresetSelectFromLayoutPreset === 'function') {
                                             try {
-                                                gigmaApplyChatMasterFromPreset(preset);
+                                                gigmaApplyChatParentPresetSelectFromLayoutPreset(preset);
                                             } catch (_eChatToggle) {}
                                         }
 // Also restore the child preset-level "Inherit budget from" dropdown.
 try {
-    if (!isMaster && typeof gigmaApplyInheritBudgetFromPresetToUI === 'function') {
+    if (!isParentPresetKind && typeof gigmaApplyInheritBudgetFromPresetToUI === 'function') {
         gigmaApplyInheritBudgetFromPresetToUI(preset, select || document.body);
     }
 } catch (_eInheritKindToggle) {}
-                                        if (typeof gigmaShowPresetStatus === 'function') {
+                                        if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
                                         }
                                     } catch (_eApply) {}
                                     try {
-                                        if (typeof gigmaSetLastPresetName === 'function') {
-                                            gigmaSetLastPresetName(lastName, kind);
+                                        if (typeof gigmaSetLastLayoutPresetId === 'function') {
+                                            gigmaSetLastLayoutPresetId(lastLayoutPresetId, kind);
                                         }
                                     } catch (_eSave) {}
                                     // After loading a preset due to the kind toggle, immediately
                                     // refresh the lorebook budget drawer (if present) so it shows
-                                    // the budget settings for the active preset kind.
+                                    // the budget settings for the active layout preset kind.
                                     try {
                                         const lbSelect = document.getElementById('gigma-lorebook-dropdown-toggle');
                                         if (lbSelect && lbSelect.value &&
@@ -42773,29 +42721,29 @@ async function gigmaAutoApplyLastPresetOrLoadLorebooks() {
                 }
             }
         } catch (_eKindRead) {}
-        const presets = (typeof gigmaGetPresetStore === 'function') ? gigmaGetPresetStore(kind) : {};
+        const presets = (typeof gigmaGetLayoutPresetStore === 'function') ? gigmaGetLayoutPresetStore(kind) : {};
         const hasPresets = presets && typeof presets === 'object' && Object.keys(presets).length > 0;
-        let lastName = null;
-        if (hasPresets && typeof gigmaGetLastPresetName === 'function') {
+        let lastLayoutPresetId = null;
+        if (hasPresets && typeof gigmaGetLastLayoutPresetId === 'function') {
             try {
-                const candidate = gigmaGetLastPresetName(kind);
+                const candidate = gigmaGetLastLayoutPresetId(kind);
                 if (candidate && Object.prototype.hasOwnProperty.call(presets, candidate)) {
-                    lastName = candidate;
+                    lastLayoutPresetId = candidate;
                 }
             } catch (_eLastRead) {}
         }
-        if (hasPresets && lastName) {
-            const preset = presets[lastName];
+        if (hasPresets && lastLayoutPresetId) {
+            const preset = presets[lastLayoutPresetId];
             if (preset) {
-                const isMaster = (kind === 'parent');
-                const selectId = isMaster ? 'gigma-parent-preset-select' : 'gigma-child-preset-select';
+                const isParentPresetKind = (kind === 'parent');
+                const selectId = isParentPresetKind ? 'gigma-parent-preset-select' : 'gigma-child-preset-select';
                 const select = document.getElementById(selectId);
                 if (select) {
-                    try { select.value = lastName; } catch (_eSel) {}
+                    try { select.value = lastLayoutPresetId; } catch (_eSel) {}
                 }
                 try {
                     if (typeof gigmaApplyPresetConsideringInheritance === 'function') {
-                        await gigmaApplyPresetConsideringInheritance(kind, lastName, preset, select || list || document.body);
+                        await gigmaApplyPresetConsideringInheritance(kind, lastLayoutPresetId, preset, select || list || document.body);
                     } else {
                         await gigmaApplyLayoutPreset(preset);
                     }
@@ -42803,35 +42751,35 @@ async function gigmaAutoApplyLastPresetOrLoadLorebooks() {
                     try { await gigmaApplyLayoutPreset(preset); } catch (_eFallback) {}
                 }
                 // Parent Presets: restore the saved "unchained lorebooks" display + selection state.
-                if (isMaster && typeof gigmaApplyParentUnchainedSettingsFromPreset === 'function') {
-                    try { gigmaApplyParentUnchainedSettingsFromPreset(preset, lastName);
-                                            try { gigmaApplyParentBudgetUnchainedSettingsFromPreset(preset, lastName); } catch (_eParentBudgetUnchainedToggle) {} } catch (_eParentUnchainedAutoApply) {}
+                if (isParentPresetKind && typeof gigmaApplyParentUnchainedSettingsFromPreset === 'function') {
+                    try { gigmaApplyParentUnchainedSettingsFromPreset(preset, lastLayoutPresetId);
+                                            try { gigmaApplyParentBudgetUnchainedSettingsFromPreset(preset, lastLayoutPresetId); } catch (_eParentBudgetUnchainedToggle) {} } catch (_eParentUnchainedAutoApply) {}
                 }
                 // Parent Presets: ensure unchained placeholders are inserted in correct positions.
-                try{ if (isMaster && typeof gigmaSyncParentUnchainedLorebooksInParent === 'function') gigmaSyncParentUnchainedLorebooksInParent(); }catch(_){ }
+                try{ if (isParentPresetKind && typeof gigmaSyncParentUnchainedLorebooksInParent === 'function') gigmaSyncParentUnchainedLorebooksInParent(); }catch(_){ }
                 // When auto-applying a child preset on open, also restore the
                 // main "Inherit order from" selection for chat scope. Parent presets
                 // are always detached so they do not affect this dropdown.
-                if (!isMaster) {
+                if (!isParentPresetKind) {
                     try {
-                        if (typeof gigmaApplyChatMasterFromPreset === 'function') {
-                            gigmaApplyChatMasterFromPreset(preset);
+                        if (typeof gigmaApplyChatParentPresetSelectFromLayoutPreset === 'function') {
+                            gigmaApplyChatParentPresetSelectFromLayoutPreset(preset);
                         }
                     } catch (_eChatAuto) {}
                 }
 // Also restore the child preset-level "Inherit budget from" dropdown.
 try {
-    if (!isMaster && typeof gigmaApplyInheritBudgetFromPresetToUI === 'function') {
+    if (!isParentPresetKind && typeof gigmaApplyInheritBudgetFromPresetToUI === 'function') {
         gigmaApplyInheritBudgetFromPresetToUI(preset, select || list || document.body);
     }
 } catch (_eInheritAutoApply) {}
                 try {
-                    if (typeof gigmaShowPresetStatus === 'function') {
+                    if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
                     }
                 } catch (_eStatus) {}
                 try {
-                    if (typeof gigmaSetLastPresetName === 'function') {
-                        gigmaSetLastPresetName(lastName, kind);
+                    if (typeof gigmaSetLastLayoutPresetId === 'function') {
+                        gigmaSetLastLayoutPresetId(lastLayoutPresetId, kind);
                     }
                 } catch (_eSaveLast) {}
                 return; // Done: we successfully applied a preset
@@ -42935,9 +42883,9 @@ if (typeof gigmaLoadLorebooksToSingleUnsortedFolder === 'function') {
  */
 
 function gigmaGetBudgetInheritanceForChildPreset() {
-    const presetName = (typeof gigmaGetLastPresetName === 'function') ? gigmaGetLastPresetName('child') : null;
-    if (!presetName || typeof gigmaGetPresetStore !== 'function') return 'decoupled';
-    const presets = gigmaGetPresetStore('child');
+    const presetName = (typeof gigmaGetLastLayoutPresetId === 'function') ? gigmaGetLastLayoutPresetId('child') : null;
+    if (!presetName || typeof gigmaGetLayoutPresetStore !== 'function') return 'decoupled';
+    const presets = gigmaGetLayoutPresetStore('child');
     const preset = presets && typeof presets === 'object' ? presets[presetName] : null;
     const raw = (preset && typeof preset.budgetInheritFromId === 'string') ? preset.budgetInheritFromId.trim() : '';
     return raw || 'decoupled';
@@ -42949,22 +42897,22 @@ function gigmaGetBudgetInheritanceForChildPreset() {
  */
 function gigmaSetBudgetInheritanceForChildPreset(value) {
     try {
-        if (typeof gigmaGetLastPresetName !== 'function' ||
-            typeof gigmaGetPresetStore !== 'function' ||
-            typeof gigmaSetPresetStore !== 'function') {
+        if (typeof gigmaGetLastLayoutPresetId !== 'function' ||
+            typeof gigmaGetLayoutPresetStore !== 'function' ||
+            typeof gigmaSetLayoutPresetStore !== 'function') {
             return false;
         }
         const kind = 'child';
-        const presetName = gigmaGetLastPresetName(kind);
+        const presetName = gigmaGetLastLayoutPresetId(kind);
         if (!presetName) return false;
-        const presets = gigmaGetPresetStore(kind);
+        const presets = gigmaGetLayoutPresetStore(kind);
         if (!presets || typeof presets !== 'object' || !presets[presetName]) {
             return false;
         }
         const preset = presets[presetName];
         const clean = (typeof value === 'string' && value.trim() !== '') ? value.trim() : 'decoupled';
         preset.budgetInheritFromId = clean;
-        gigmaSetPresetStore(presets, kind);
+        gigmaSetLayoutPresetStore(presets, kind);
         return true;
     } catch (e) {
         console.warn('GIGMA: Failed to store child preset budget inheritance:', e);
@@ -43110,7 +43058,7 @@ function gigmaGetMergedLorebookSettingsOrDefault(map, lorebookId) {
 /**
  * For UI/runtime refresh: apply the effective budget settings to the visible rows.
  * This updates row dataset caches and (when present) header controls, but does NOT
- * persist anything into presets.
+ * persist anything into layout presets.
  */
 function gigmaApplyEffectiveBudgetsToVisibleRowsForChildPreset(childPreset, parentPreset, anchorEl) {
     try {
@@ -43215,14 +43163,14 @@ function gigmaApplyEffectiveBudgetsToVisibleRowsForChildPreset(childPreset, pare
  *
  * This is used for: Parent -> None (Decoupled) transitions and safe parent deletion.
  */
-function gigmaFreezeChainedBudgetsFromParentIntoChild(childPresetName, parentPresetName) {
+function gigmaFreezeChainedBudgetsFromParentIntoChild(childPresetId, parentPresetId) {
     try {
-        if (!childPresetName || !parentPresetName) return false;
-        if (typeof gigmaGetPresetStore !== 'function' || typeof gigmaSetPresetStore !== 'function') return false;
-        const childPresets = gigmaGetPresetStore('child') || {};
-        const parentPresets = gigmaGetPresetStore('parent') || {};
-        const childPreset = childPresets[childPresetName];
-        const parentPreset = parentPresets[parentPresetName];
+        if (!childPresetId || !parentPresetId) return false;
+        if (typeof gigmaGetLayoutPresetStore !== 'function' || typeof gigmaSetLayoutPresetStore !== 'function') return false;
+        const childPresets = gigmaGetLayoutPresetStore('child') || {};
+        const parentPresets = gigmaGetLayoutPresetStore('parent') || {};
+        const childPreset = childPresets[childPresetId];
+        const parentPreset = parentPresets[parentPresetId];
         if (!childPreset || typeof childPreset !== 'object') return false;
         const lockSet = gigmaGetRetroBudgetLockSetFromPreset(childPreset);
         const childMap = gigmaGetPresetLorebookSettingsMap(childPreset, true) || {};
@@ -43273,7 +43221,7 @@ function gigmaFreezeChainedBudgetsFromParentIntoChild(childPresetName, parentPre
         });
         // Now fully decouple.
         childPreset.budgetInheritFromId = 'decoupled';
-        gigmaSetPresetStore(childPresets, 'child');
+        gigmaSetLayoutPresetStore(childPresets, 'child');
         return true;
     } catch (e) {
         console.warn('GIGMA: failed to freeze chained budgets from parent into child:', e);
@@ -43281,18 +43229,18 @@ function gigmaFreezeChainedBudgetsFromParentIntoChild(childPresetName, parentPre
     }
 }
 /**
- * Helper: determine which preset kind (master vs character) should be used
+ * Helper: determine which preset kind (parent vs child) should be used
  * for lorebook budget settings. When the main GIGMA modal is open, this follows
  * the Parent/Child preset toggle. Otherwise it falls back to the last-used kind.
  */
 
-function gigmaGetActivePresetKindForLorebookSettings() {
+function gigmaGetActiveLayoutPresetKindForLorebookSettings() {
     const kind = (typeof gigmaGetLastPresetKind === 'function') ? gigmaGetLastPresetKind() : null;
     return (kind === 'parent' || kind === 'child') ? kind : 'child';
 }
 
 /**
- * Helper: resolve the active preset name for lorebook budget settings.
+ * Helper: resolve the active layout preset name for lorebook budget settings.
  *
  * Why this exists: when a user saves a preset under a new name, the UI selection
  * changes immediately, but the "last preset name" cache may not yet be updated.
@@ -43300,9 +43248,9 @@ function gigmaGetActivePresetKindForLorebookSettings() {
  * currently selected in the UI.
  */
 
-function gigmaGetActivePresetNameForLorebookSettings(kind) {
-    const k = (kind === 'parent' || kind === 'child') ? kind : gigmaGetActivePresetKindForLorebookSettings();
-    return (typeof gigmaGetLastPresetName === 'function') ? gigmaGetLastPresetName(k) : null;
+function gigmaGetActiveLayoutPresetIdForLorebookSettings(kind) {
+    const k = (kind === 'parent' || kind === 'child') ? kind : gigmaGetActiveLayoutPresetKindForLorebookSettings();
+    return (typeof gigmaGetLastLayoutPresetId === 'function') ? gigmaGetLastLayoutPresetId(k) : null;
 }
 
 /**
@@ -43317,22 +43265,22 @@ function gigmaSaveLorebookSettingsToCurrentPreset(lorebookId, settings) {
         }
         let kind = 'child';
         try {
-            if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-                kind = gigmaGetActivePresetKindForLorebookSettings();
+            if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+                kind = gigmaGetActiveLayoutPresetKindForLorebookSettings();
             }
         } catch (_eKind) {
             kind = 'child';
         }
-        const presetName = (typeof gigmaGetActivePresetNameForLorebookSettings === 'function')
-            ? gigmaGetActivePresetNameForLorebookSettings(kind)
-            : ((typeof gigmaGetLastPresetName === 'function') ? gigmaGetLastPresetName(kind) : null);
+        const presetName = (typeof gigmaGetActiveLayoutPresetIdForLorebookSettings === 'function')
+            ? gigmaGetActiveLayoutPresetIdForLorebookSettings(kind)
+            : ((typeof gigmaGetLastLayoutPresetId === 'function') ? gigmaGetLastLayoutPresetId(kind) : null);
         if (!presetName) {
             // Non-fatal; ignore failures when storing inheritance on preset. active layout preset; let the caller surface an inline message (no toast).
             return false;
         }
-        const presets = gigmaGetPresetStore(kind);
+        const presets = gigmaGetLayoutPresetStore(kind);
         if (!presets || typeof presets !== 'object' || !presets[presetName]) {
-            toastr.error('Current preset not found. Save or load a layout preset first.');
+            toastr.error('Current layout preset not found. Save or load a layout preset first.');
             return false;
         }
         const preset = presets[presetName];
@@ -43361,24 +43309,24 @@ function gigmaSaveLorebookSettingsToCurrentPreset(lorebookId, settings) {
         } catch (_ePrune) {
             // Non-fatal
         }
-        gigmaSetPresetStore(presets, kind);
+        gigmaSetLayoutPresetStore(presets, kind);
         try {
-            if (typeof gigmaShowPresetStatus === 'function') {
-                gigmaShowPresetStatus('Saved lorebook budget settings to preset "' + presetName + '".', 'success');
+            if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
+                gigmaShowScopedLayoutOrAssignmentPresetStatus('Saved lorebook budget settings to ' + (kind === 'parent' ? 'parent preset "' : 'child preset "') + presetName + '".', 'success');
             } else {
-                toastr.success('Saved lorebook budget settings to preset "' + presetName + '".');
+                toastr.success('Saved lorebook budget settings to ' + (kind === 'parent' ? 'parent preset "' : 'child preset "') + presetName + '".');
             }
         } catch (_eStatus) {
             // Non-fatal; ignore failures when storing inheritance on preset.n-fatal
         }
         return true;
     } catch (e) {
-        console.warn('GIGMA: failed to save lorebook budget settings into preset:', e);
+        console.warn('GIGMA: failed to save lorebook budget settings into the current layout preset:', e);
         try {
-            if (typeof gigmaShowPresetStatus === 'function') {
-                gigmaShowPresetStatus('Failed to save lorebook budget settings to preset.', 'error');
+            if (typeof gigmaShowScopedLayoutOrAssignmentPresetStatus === 'function') {
+                gigmaShowScopedLayoutOrAssignmentPresetStatus('Failed to save lorebook budget settings to the current layout preset.', 'error');
             } else {
-                toastr.error('Failed to save lorebook budget settings to preset.');
+                toastr.error('Failed to save lorebook budget settings to the current layout preset.');
             }
         } catch (_eStatus2) {
             // ignore
@@ -43403,17 +43351,17 @@ function gigmaLoadLorebookSettingsFromCurrentPreset(lorebookId) {
         if (!lorebookId) return null;
         let kind = 'child';
         try {
-            if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-                kind = gigmaGetActivePresetKindForLorebookSettings();
+            if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+                kind = gigmaGetActiveLayoutPresetKindForLorebookSettings();
             }
         } catch (_eKind) {
             kind = 'child';
         }
-        const presetName = (typeof gigmaGetActivePresetNameForLorebookSettings === 'function')
-            ? gigmaGetActivePresetNameForLorebookSettings(kind)
-            : ((typeof gigmaGetLastPresetName === 'function') ? gigmaGetLastPresetName(kind) : null);
+        const presetName = (typeof gigmaGetActiveLayoutPresetIdForLorebookSettings === 'function')
+            ? gigmaGetActiveLayoutPresetIdForLorebookSettings(kind)
+            : ((typeof gigmaGetLastLayoutPresetId === 'function') ? gigmaGetLastLayoutPresetId(kind) : null);
         if (!presetName) return null;
-        const presets = gigmaGetPresetStore(kind);
+        const presets = gigmaGetLayoutPresetStore(kind);
         if (!presets || typeof presets !== 'object') return null;
         const preset = presets[presetName];
         if (!preset || typeof preset !== 'object') return null;
@@ -43432,7 +43380,7 @@ function gigmaLoadLorebookSettingsFromCurrentPreset(lorebookId) {
         const isUnchained = lockSet.has(String(lorebookId));
         if (inheriting && !isUnchained) {
             // Chained while inheriting → parent is the sole source.
-            const parentPresets = gigmaGetPresetStore('parent') || {};
+            const parentPresets = gigmaGetLayoutPresetStore('parent') || {};
             const parentPreset = parentPresets[inheritParentName];
             const parentMap = (parentPreset && parentPreset.lorebookSettings && typeof parentPreset.lorebookSettings === 'object')
                 ? parentPreset.lorebookSettings
@@ -43457,7 +43405,7 @@ function gigmaLoadLorebookSettingsFromCurrentPreset(lorebookId) {
         }
         return gigmaBudgetMergeDefaults(data);
     } catch (e) {
-        console.warn('GIGMA: failed to load lorebook budget settings from current preset:', e);
+        console.warn('GIGMA: failed to load lorebook budget settings from current layout preset:', e);
         return null;
     }
 }
@@ -43474,9 +43422,9 @@ function gigmaSaveAllLorebookBudgetSettingsFromHeaders(kindOverride, presetNameO
         return;
     }
     try {
-        if (typeof gigmaGetActivePresetKindForLorebookSettings !== 'function' ||
-            typeof gigmaGetPresetStore !== 'function' ||
-            typeof gigmaSetPresetStore !== 'function' ||
+        if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings !== 'function' ||
+            typeof gigmaGetLayoutPresetStore !== 'function' ||
+            typeof gigmaSetLayoutPresetStore !== 'function' ||
             typeof gigmaGetPresetLorebookSettingsMap !== 'function') {
             return;
         }
@@ -43486,22 +43434,22 @@ function gigmaSaveAllLorebookBudgetSettingsFromHeaders(kindOverride, presetNameO
     try {
         const kind = (kindOverride === 'parent' || kindOverride === 'child')
             ? kindOverride
-            : gigmaGetActivePresetKindForLorebookSettings();
+            : gigmaGetActiveLayoutPresetKindForLorebookSettings();
         const presetName = (typeof presetNameOverride === 'string' && presetNameOverride.trim())
             ? presetNameOverride.trim()
-            : ((typeof gigmaGetActivePresetNameForLorebookSettings === 'function')
-                ? gigmaGetActivePresetNameForLorebookSettings(kind)
-                : ((typeof gigmaGetLastPresetName === 'function') ? gigmaGetLastPresetName(kind) : null));
+            : ((typeof gigmaGetActiveLayoutPresetIdForLorebookSettings === 'function')
+                ? gigmaGetActiveLayoutPresetIdForLorebookSettings(kind)
+                : ((typeof gigmaGetLastLayoutPresetId === 'function') ? gigmaGetLastLayoutPresetId(kind) : null));
         if (!presetName) return;
 
-        const presets = gigmaGetPresetStore(kind);
+        const presets = gigmaGetLayoutPresetStore(kind);
         if (!presets || typeof presets !== 'object') return;
         const preset = presets[presetName];
         if (!preset || typeof preset !== 'object') return;
         const map = gigmaGetPresetLorebookSettingsMap(preset, true);
         if (!map) return;
 
-        const childStore = (typeof gigmaGetPresetStore === 'function') ? (gigmaGetPresetStore('child') || {}) : {};
+        const childStore = (typeof gigmaGetLayoutPresetStore === 'function') ? (gigmaGetLayoutPresetStore('child') || {}) : {};
         let childStoreChanged = false;
 
         const container = document.getElementById('gigma-ordering-container');
@@ -43642,16 +43590,16 @@ function gigmaSaveAllLorebookBudgetSettingsFromHeaders(kindOverride, presetNameO
             }
         });
 
-        gigmaSetPresetStore(presets, kind);
+        gigmaSetLayoutPresetStore(presets, kind);
         if (kind === 'parent' && childStoreChanged) {
-            gigmaSetPresetStore(childStore, 'child');
+            gigmaSetLayoutPresetStore(childStore, 'child');
         }
     } catch (e) {
-        console.warn('GIGMA: Failed to persist lorebook budget header settings into preset:', e);
+        console.warn('GIGMA: Failed to persist lorebook budget header settings into the current layout preset:', e);
     }
 }
 /**
- * Refresh the Lorebook Budget drawer from the currently selected preset
+ * Refresh the Lorebook Budget drawer from the currently selected layout preset
  * for the currently selected lorebook (if any).
  */
 /**
@@ -43685,7 +43633,7 @@ function gigmaResetAllLorebookBudgetsToDefaultInCurrentPreset() {
     rows.forEach((row) => {
         try {
             if (!row) return;
-            if (typeof gigmaIsRowReadOnlyUnchained === 'function' && gigmaIsRowReadOnlyUnchained(row, gigmaGetActivePresetKindForEditableUnchained(), 'budget')) return;
+            if (typeof gigmaIsRowReadOnlyUnchained === 'function' && gigmaIsRowReadOnlyUnchained(row, gigmaGetActiveLayoutPresetKindForEditableUnchained(), 'budget')) return;
             try{
                 if (row.dataset){
                     row.dataset.gigmaBudgetMode = 'default';
@@ -43736,7 +43684,7 @@ function gigmaResetAllLorebookBudgetsToDefaultInCurrentPreset() {
             drawerLock.classList.remove('gigma-retro-locked');
         }
     } catch (_eDrawerLock) {}
-    // Refresh the Lorebook Budget drawer UI (without reading from/persisting to preset).
+    // Refresh the Lorebook Budget drawer UI (without reading from/persisting to the current layout preset).
     try {
         const selectEl = document.getElementById('gigma-lorebook-dropdown-toggle');
         if (selectEl && selectEl.value && typeof gigmaApplyLorebookSettingsToForm === 'function') {
@@ -43769,26 +43717,26 @@ function gigmaResetLorebookBudgetToParentInCurrentPresetForLorebookId(anchorEl, 
         if (typeof document === 'undefined') return;
         if (!lorebookId) return;
 
-        if (typeof gigmaGetActivePresetKindForLorebookSettings !== 'function' || gigmaGetActivePresetKindForLorebookSettings() !== 'child') {
+        if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings !== 'function' || gigmaGetActiveLayoutPresetKindForLorebookSettings() !== 'child') {
             if (typeof toastr !== 'undefined' && typeof toastr.error === 'function') {
                 toastr.error('GIGMA: Reset to parent\'s budget is only available for child presets.');
             }
             return;
         }
 
-        const parentPresetName = (typeof gigmaGetBudgetInheritanceForChildPreset === 'function')
+        const parentPresetId = (typeof gigmaGetBudgetInheritanceForChildPreset === 'function')
             ? gigmaGetBudgetInheritanceForChildPreset()
             : 'decoupled';
 
-        if (!parentPresetName || parentPresetName === 'decoupled') {
+        if (!parentPresetId || parentPresetId === 'decoupled') {
             if (typeof toastr !== 'undefined' && typeof toastr.error === 'function') {
                 toastr.error('GIGMA: Select a parent preset in "Inherit budget from" before resetting to parent\'s budget.');
             }
             return;
         }
 
-        const parents = (typeof gigmaGetPresetStore === 'function') ? gigmaGetPresetStore('parent') : null;
-        const parentPreset = (parents && typeof parents === 'object') ? (parents[parentPresetName] || null) : null;
+        const parents = (typeof gigmaGetLayoutPresetStore === 'function') ? gigmaGetLayoutPresetStore('parent') : null;
+        const parentPreset = (parents && typeof parents === 'object') ? (parents[parentPresetId] || null) : null;
         const parentMap = (parentPreset && parentPreset.lorebookSettings && typeof parentPreset.lorebookSettings === 'object')
             ? parentPreset.lorebookSettings
             : null;
@@ -43903,15 +43851,15 @@ function gigmaResetAllLorebookBudgetsToParentInCurrentPreset(anchorEl) {
     const rows = container.querySelectorAll('.gigma-row');
     if (!rows || !rows.length) return;
     // Resolve selected parent preset from the "Inherit budget from" dropdown.
-    let parentPresetName = null;
+    let parentPresetId = null;
     try {
         const sel = (typeof gigmaGetInheritBudgetSelect === 'function') ? gigmaGetInheritBudgetSelect(anchorEl) : null;
         const v = (sel && typeof sel.value === 'string') ? sel.value.trim() : '';
-        if (v && v !== 'decoupled') parentPresetName = v;
+        if (v && v !== 'decoupled') parentPresetId = v;
     } catch (_eSel) {
-        parentPresetName = null;
+        parentPresetId = null;
     }
-    if (!parentPresetName) {
+    if (!parentPresetId) {
         try {
             if (typeof toastr !== 'undefined' && typeof toastr.error === 'function') {
                 toastr.error('GIGMA: Select a parent preset in "Inherit budget from" before resetting to parent\'s budget.');
@@ -43923,8 +43871,8 @@ function gigmaResetAllLorebookBudgetsToParentInCurrentPreset(anchorEl) {
     let parentPreset = null;
     let parentMap = null;
     try {
-        const parents = (typeof gigmaGetPresetStore === 'function') ? gigmaGetPresetStore('parent') : null;
-        if (parents && typeof parents === 'object') parentPreset = parents[parentPresetName] || null;
+        const parents = (typeof gigmaGetLayoutPresetStore === 'function') ? gigmaGetLayoutPresetStore('parent') : null;
+        if (parents && typeof parents === 'object') parentPreset = parents[parentPresetId] || null;
         if (parentPreset && typeof parentPreset === 'object') {
             parentMap = (parentPreset.lorebookSettings && typeof parentPreset.lorebookSettings === 'object')
                 ? parentPreset.lorebookSettings
@@ -43936,7 +43884,7 @@ function gigmaResetAllLorebookBudgetsToParentInCurrentPreset(anchorEl) {
     }
     if (!parentPreset) {
         try {
-            console.error('GIGMA: Parent preset not found for budget reset:', parentPresetName);
+            console.error('GIGMA: Parent preset not found for budget reset:', parentPresetId);
         } catch (_eLog) {}
         try {
             if (typeof toastr !== 'undefined' && typeof toastr.error === 'function') {
@@ -43949,8 +43897,8 @@ function gigmaResetAllLorebookBudgetsToParentInCurrentPreset(anchorEl) {
     // This reset is UI/runtime-only until the user explicitly saves a preset.
     let kind = 'child';
     try {
-        if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function') {
-            kind = gigmaGetActivePresetKindForLorebookSettings() || 'child';
+        if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+            kind = gigmaGetActiveLayoutPresetKindForLorebookSettings() || 'child';
         }
     } catch (_eKind) { kind = 'child'; }
     // This operation is only meaningful for child presets.
@@ -44044,7 +43992,7 @@ function gigmaResetAllLorebookBudgetsToParentInCurrentPreset(anchorEl) {
                 }
                 try { if (typeof gigmaUpdateDeterministicRandomBoxVisual === 'function') gigmaUpdateDeterministicRandomBoxVisual(randomBox, rt); } catch (_eRBText) {}
             } catch (_eUi) {}
-            // Intentionally do NOT persist to preset.
+            // Intentionally do NOT persist to the current layout preset.
         } catch (_rowErr) {
             // Non-fatal
         }
@@ -44073,7 +44021,7 @@ function gigmaResetAllLorebookBudgetsToParentInCurrentPreset(anchorEl) {
             drawerLock.classList.remove('gigma-retro-locked');
         }
     } catch (_eDrawerLock) {}
-    // Refresh the Lorebook Budget drawer UI (without reading from/persisting to preset).
+    // Refresh the Lorebook Budget drawer UI (without reading from/persisting to the current layout preset).
     try {
         const selectEl = document.getElementById('gigma-lorebook-dropdown-toggle');
         if (selectEl && selectEl.value && typeof gigmaApplyLorebookSettingsToForm === 'function') {
@@ -44118,18 +44066,18 @@ async function gigmaResetAllLorebookOrdersToParentInCurrentPreset(anchorEl, opts
     opts = (opts && typeof opts === 'object') ? opts : {};
     const preserveOrderLocks = !!opts.preserveOrderLocks;
     // 1) Resolve the selected parent preset name from the "Inherit order from" <select>.
-    let parentPresetName = null;
+    let parentPresetId = null;
     try{
         const sel = (typeof gigmaGetInheritOrderSelect === 'function') ? gigmaGetInheritOrderSelect(anchorEl) : null;
         const v = (sel && typeof sel.value === 'string') ? sel.value.trim() : '';
-        if (v && v !== 'decoupled') parentPresetName = v;
-    }catch(_eSel){ parentPresetName = null; }
-    if (!parentPresetName) return;
+        if (v && v !== 'decoupled') parentPresetId = v;
+    }catch(_eSel){ parentPresetId = null; }
+    if (!parentPresetId) return;
     // 2) Load the parent preset snapshot.
     let parentPreset = null;
     try{
-        const store = (typeof gigmaGetPresetStore === 'function') ? gigmaGetPresetStore('parent') : null;
-        parentPreset = (store && typeof store === 'object') ? store[parentPresetName] : null;
+        const store = (typeof gigmaGetLayoutPresetStore === 'function') ? gigmaGetLayoutPresetStore('parent') : null;
+        parentPreset = (store && typeof store === 'object') ? store[parentPresetId] : null;
     }catch(_eStore){ parentPreset = null; }
     if (!parentPreset || typeof parentPreset !== 'object') return;
     if (typeof gigmaApplyLayoutPreset !== 'function') return;
@@ -44291,18 +44239,18 @@ function gigmaResetLorebookOrderToParentInCurrentPresetForLorebookId(lorebookId,
     try { if (typeof document === 'undefined') return; } catch (_eDoc) { return; }
     if (!lorebookId) return;
     // Resolve selected parent preset name from "Inherit order from".
-    let parentPresetName = null;
+    let parentPresetId = null;
     try{
         const sel = (typeof gigmaGetInheritOrderSelect === 'function') ? gigmaGetInheritOrderSelect(anchorEl || document.body) : null;
         const v = (sel && typeof sel.value === 'string') ? sel.value.trim() : '';
-        if (v && v !== 'decoupled') parentPresetName = v;
-    }catch(_eSel){ parentPresetName = null; }
-    if (!parentPresetName) return;
+        if (v && v !== 'decoupled') parentPresetId = v;
+    }catch(_eSel){ parentPresetId = null; }
+    if (!parentPresetId) return;
     // Load parent preset snapshot.
     let parentPreset = null;
     try{
-        const store = (typeof gigmaGetPresetStore === 'function') ? gigmaGetPresetStore('parent') : null;
-        parentPreset = (store && typeof store === 'object') ? store[parentPresetName] : null;
+        const store = (typeof gigmaGetLayoutPresetStore === 'function') ? gigmaGetLayoutPresetStore('parent') : null;
+        parentPreset = (store && typeof store === 'object') ? store[parentPresetId] : null;
     }catch(_eStore){ parentPreset = null; }
     if (!parentPreset || typeof parentPreset !== 'object') return;
     // Find the row element for this lorebook (prefer stable ID).
@@ -44518,7 +44466,7 @@ function gigmaRefreshLorebookBudgetDrawerFromCurrentPreset() {
             gigmaApplyLorebookSettingsToForm(presetSettings);
         }
     } catch (e) {
-        console.warn('GIGMA: Failed to refresh Lorebook Budget drawer from current preset:', e);
+        console.warn('GIGMA: Failed to refresh Lorebook Budget drawer from current layout preset:', e);
     }
 }
 // === END: GIGMA: lorebook budget settings stored inside layout presets ===
@@ -44603,7 +44551,7 @@ function gigmaScrollModalToWideToggleTop(triggerEl){
         if (!dialog) return;
 
         // Find the Parent/Child preset toggle button inside the modal.
-        const kindBtn = dialog.querySelector('#gigma-preset-kind-toggle') || null;
+        const kindBtn = dialog.querySelector('#gigma-layout-preset-kind-toggle') || null;
         if (!kindBtn) return;
 
         // Identify the scrollable element that actually moves when the modal scrolls.
@@ -44645,10 +44593,10 @@ function gigmaScrollModalToWideToggleTop(triggerEl){
 }catch(_eScrollTop){}
 }
 
-// === GIGMA: Scroll modal so the last preset assignment section sits near the bottom ===
-function gigmaScrollModalToPresetAssignmentsBottom(triggerEl){
+// === GIGMA: Scroll modal so the last assignment section sits near the bottom ===
+function gigmaScrollModalToAssignmentSectionsBottom(triggerEl){
     try{
-        const assignments = document.getElementById('gigma-preset-assignments-container');
+        const assignments = document.getElementById('gigma-assignment-sections-container');
         if (!assignments) return;
 
         const dlg = (triggerEl && triggerEl.closest) ? triggerEl.closest('dialog') : null;
@@ -44685,7 +44633,7 @@ function gigmaScrollModalToPresetAssignmentsBottom(triggerEl){
         }
 
         let last = null;
-        const rows = assignments.querySelectorAll('.gigma-preset-assignment');
+        const rows = assignments.querySelectorAll('.gigma-assignment-section');
         if (rows && rows.length) last = rows[rows.length - 1];
         else last = assignments;
 
@@ -44724,7 +44672,7 @@ document.addEventListener('click', async (e) => {
         }
 
         if (tid === 'gigma-scroll-bottom-global') {
-            gigmaScrollModalToPresetAssignmentsBottom(btn || target);
+            gigmaScrollModalToAssignmentSectionsBottom(btn || target);
             return;
         }
 
@@ -44756,7 +44704,7 @@ document.addEventListener('click', async (e) => {
 
 if (tid === 'gigma-ordering-load') {
 // GIGMA: In Budget mode, when this button is in the "Reset budget" state,
-// reset budgets for all lorebooks in the current preset to Default and do nothing else.
+// reset budgets for all lorebooks in the current layout preset to Default and do nothing else.
 try{
     const root = (typeof document !== 'undefined') ? document.documentElement : null;
     const inBudgetMode = !!(root && root.classList && root.classList.contains('gigma-budget-mode-active'));
@@ -44764,11 +44712,11 @@ try{
         // Parent/Child preset kind (default to child to preserve legacy behaviour)
         let presetKind = 'child';
         try{
-            if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function'){
-                const k = gigmaGetActivePresetKindForLorebookSettings();
+            if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function'){
+                const k = gigmaGetActiveLayoutPresetKindForLorebookSettings();
                 if (k === 'parent' || k === 'child') presetKind = k;
             }else{
-                const kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-preset-kind-toggle') : null;
+                const kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-layout-preset-kind-toggle') : null;
                 const k = kindBtn && kindBtn.dataset ? kindBtn.dataset.gigmaPresetKind : null;
                 if (k === 'parent' || k === 'child') presetKind = k;
             }
@@ -44817,11 +44765,11 @@ try{
         // Parent/Child preset kind (default to child to preserve legacy behaviour)
         let presetKind = 'child';
         try{
-            if (typeof gigmaGetActivePresetKindForLorebookSettings === 'function'){
-                const k = gigmaGetActivePresetKindForLorebookSettings();
+            if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function'){
+                const k = gigmaGetActiveLayoutPresetKindForLorebookSettings();
                 if (k === 'parent' || k === 'child') presetKind = k;
             }else{
-                const kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-preset-kind-toggle') : null;
+                const kindBtn = (typeof document !== 'undefined') ? document.getElementById('gigma-layout-preset-kind-toggle') : null;
                 const k = kindBtn && kindBtn.dataset ? kindBtn.dataset.gigmaPresetKind : null;
                 if (k === 'parent' || k === 'child') presetKind = k;
             }
@@ -44895,15 +44843,15 @@ try{
                 }
             } catch (_ePrev) {}
             try {
-                if (typeof gigmaShowLastPresetTreePopup === 'function') {
+                if (typeof gigmaShowLastLayoutPresetTreePopup === 'function') {
                     try {
-                        window.__gigmaLastPresetTreeOrigin = 'modal';
+                        window.__gigmaLastLayoutPresetTreeOrigin = 'modal';
                     } catch (_eOrigin) {}
-                    await gigmaShowLastPresetTreePopup();
+                    await gigmaShowLastLayoutPresetTreePopup();
                 }
             } catch (errTreeModal) {
                 try {
-                    console.warn('GIGMA: failed to open last preset tree popup from ordering modal:', errTreeModal);
+                    console.warn('GIGMA: failed to open last layout preset tree popup from ordering modal:', errTreeModal);
                 } catch (_eWarn) {}
                 try {
                     if (typeof toastr !== 'undefined' && typeof toastr.error === 'function') {
@@ -46073,7 +46021,7 @@ if (!window.gigmaSelection) {
 
 function gigmaIsParentPresetActive() {
     try {
-        const kindBtn = document.getElementById('gigma-preset-kind-toggle');
+        const kindBtn = document.getElementById('gigma-layout-preset-kind-toggle');
         return !!(kindBtn && kindBtn.dataset && kindBtn.dataset.gigmaPresetKind === 'parent');
     } catch (_) { return false; }
 }
@@ -46972,7 +46920,7 @@ function gigmaBindSelectionHandlers() {
         gigmaScrollFocusedFolderCore();
       }catch(_){}
     };
-    // Public helper: from the read-only preset tree preview, scroll to and select
+    // Public helper: from the read-only layout preset tree preview, scroll to and select
     // a lorebook row in either the main "Sorted Lorebooks" list or the focused
     // folder pane, expanding any ancestor folders so the lorebook becomes visible.
     window.gigmaFocusLorebookRowFromPresetPreview = function(name, worldId){
@@ -47146,18 +47094,18 @@ function gigmaBindSelectionHandlers() {
         }catch(_){}
       }catch(_){}
     };
-    // Helper: re-apply the last lorebook clicked in the preset tree
+    // Helper: re-apply the last lorebook clicked in the layout preset tree
     // after the preview popup is closed.
-    window.gigmaApplyLastPresetTreeSelection = function(){
+    window.gigmaApplyLastLayoutPresetTreeSelection = function(){
       try{
-        var sel = window.__gigmaLastPresetTreeSelection;
+        var sel = window.__gigmaLastLayoutPresetTreeSelection;
         if (!sel || (!sel.name && !sel.worldId)) return;
         // One-shot: clear the stored selection so it is only applied
         // once per preview session.
-        try{ window.__gigmaLastPresetTreeSelection = null; }catch(_eClearSel){}
+        try{ window.__gigmaLastLayoutPresetTreeSelection = null; }catch(_eClearSel){}
         var origin = '';
         try{
-          origin = window.__gigmaLastPresetTreeOrigin || '';
+          origin = window.__gigmaLastLayoutPresetTreeOrigin || '';
         }catch(_eOrigin){ origin = ''; }
         // When the preview is opened from the Lorebook Budget Drawer,
         // update the Lorebook dropdown instead of focusing rows in the
@@ -47594,7 +47542,7 @@ if (selectedFolders.length && rootList) {
                     // Parent presets: keep injected "unchained lorebooks" placeholders inside any moved folder.
                     const __gigmaKeepParentUnchainedInMovedFolders = (() => {
                         try {
-                            const btn = document.getElementById('gigma-preset-kind-toggle');
+                            const btn = document.getElementById('gigma-layout-preset-kind-toggle');
                             return !!(btn && btn.dataset && btn.dataset.gigmaPresetKind === 'parent');
                         } catch (_) { return false; }
                     })();
