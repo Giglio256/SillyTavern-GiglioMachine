@@ -771,7 +771,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         right:0;
         top:calc(100% + 0.25em);
         z-index:10002;
-        background: rgba(0,0,0,0.92);
+        background: rgba(0,0,0,1.00);
         border:0.0625em solid rgba(255,255,255,0.22);
         border-radius:0.35em;
         padding:0.5em;
@@ -10182,7 +10182,7 @@ dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-preview-gwi-host > but
         right:0;
         top:calc(100% + 0.25em);
         z-index:10002;
-        background: rgba(0,0,0,0.92);
+        background: rgba(0,0,0,1.00);
         border:0.0625em solid rgba(255,255,255,0.22);
         border-radius:0.35em;
         padding:0.5em;
@@ -10600,7 +10600,7 @@ dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-preview-gwi-host > but
   right:0;
   top:calc(100% + 0.25em);
   z-index:10002;
-  background: rgba(0,0,0,0.92);
+  background: rgba(0,0,0,1.00);
   border:0.06em solid rgba(255,255,255,0.22);
   border-radius:0.35em;
   padding:0.5em;
