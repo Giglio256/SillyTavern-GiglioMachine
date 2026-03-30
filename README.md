@@ -1,5 +1,5 @@
 Discord server for help & support:
-https://discord.gg/JVJvpjjE
+https://discord.gg/4JvsURcn
 
 As of March 2026, most comprehensive and advanced Sillytavern extension for managing and analysing lorebook budget and order. Allows to set order of lorebooks via drag & drop.
 Allows to set an individual budget for each lorebook, and multiple lorebooks together. Budget can be set in tokens or entries, or percentages of different values. Order can be set via drag and drop. Folders can be created by dragging the new folder button, for better management. A lorebook budget drawer in the native WI UI allows quick access to budget settings.
