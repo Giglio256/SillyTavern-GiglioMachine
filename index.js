@@ -1649,6 +1649,9 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
 
 .gigma-layout-preset-kind-toggle{
         display:inline-block;
+        width:14ch;
+        min-width:14ch;
+        max-width:14ch;
         white-space:nowrap;
         margin-left:0; /* remove unnecessary gap next to the Wide/Narrow button */
       }
@@ -16644,6 +16647,7 @@ function gigmaApplyPresetFromLorebookDrawer(kind, presetId, drawerSelect) {
 }
 
 
+
 function gigmaLockLorebookDrawerPresetKindToggleWidth(btn){
     try{
         if (!btn || !btn.dataset) return;
@@ -16877,7 +16881,7 @@ try {
                         </div>
                                                 <div class="gigma-layout-preset-kind-toggle-row">
                             <button id="gigma-layout-preset-kind-toggle" class="menu_button gigma-layout-preset-kind-toggle" type="button">
-                                Child Preset
+                                Child Preset:
                             </button>
                         </div>
                         <div class="gigma-layout-or-assignment-preset-select-row">
@@ -33924,7 +33928,7 @@ function gigmaBuildPresetInputPromptHtml(labelText, subjectLabel, presetName) {
         const warningText = safeName
             ? `All changes to the current ${safeSubject} '${safeName}' since its last save will be lost.`
             : `All changes to the current ${safeSubject} since its last save will be lost.`;
-        html += '<div style="display:flex;align-items:flex-start;gap:0.55em;margin-top:0.5em;margin-bottom:0.45em;padding:0.7em 0.8em;border-radius:0.6em;border:0.08em solid rgba(255,120,120,0.4);background:rgba(110,24,24,0.22);box-sizing:border-box;"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true" style="flex:0 0 auto;width:1em;text-align:center;line-height:1.2;opacity:0.95;margin-top:0.02em;"></i><div style="flex:1 1 auto;min-width:0;font-size:0.93em;line-height:1.28;overflow-wrap:anywhere;">' + gigmaEscapeHtml(warningText) + '</div></div>';
+        html += '<div style="display:flex;align-items:flex-start;gap:0.55em;margin-top:0.5em;margin-bottom:0.3em;padding:0.7em 0.8em;border-radius:0.6em;border:0.08em solid rgba(255,120,120,0.4);background:rgba(110,24,24,0.22);box-sizing:border-box;"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true" style="flex:0 0 auto;width:1em;text-align:center;line-height:1.2;opacity:0.95;margin-top:0.02em;"></i><div style="flex:1 1 auto;min-width:0;font-size:0.93em;line-height:1.28;overflow-wrap:anywhere;">' + gigmaEscapeHtml(warningText) + '</div></div>';
     }
     return html;
 }
@@ -42827,28 +42831,6 @@ try {
         // here; initial auto-apply is handled separately by
         // gigmaAutoApplyLastPresetOrLoadLorebooks.
         applyKind(initialKind, { fromToggle: false });
-        // After initial kind is applied, lock in a fixed width for the toggle button
-        // that is large enough for both labels (Child/Parent) so the width does
-        // not change when switching between them.
-        try{
-            const originalLabel = btn.textContent;
-            // Clear explicit widths while measuring
-            btn.style.minWidth = '';
-            btn.style.maxWidth = '';
-            btn.textContent = 'Child Preset:';
-            const childWidthPx = btn.offsetWidth || 0;
-            btn.textContent = 'Parent Preset:';
-            const parentWidthPx = btn.offsetWidth || 0;
-            const fontSizePx = parseFloat(getComputedStyle(btn).fontSize) || 0;
-            const cushionEm = 1;
-            const targetEm = Math.ceil((((Math.max(childWidthPx, parentWidthPx) / fontSizePx) + cushionEm) * 1000)) / 1000;
-            if (fontSizePx > 0 && targetEm > 0){
-                const widthEm = targetEm + 'em';
-                btn.style.minWidth = widthEm;
-                btn.style.maxWidth = widthEm;
-            }
-            btn.textContent = originalLabel;
-        }catch(_ePresetInitSize){}
     } catch (e) {
         console.warn('GIGMA: Failed to initialize preset kind toggle:', e);
     }
