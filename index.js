@@ -13364,6 +13364,7 @@ function gigmaInstallLorebookContentStylesOnce() {
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
+  text-align:left;
 }
 .gigma-lore-setting-value{
   font-size:0.82em;
