@@ -19219,22 +19219,16 @@ if (newBtn) {
             presets = {};
         }
 
-        let nameRaw;
-        try {
-            const ctx = (typeof SillyTavern !== 'undefined' && SillyTavern && typeof SillyTavern.getContext === 'function')
-                ? SillyTavern.getContext()
-                : null;
-            if (ctx && ctx.Popup && ctx.Popup.show && typeof ctx.Popup.show.input === 'function') {
-                nameRaw = await ctx.Popup.show.input(
-                    'New assignment preset',
-                    ''
-                );
-            } else {
-                nameRaw = window.prompt('New assignment preset', '');
-            }
-        } catch (_ePrompt) {
-            nameRaw = window.prompt('New assignment preset', '');
-        }
+        const currentId = select && typeof select.value === 'string' ? select.value : '';
+        const currentPresetName = (currentId && presets[currentId] && typeof presets[currentId].name === 'string') ? presets[currentId].name.trim() : '';
+        const nameRaw = await gigmaShowPresetNamedActionPopup({
+            title: 'New assignment preset',
+            inputLabel: 'Assignment preset name:',
+            confirmLabel: 'Create',
+            defaultValue: '',
+            warningSubjectLabel: 'assignment preset',
+            warningPresetName: currentPresetName,
+        });
 
         const name = (typeof nameRaw === 'string') ? nameRaw.trim() : '';
         if (!name) return;
@@ -19244,6 +19238,7 @@ if (newBtn) {
             toastr.error('An assignment preset with that name already exists.');
             return;
         }
+
 
         if (typeof gigmaGeneratePresetId !== 'function') {
             toastr.error('Preset id generator is not available.');
@@ -19351,22 +19346,15 @@ if (newBtn) {
                 const currentId = select.value;
                 const current = (currentId && Object.prototype.hasOwnProperty.call(presets, currentId)) ? presets[currentId] : null;
                 const defaultName = (current && typeof current.name === 'string') ? current.name : '';
-                let nameRaw;
-                try {
-                    const ctx = (typeof SillyTavern !== 'undefined' && SillyTavern && typeof SillyTavern.getContext === 'function')
-                        ? SillyTavern.getContext()
-                        : null;
-                    if (ctx && ctx.Popup && ctx.Popup.show && typeof ctx.Popup.show.input === 'function') {
-                        nameRaw = await ctx.Popup.show.input(
-                            'Save assignment preset',
-                            defaultName || ''
-                        );
-                    } else {
-                        nameRaw = window.prompt('Save assignment preset', defaultName || '');
-                    }
-                } catch (_ePrompt) {
-                    nameRaw = window.prompt('Save assignment preset', defaultName || '');
-                }
+                const nameRaw = await gigmaShowPresetNamedActionPopup({
+                    title: 'Save assignment preset',
+                    inputLabel: 'Assignment preset name:',
+                    confirmLabel: 'Save',
+                    defaultValue: defaultName || '',
+                    presetTypeLabel: 'assignment preset',
+                    currentPresetName: defaultName || '',
+                    alwaysWarn: false,
+                });
 
                 const name = (typeof nameRaw === 'string') ? nameRaw.trim() : '';
                 if (!name) return;
@@ -19375,26 +19363,13 @@ if (newBtn) {
                 let targetId = null;
 
                 if (existingId) {
-                    let overwrite = false;
-                    try {
-                        const ctx = (typeof SillyTavern !== 'undefined' && SillyTavern && typeof SillyTavern.getContext === 'function')
-                            ? SillyTavern.getContext()
-                            : null;
-                        const popupApi = ctx && ctx.Popup ? ctx.Popup : Popup;
-                        const safeName = String(name).replace(/[&<>"']/g, (ch) => ({
-                            '&': '&amp;',
-                            '<': '&lt;',
-                            '>': '&gt;',
-                            '"': '&quot;',
-                            "'": '&#39;',
-                        }[ch] || ch));
-                        overwrite = await popupApi.show.confirm(
-                            'Overwrite assignment preset',
-                            `An assignment preset named "<b>${safeName}</b>" already exists. Overwrite it?`
-                        );
-                    } catch (_eConfirm) {
-                        overwrite = window.confirm(`An assignment preset named "${name}" already exists. Overwrite it?`);
-                    }
+                    const overwrite = await gigmaShowPresetOverwriteConfirmPopup({
+                        title: 'Overwrite assignment preset',
+                        confirmLabel: 'Overwrite',
+                        presetTypeLabel: 'assignment preset',
+                        targetPresetName: name,
+                        currentPresetName: defaultName || '',
+                    });
                     if (!overwrite) return;
                     targetId = existingId;
                 } else {
@@ -33902,6 +33877,215 @@ function gigmaEscapeHtml(str) {
     }
 }
 
+
+
+function gigmaInstallPresetTransitionPopupStylesOnce() {
+    try {
+        if (document.getElementById('gigma-preset-transition-popup-style')) return;
+        const style = document.createElement('style');
+        style.id = 'gigma-preset-transition-popup-style';
+        style.textContent = `
+            .gigma-preset-popup{
+                width:min(100%, 32em);
+                display:flex;
+                flex-direction:column;
+                gap:0.65em;
+                padding:0.15em 0.1em;
+                box-sizing:border-box;
+                -webkit-user-select:none;
+                -moz-user-select:none;
+                user-select:none;
+            }
+            .gigma-preset-popup-label{
+                font-size:0.95em;
+                font-weight:600;
+                line-height:1.2;
+            }
+            .gigma-preset-popup-input{
+                width:100%;
+                box-sizing:border-box;
+            }
+            .gigma-preset-popup-warning{
+                display:flex;
+                align-items:flex-start;
+                gap:0.55em;
+                padding:0.7em 0.8em;
+                border-radius:0.6em;
+                border:0.08em solid rgba(255,120,120,0.4);
+                background:rgba(110,24,24,0.22);
+                box-sizing:border-box;
+            }
+            .gigma-preset-popup-warning-icon{
+                flex:0 0 auto;
+                width:1em;
+                text-align:center;
+                line-height:1.2;
+                opacity:0.95;
+                margin-top:0.02em;
+            }
+            .gigma-preset-popup-warning-text{
+                flex:1 1 auto;
+                min-width:0;
+                font-size:0.93em;
+                line-height:1.28;
+                overflow-wrap:anywhere;
+            }
+            .gigma-preset-popup-dialog input.gigma-preset-popup-input,
+            .gigma-preset-popup-dialog textarea.gigma-preset-popup-input{
+                -webkit-user-select:text !important;
+                -moz-user-select:text !important;
+                user-select:text !important;
+            }
+        `;
+        document.head.appendChild(style);
+    } catch (_) {}
+}
+
+function gigmaNormalizePresetWarningSubjectLabel(subjectLabel) {
+    const raw = String(subjectLabel || '').trim().toLowerCase();
+    if (raw === 'assignment preset') return 'assignment preset';
+    if (raw === 'parent preset') return 'parent preset';
+    if (raw === 'child preset') return 'child preset';
+    return '';
+}
+
+function gigmaBuildPresetDiscardWarningText(subjectLabel, presetName) {
+    const safeSubject = gigmaNormalizePresetWarningSubjectLabel(subjectLabel);
+    if (!safeSubject) return '';
+    const safeName = String(presetName || '').trim();
+    if (safeName) return `All changes to the current ${safeSubject} ${safeName} since its last save will be lost.`;
+    return `All changes to the current ${safeSubject} since its last save will be lost.`;
+}
+
+function gigmaBuildPresetDiscardWarningHtml(subjectLabel, presetName) {
+    const warningText = gigmaBuildPresetDiscardWarningText(subjectLabel, presetName);
+    if (!warningText) return '';
+    return `
+        <div class="gigma-preset-popup-warning">
+            <i class="fa-solid fa-triangle-exclamation gigma-preset-popup-warning-icon" aria-hidden="true"></i>
+            <div class="gigma-preset-popup-warning-text">${gigmaEscapeHtml(warningText)}</div>
+        </div>
+    `;
+}
+
+function gigmaFindPopupOkButton(dialog) {
+    try {
+        if (!dialog || !dialog.querySelector) return null;
+        const footer =
+            dialog.querySelector('.popup-buttons') ||
+            dialog.querySelector('.popup-controls') ||
+            dialog.querySelector('.popup-button-row') ||
+            dialog.querySelector('.popup_button_container') ||
+            dialog.querySelector('.swal2-actions') ||
+            null;
+        const buttons = footer ? Array.from(footer.querySelectorAll('button, [data-result], .result-control') || []) : [];
+        return (
+            buttons.find((b) => b && b.dataset && (b.dataset.result === '1' || b.dataset.result === 'ok' || b.dataset.action === 'ok')) ||
+            buttons.find((b) => {
+                const txt = (b && typeof b.textContent === 'string') ? b.textContent.trim().toLowerCase() : '';
+                return txt && txt !== 'cancel' && txt !== 'no';
+            }) ||
+            null
+        );
+    } catch (_) {
+        return null;
+    }
+}
+
+async function gigmaShowPresetNamedActionPopup(options = {}) {
+    return await new Promise((resolve) => {
+        try {
+            gigmaInstallPresetTransitionPopupStylesOnce();
+            const inputId = 'gigma-preset-popup-input-' + Math.random().toString(36).slice(2);
+            const title = String(options.title || '').trim();
+            const inputLabel = String(options.inputLabel || 'Preset name').trim();
+            const defaultValue = String(options.defaultValue || '');
+            const warningSubjectLabel = gigmaNormalizePresetWarningSubjectLabel(options.warningSubjectLabel);
+            const warningPresetName = String(options.warningPresetName || '').trim();
+            const html = `
+                <div class="gigma-preset-popup">
+                    <label class="gigma-preset-popup-label" for="${inputId}">${gigmaEscapeHtml(inputLabel)}</label>
+                    ${warningSubjectLabel ? gigmaBuildPresetDiscardWarningHtml(warningSubjectLabel, warningPresetName) : ''}
+                    <input id="${inputId}" class="text_pole textarea_compact gigma-preset-popup-input" type="text" value="${gigmaEscapeHtml(defaultValue)}" autocomplete="off" />
+                </div>
+            `;
+            const popup = new Popup(html, POPUP_TYPE.CONFIRM, title, {
+                okButton: String(options.confirmLabel || 'OK'),
+                cancelButton: 'Cancel',
+                wide: false,
+                large: false,
+                allowVerticalScrolling: false,
+                onClosing: () => {
+                    try {
+                        const dialog = document.querySelector(`dialog:has(#${inputId})`) || null;
+                        const input = dialog ? dialog.querySelector('#' + inputId) : document.getElementById(inputId);
+                        if (popup.result === 1) {
+                            resolve(input ? String(input.value || '') : '');
+                        } else {
+                            resolve(null);
+                        }
+                    } catch (_) {
+                        resolve(popup.result === 1 ? '' : null);
+                    }
+                    return true;
+                },
+            });
+            popup.show();
+            setTimeout(() => {
+                try {
+                    const input = document.getElementById(inputId);
+                    const dialog = (input && input.closest) ? input.closest('dialog') : null;
+                    if (dialog && dialog.classList) dialog.classList.add('gigma-preset-popup-dialog');
+                    if (input) {
+                        try { input.focus({ preventScroll: true }); } catch (_) { try { input.focus(); } catch (_) {} }
+                        try { input.select(); } catch (_) {}
+                        const okBtn = gigmaFindPopupOkButton(dialog);
+                        input.addEventListener('keydown', (ev) => {
+                            if (ev.key !== 'Enter' || ev.shiftKey) return;
+                            ev.preventDefault();
+                            if (okBtn && typeof okBtn.click === 'function') okBtn.click();
+                        });
+                    }
+                } catch (_) {}
+            }, 0);
+        } catch (_) {
+            resolve(null);
+        }
+    });
+}
+
+async function gigmaShowPresetOverwriteConfirmPopup(options = {}) {
+    return await new Promise((resolve) => {
+        try {
+            gigmaInstallPresetTransitionPopupStylesOnce();
+            const title = String(options.title || '').trim();
+            const confirmLabel = String(options.confirmLabel || 'Overwrite');
+            const presetTypeLabel = (options.presetTypeLabel === 'assignment preset') ? 'assignment preset' : 'layout preset';
+            const targetPresetName = String(options.targetPresetName || '').trim();
+            const safeType = presetTypeLabel === 'assignment preset' ? 'assignment preset' : 'layout preset';
+            const html = `
+                <div class="gigma-preset-popup">
+                    <div class="gigma-preset-popup-label">A ${safeType} named &quot;<b>${gigmaEscapeHtml(targetPresetName)}</b>&quot; already exists. Overwrite it?</div>
+                </div>
+            `;
+            const popup = new Popup(html, POPUP_TYPE.CONFIRM, title, {
+                okButton: confirmLabel,
+                cancelButton: 'Cancel',
+                wide: false,
+                large: false,
+                allowVerticalScrolling: false,
+                onClosing: () => {
+                    resolve(popup.result === 1);
+                    return true;
+                },
+            });
+            popup.show();
+        } catch (_) {
+            resolve(false);
+        }
+    });
+}
+
 function gigmaInstallDuplicateSentenceStylesOnce() {
     try {
         if (document.getElementById('gigma-duplicate-sentences-style')) return;
@@ -41679,17 +41863,17 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
                 return;
             }
 
-            let nameRaw = null;
-            try{
-                const ctx = (typeof SillyTavern !== 'undefined' && SillyTavern && typeof SillyTavern.getContext === 'function') ? SillyTavern.getContext() : null;
-                const popupApi = ctx && ctx.Popup ? ctx.Popup : null;
-                if (!popupApi || !popupApi.show || typeof popupApi.show.input !== 'function') return;
-                nameRaw = await popupApi.show.input(
-                    isParentPresetKind ? 'New parent preset' : 'New child preset',
-                    isParentPresetKind ? 'Parent preset name:' : 'Child preset name:',
-                    ''
-                );
-            }catch(_eInput){ return; }
+            const presets = gigmaGetLayoutPresetStore(kind);
+            const currentId = select && typeof select.value === 'string' ? select.value : '';
+            const currentPresetName = (currentId && presets[currentId] && typeof presets[currentId].name === 'string') ? presets[currentId].name.trim() : '';
+            const nameRaw = await gigmaShowPresetNamedActionPopup({
+                title: isParentPresetKind ? 'New parent preset' : 'New child preset',
+                inputLabel: isParentPresetKind ? 'Parent preset name:' : 'Child preset name:',
+                confirmLabel: 'Create',
+                defaultValue: '',
+                warningSubjectLabel: isParentPresetKind ? 'parent preset' : 'child preset',
+                warningPresetName: currentPresetName,
+            });
 
             if (nameRaw === null || nameRaw === undefined) return;
             const desiredName = String(nameRaw).trim();
@@ -41698,7 +41882,7 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
                 return;
             }
 
-            const presets = gigmaGetLayoutPresetStore(kind);
+
             const presetId = (typeof gigmaGeneratePresetId === 'function') ? gigmaGeneratePresetId() : desiredName;
 
             snapshot.id = presetId;
@@ -41809,17 +41993,15 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
         const presets = gigmaGetLayoutPresetStore(kind);
         const currentId = select.value;
         const defaultName = (currentId && presets[currentId] && typeof presets[currentId].name === 'string') ? presets[currentId].name.trim() : '';
-        let nameRaw;
-        try {
-            nameRaw = await SillyTavern.getContext().Popup.show.input(
-                isParentPresetKind ? 'Save parent preset' : 'Save child preset',
-                isParentPresetKind ? 'Parent preset name:' : 'Child preset name:',
-                defaultName
-            );
-        } catch (_ePopup) {
-            console.warn('GIGMA: falling back to native prompt for preset name:', _ePopup);
-            nameRaw = window.prompt('Save current folder layout as layout preset. Name:', defaultName);
-        }
+        const nameRaw = await gigmaShowPresetNamedActionPopup({
+            title: isParentPresetKind ? 'Save parent preset' : 'Save child preset',
+            inputLabel: isParentPresetKind ? 'Parent preset name:' : 'Child preset name:',
+            confirmLabel: 'Save',
+            defaultValue: defaultName,
+            presetTypeLabel: 'layout preset',
+            currentPresetName: defaultName,
+            alwaysWarn: false,
+        });
         if (nameRaw === null || nameRaw === undefined) return;
         const desiredName = String(nameRaw).trim();
         if (!desiredName) {
@@ -41832,26 +42014,13 @@ if (!select || !saveBtn || !editBtn || !deleteBtn) return;
         const existedBeforeSave = !!existingIdByName;
 
         if (existedBeforeSave) {
-            let overwrite = false;
-            try {
-                const ctx = (typeof SillyTavern !== 'undefined' && SillyTavern && typeof SillyTavern.getContext === 'function')
-                    ? SillyTavern.getContext()
-                    : null;
-                const popupApi = ctx && ctx.Popup ? ctx.Popup : Popup;
-                const safeName = String(desiredName).replace(/[&<>"']/g, (ch) => ({
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#39;',
-                }[ch] || ch));
-                overwrite = await popupApi.show.confirm(
-                    'Overwrite layout preset',
-                    `Layout preset "<b>${safeName}</b>" already exists. Overwrite it?`
-                );
-            } catch (_eConfirm) {
-                overwrite = window.confirm(`Preset "${desiredName}" already exists. Overwrite it?`);
-            }
+            const overwrite = await gigmaShowPresetOverwriteConfirmPopup({
+                title: 'Overwrite layout preset',
+                confirmLabel: 'Overwrite',
+                presetTypeLabel: 'layout preset',
+                targetPresetName: desiredName,
+                currentPresetName: defaultName,
+            });
             if (!overwrite) return;
         }
 
@@ -44920,14 +45089,14 @@ document.addEventListener('click', async (e) => {
         if (tid === 'gigma-global-help') {
             try { if (e && typeof e.preventDefault === 'function') e.preventDefault(); } catch (_) {}
             try { if (e && typeof e.stopPropagation === 'function') e.stopPropagation(); } catch (_) {}
-            window.open('https://discord.com/channels/1477884589664899214/1477885047049814106', '_blank');
+            window.open('https://discord.gg/4JvsURcn', '_blank');
             return;
         }
 
         if (tid === 'gigma-global-bug') {
             try { if (e && typeof e.preventDefault === 'function') e.preventDefault(); } catch (_) {}
             try { if (e && typeof e.stopPropagation === 'function') e.stopPropagation(); } catch (_) {}
-            window.open('https://discord.com/channels/1477884589664899214/1477885002590191617', '_blank');
+            window.open('https://discord.gg/4JvsURcn', '_blank');
             return;
         }
 
