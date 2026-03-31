@@ -45534,7 +45534,7 @@ function gigmaInstallWorldInfoContextBudgetPreview() {
                 bottom: 0.58em;
                 z-index: 2;
                 pointer-events: none;
-                font-size: calc(var(--mainFontSize) * 0.72);
+                font-size: 0.6em;
                 line-height: 1;
                 opacity: 0.72;
                 white-space: nowrap;
@@ -45563,7 +45563,7 @@ function gigmaInstallWorldInfoContextBudgetPreview() {
         const contextSize = Math.max(0, Number((typeof getMaxContextSize === 'function') ? getMaxContextSize() : 0) || 0);
         const tokenBudget = Math.round((contextSize * percent) / 100);
 
-        preview.textContent = `${tokenBudget.toLocaleString('en-US')} Tk`;
+        preview.textContent = `${tokenBudget.toLocaleString('en-US')}Tk`;
         preview.title = `${tokenBudget.toLocaleString('en-US')} tokens`;
     };
 
