@@ -4234,12 +4234,12 @@ function gigmaSetDetailedLorebookEntriesPref(enabled){
 }
 function gigmaGetAutoUpdateWiOrderPref(){
     try{
-        return gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.autoUpdateWiOrder, false);
-    }catch(_){ return false; }
+        return gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.autoUpdateWiOrder, true);
+    }catch(_){ return true; }
 }
 function gigmaSetAutoUpdateWiOrderPref(enabled){
     try{
-        gigmaPersistBinaryExtensionSetting('autoUpdateWiOrder', enabled, 0);
+        gigmaPersistBinaryExtensionSetting('autoUpdateWiOrder', enabled, 1);
         if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
     }catch(_){ }
 }
@@ -14378,7 +14378,9 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
                         try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
                         gigmaSetAutoUpdateWiOrderPref(ev.currentTarget.checked);
                         gigmaUpdateAutoUpdateWiOrderButtonUi(ev.currentTarget);
-                        try { gigmaEnsureNativeWorldInfoAutoUpdateOrderBinding(document.getElementById('world_popup_entries_list')); } catch (_e2) { }
+                        const list = document.getElementById('world_popup_entries_list');
+                        try { gigmaEnsureNativeWorldInfoAutoUpdateOrderBinding(list); } catch (_e2) { }
+                        try { if (ev.currentTarget.checked) void gigmaNormalizeNativeWorldInfoListToOrder(list); } catch (_e3) { }
                     },
                 );
                 b = control.input;
@@ -16224,6 +16226,114 @@ function gigmaGetNativeWorldInfoAutoOrderStart(list, sequenceLength) {
     }
 }
 
+async function gigmaNormalizeNativeWorldInfoListToOrder(list, pinnedUid = '') {
+    try {
+        if (!gigmaGetAutoUpdateWiOrderPref()) return;
+        if (!list || !list.querySelectorAll) return;
+
+        const rows = [];
+        const currentSequence = [];
+        const domRows = list.querySelectorAll(':scope > .world_entry, .world_entry');
+
+        for (const row of domRows) {
+            if (!(row instanceof HTMLElement)) continue;
+            if (row.parentElement !== list) continue;
+
+            const uid = String(row.getAttribute('uid') || row.dataset?.uid || '');
+            if (!uid) continue;
+
+            currentSequence.push(uid);
+
+            const input = row.querySelector('input[name="order"]');
+            const orderValue = Number(input && input.value);
+            rows.push({
+                uid,
+                row,
+                input,
+                order: Number.isFinite(orderValue) ? orderValue : 0,
+                index: rows.length,
+            });
+        }
+
+        if (!rows.length) return;
+
+        rows.sort((a, b) => (b.order - a.order) || (a.index - b.index));
+
+        const pinUid = String(pinnedUid || '');
+        const pinIndex = pinUid ? currentSequence.indexOf(pinUid) : -1;
+        if (pinIndex !== -1) {
+            const sortedPinnedIndex = rows.findIndex(item => item.uid === pinUid);
+            if (sortedPinnedIndex !== -1) {
+                const [pinnedItem] = rows.splice(sortedPinnedIndex, 1);
+                rows.splice(Math.max(0, Math.min(pinIndex, rows.length)), 0, pinnedItem);
+            }
+        }
+
+        const startOrder = gigmaGetNativeWorldInfoAutoOrderStart(list, rows.length);
+        const sortedSequence = rows.map(item => item.uid);
+
+        let domChanged = currentSequence.length !== sortedSequence.length;
+        if (!domChanged) {
+            for (let index = 0; index < sortedSequence.length; index++) {
+                if (sortedSequence[index] !== currentSequence[index]) {
+                    domChanged = true;
+                    break;
+                }
+            }
+        }
+
+        if (domChanged) {
+            for (const item of rows) {
+                list.appendChild(item.row);
+            }
+        }
+
+        let orderChanged = false;
+        for (let index = 0; index < rows.length; index++) {
+            const item = rows[index];
+            const newOrder = Math.max(startOrder - index, 0);
+            const currentOrder = Number(item.input && item.input.value);
+
+            if (currentOrder !== newOrder) {
+                orderChanged = true;
+            }
+
+            if (item.input) {
+                $(item.input).val(String(newOrder)).trigger('input', { noSave: true });
+            }
+            item.order = newOrder;
+        }
+
+        if (!domChanged && !orderChanged) return;
+
+        const lorebookName = getCurrentLorebookName();
+        if (!lorebookName) return;
+
+        const data = await loadWorldInfo(lorebookName);
+        if (!data || !data.entries) return;
+
+        let minDisplayIndex = Infinity;
+        for (const item of rows) {
+            const entry = data.entries[item.uid];
+            const displayIndex = Number(entry && entry.displayIndex);
+            if (Number.isFinite(displayIndex) && displayIndex < minDisplayIndex) {
+                minDisplayIndex = displayIndex;
+            }
+        }
+        if (!Number.isFinite(minDisplayIndex)) minDisplayIndex = 0;
+
+        for (let index = 0; index < rows.length; index++) {
+            const item = rows[index];
+            const entry = data.entries[item.uid];
+            if (!entry) continue;
+            entry.order = item.order;
+            entry.displayIndex = minDisplayIndex + index;
+        }
+
+        await saveWorldInfo(lorebookName, data, true);
+    } catch (_e) { }
+}
+
 function gigmaBuildNativeWorldInfoDragSequence(list, ui) {
     const sequence = [];
     try {
@@ -16344,6 +16454,11 @@ function gigmaInstallNativeWorldInfoAutoUpdateOrderOnce() {
                 const list = document.getElementById('world_popup_entries_list');
                 if (!list) return;
                 gigmaEnsureNativeWorldInfoAutoUpdateOrderBinding(list);
+                const row = target.closest('.world_entry');
+                const pinnedUid = row ? String(row.getAttribute('uid') || row.dataset?.uid || '') : '';
+                if (pinnedUid) {
+                    void gigmaNormalizeNativeWorldInfoListToOrder(list, pinnedUid);
+                }
             } catch (_e) { }
         }, true);
     } catch (_e) { }
