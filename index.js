@@ -14982,7 +14982,6 @@ function gigmaBuildLorebookEntryDetailsDom(entry){
         gigmaLorebookSetting('UID', uid || '-', false),
         gigmaLorebookSetting('Name', comment || '-', true),
         gigmaLorebookSetting('Disabled', gigmaLorebookBoolPill(entry?.disable === true, 'YES', 'NO')),
-        gigmaLorebookSetting('Add memo', gigmaLorebookBoolPill(entry?.addMemo === true, 'YES', 'NO')),
     ]));
 
     wrap.appendChild(gigmaLorebookSection('Activation', [
