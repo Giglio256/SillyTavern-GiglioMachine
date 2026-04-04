@@ -491,6 +491,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       }
       .gigma-pane-search-item .gigma-active-world-globe{
         margin-left:0;
+        margin-right:0.12em !important;
         margin-right:0;
       }
       .gigma-pane-search-item:has(.gigma-active-world-globe){
@@ -5261,14 +5262,15 @@ const GIGMA_MODAL_STATS_NON_RAW_HIDDEN_KEYS = new Set();
 
 
 // === GIGMA: Global WI statistics (total across the active layout preset) ===
+const GIGMA_ARROW_UP_TO_LINE_ICON_HTML = '<svg viewBox="4 0 18 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" class="gigma-row-stat-chip-icon gigma-row-stat-chip-svg-icon"><path d="M12 18V6"></path><path d="M7.5 10.5 12 6l4.5 4.5"></path><path d="M5 3.5h14"></path></svg>';
 const GIGMA_GLOBAL_WI_STATS_CONTEXT_OPTIONS = [
-    { key: 'fullContext', label: 'Context', menuHtml: '<i class="fa-solid fa-expand"></i> Context' },
-    { key: 'usableContext', label: 'Usable', menuHtml: '<i class="fa-solid fa-bars-progress"></i> Usable' },
+    { key: 'fullContext', label: 'Context', menuHtml: '<i class="fa-solid fa-book-open"></i> Context' },
+    { key: 'usableContext', label: 'Usable', menuHtml: '<i class="fa-solid fa-clipboard-check"></i> Usable' },
     { key: 'responseTokens', label: 'Response', menuHtml: '<i class="fa-solid fa-reply"></i> Response' },
     { key: 'globalBudget', label: 'World Info Budget', menuHtml: '<i class="fa-solid fa-wallet"></i> WI Budget' },
     { key: 'contextPercent', label: 'Context Percentage', menuHtml: '<i class="fa-solid fa-percent"></i> Ctx %' },
-    { key: 'budgetCap', label: 'Budget Cap', menuHtml: '<i class="fa-solid fa-arrow-down-short-wide"></i> Cap' },
-    { key: 'tokenizer', label: 'Tokenizer', menuHtml: '<i class="fa-solid fa-font"></i> Tokenizer' },
+    { key: 'budgetCap', label: 'Budget Cap', menuHtml: `${GIGMA_ARROW_UP_TO_LINE_ICON_HTML} Cap` },
+    { key: 'tokenizer', label: 'Tokenizer', menuHtml: '<span class="gigma-row-stat-chip-icon gigma-row-stat-chip-text-icon" aria-hidden="true">T</span> Tokenizer' },
     { key: 'ignoredBudget', label: 'Ignored', menuHtml: '<i class="fa-solid fa-ban"></i> Ignored' },
     { key: 'trimmedBudget', label: 'Dropped', menuHtml: '<i class="fa-solid fa-scissors"></i> Dropped' },
 ];
@@ -8137,11 +8139,17 @@ function gigmaCreateStatChip(labelText, valueText, titleText, extraClass, iconCl
         const host = document.createElement('span');
         host.innerHTML = String(labelHtml);
 
-        const iconNodes = host.querySelectorAll('i');
+        const iconNodes = host.querySelectorAll('i, svg, .gigma-row-stat-chip-text-icon');
         for (const node of iconNodes) {
             const icon = node.cloneNode(true);
-            icon.classList.remove('gigma-active-world-globe');
-            icon.classList.add('gigma-row-stat-chip-icon');
+            if (icon.classList) {
+                icon.classList.remove('gigma-active-world-globe');
+                icon.classList.add('gigma-row-stat-chip-icon');
+                if (String(icon.tagName || '').toLowerCase() === 'svg') {
+                    icon.classList.add('gigma-row-stat-chip-svg-icon');
+                    chip.classList.add('gigma-row-stat-chip-has-svg-icon');
+                }
+            }
             icon.setAttribute('aria-hidden', 'true');
             main.appendChild(icon);
             node.remove();
@@ -8167,6 +8175,29 @@ function gigmaCreateStatChip(labelText, valueText, titleText, extraClass, iconCl
 
 function gigmaCreateGlobalWiStatsSectionLabelChip(labelText, iconClass){
     return gigmaCreateStatChip(labelText, '', '', 'gigma-row-stat-chip-section-label', iconClass, null, '', '');
+}
+
+function gigmaCreateTokenizerStatChip(tokenizerLabel){
+    const chip = document.createElement('span');
+    chip.className = 'gigma-row-stat-chip gigma-global-wi-stat-chip gigma-global-wi-stat-chip-tokenizer';
+    chip.title = `Tokenizer: ${String(tokenizerLabel || 'Unknown')}`;
+
+    const main = document.createElement('span');
+    main.className = 'gigma-row-stat-chip-main';
+
+    const icon = document.createElement('span');
+    icon.className = 'gigma-row-stat-chip-icon gigma-row-stat-chip-text-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = 'T';
+    main.appendChild(icon);
+
+    const fit = document.createElement('span');
+    fit.className = 'gigma-row-stat-chip-fit-target gigma-global-wi-chip-label gigma-global-wi-tokenizer-chip-label';
+    fit.textContent = String(tokenizerLabel || 'Unknown');
+    main.appendChild(fit);
+
+    chip.appendChild(main);
+    return chip;
 }
 
 function gigmaApplyStatChipFitModeIn(root){
@@ -8382,13 +8413,14 @@ function gigmaRenderGlobalWiStatsBudgetContextSectionInto(el, worldNames, contex
         let count = 0;
 
         if (items.length) {
-            frag.appendChild(gigmaCreateGlobalWiStatsSectionLabelChip(GIGMA_GLOBAL_WI_STATS_CONTEXT_SECTION_LABEL, 'fa-sliders'));
+            frag.appendChild(gigmaCreateGlobalWiStatsSectionLabelChip(GIGMA_GLOBAL_WI_STATS_CONTEXT_SECTION_LABEL, 'fa-coins'));
             count += 1;
         }
 
         for (const item of items) {
             if (!item) continue;
-            frag.appendChild(gigmaCreateStatChip(item.label || '', item.value ?? '', '', 'gigma-global-wi-stat-chip', '', item.labelHtml || item.label || '', 'gigma-global-wi-chip-label', 'gigma-global-wi-chip-value'));
+            if (item.key === 'tokenizer') frag.appendChild(gigmaCreateTokenizerStatChip(item.value ?? ''));
+            else frag.appendChild(gigmaCreateStatChip(item.label || '', item.value ?? '', '', 'gigma-global-wi-stat-chip', '', item.labelHtml || item.label || '', 'gigma-global-wi-chip-label', 'gigma-global-wi-chip-value'));
             count += 1;
         }
 
@@ -10464,6 +10496,38 @@ dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-preview-gwi-host > but
         min-width:0;
         margin-left:0 !important;
         margin-right:0.24em !important;
+      }
+      #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stat-chip-text-icon,
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-text-icon{
+        display:inline-flex;
+        align-items:center;
+        justify-content:flex-start;
+        font-style:normal;
+        font-weight:700;
+        line-height:1;
+        min-width:0.72em;
+      }
+      #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stat-chip-svg-icon,
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-svg-icon{
+        display:block;
+        width:1.15em;
+        height:1.15em;
+        flex:0 0 auto;
+        align-self:center;
+        margin-left:0;
+        margin-right:0.08em !important;
+      }
+      #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stat-chip-has-svg-icon,
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-has-svg-icon{
+        padding-left:0.24em;
+      }
+      #gigma-modal-root .gigma-global-wi-stats-display .gigma-global-wi-stat-chip-tokenizer .gigma-row-stat-chip-main,
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-stat-chip-tokenizer .gigma-row-stat-chip-main{
+        margin-right:0;
+      }
+      #gigma-modal-root .gigma-global-wi-stats-display .gigma-global-wi-tokenizer-chip-label,
+      #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-global-wi-tokenizer-chip-label{
+        max-width:100%;
       }
       #gigma-modal-root .gigma-global-wi-stats-display .gigma-row-stat-chip-section-label,
       #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display .gigma-row-stat-chip-section-label{
