@@ -4244,6 +4244,43 @@ function gigmaSetAutoUpdateWiOrderPref(enabled){
         if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
     }catch(_){ }
 }
+
+function gigmaGetIgnoreBudgetBypassPref(){
+    try{
+        return HAS_WORLDINFO_SCAN_DONE && gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.ignoreBudgetBypassTrim, true);
+    }catch(_){ return HAS_WORLDINFO_SCAN_DONE; }
+}
+function gigmaSetIgnoreBudgetBypassPref(enabled){
+    try{
+        gigmaPersistBinaryExtensionSetting('ignoreBudgetBypassTrim', !!enabled, 1);
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+    }catch(_){ }
+}
+function gigmaGetTrimAwareActivationCapPref(){
+    try{
+        return HAS_WORLDINFO_SCAN_DONE && gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.trimAwareActivationCap, true);
+    }catch(_){ return HAS_WORLDINFO_SCAN_DONE; }
+}
+function gigmaSetTrimAwareActivationCapPref(enabled){
+    try{
+        gigmaPersistBinaryExtensionSetting('trimAwareActivationCap', !!enabled, 1);
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+    }catch(_){ }
+}
+function gigmaUpdateTrimAwareActivationCapButtonUi(input){
+    try{
+        if (!input) return;
+        const parentEnabled = !!gigmaGetIgnoreBudgetBypassPref();
+        input.checked = !!gigmaGetTrimAwareActivationCapPref();
+        input.disabled = !parentEnabled;
+        const label = input.closest('label');
+        if (label && label.style) {
+            label.style.opacity = parentEnabled ? '' : '0.45';
+            label.style.filter = parentEnabled ? '' : 'grayscale(1)';
+            label.style.cursor = parentEnabled ? '' : 'not-allowed';
+        }
+    }catch(_){ }
+}
 function gigmaUpdateViewLockButton(btn, locked){
     try{
         if (!btn || !btn.classList) return;
@@ -4975,6 +5012,9 @@ const EXTENSION_STATE = {
     pendingAnimationFrame: null,
     currentSpeakingCharacter: null,  // Track current speaking character for group chat overrides
     budgetHandlersRegistered: false,
+    budgetIgnoreBypassEnabled: false,
+    budgetIgnoreBypassApplied: false,
+    budgetIgnoreBypassRealIgnoreKeys: new Set(),
     worldInfoTokensEnabled: gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.worldInfoTokensEnabled, true),
     worldInfoTokenAlign: (Number.isInteger(gigmaExtensionSettings && gigmaExtensionSettings.worldInfoTokenAlign) ? ((gigmaExtensionSettings.worldInfoTokenAlign % 3) + 3) % 3 : 0),
     worldInfoLorebookStatsEnabled: gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.worldInfoLorebookStatsEnabled, true),
@@ -14301,6 +14341,8 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Budget settings alignment', 'gigma-modal-settings-slot-budget-side');
             addRow('Count \\n separator in tokens', 'gigma-modal-settings-slot-newline');
             addRow('Detailed lorebook entries', 'gigma-modal-settings-slot-detailed');
+            addRow('Only Trim Above WI Budget', 'gigma-modal-settings-slot-ignore-budget-bypass');
+            addRow('Trim-Aware Activation Cap', 'gigma-modal-settings-slot-trim-aware-activation-cap');
             addRow('Auto-update entry order in WI UI', 'gigma-modal-settings-slot-auto-wi-order');
 
             popup.appendChild(table);
@@ -14426,6 +14468,55 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
                 slotDet.appendChild(b.closest('label'));
             }
             gigmaUpdateDetailedLorebookEntriesButtonUi(b);
+        }
+
+
+        const slotIgnoreBudgetBypass = popup.querySelector('#gigma-modal-settings-slot-ignore-budget-bypass');
+        if (slotIgnoreBudgetBypass) {
+            let b = popup.querySelector('#gigma-modal-settings-ignore-budget-bypass-btn');
+            if (!b) {
+                const control = gigmaCreatePrettySwitch(
+                    gigmaGetIgnoreBudgetBypassPref(),
+                    'Only Trim Above WI Budget',
+                    'Only Trim Above WI Budget',
+                    (ev) => {
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
+                        gigmaSetIgnoreBudgetBypassPref(ev.currentTarget.checked);
+                        try { gigmaUpdateTrimAwareActivationCapButtonUi(popup.querySelector('#gigma-modal-settings-trim-aware-activation-cap-btn')); } catch (_e2) { }
+                    },
+                );
+                b = control.input;
+                b.id = 'gigma-modal-settings-ignore-budget-bypass-btn';
+                slotIgnoreBudgetBypass.appendChild(control.switchLabel);
+            } else if (b.closest('label')?.parentElement !== slotIgnoreBudgetBypass) {
+                slotIgnoreBudgetBypass.appendChild(b.closest('label'));
+            }
+            b.checked = !!gigmaGetIgnoreBudgetBypassPref();
+        }
+
+
+        const slotTrimAwareActivationCap = popup.querySelector('#gigma-modal-settings-slot-trim-aware-activation-cap');
+        if (slotTrimAwareActivationCap) {
+            let b = popup.querySelector('#gigma-modal-settings-trim-aware-activation-cap-btn');
+            if (!b) {
+                const control = gigmaCreatePrettySwitch(
+                    gigmaGetTrimAwareActivationCapPref(),
+                    'Trim-Aware Activation Cap',
+                    'Trim-Aware Activation Cap',
+                    (ev) => {
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
+                        if (ev.currentTarget.disabled) return;
+                        gigmaSetTrimAwareActivationCapPref(ev.currentTarget.checked);
+                        gigmaUpdateTrimAwareActivationCapButtonUi(ev.currentTarget);
+                    },
+                );
+                b = control.input;
+                b.id = 'gigma-modal-settings-trim-aware-activation-cap-btn';
+                slotTrimAwareActivationCap.appendChild(control.switchLabel);
+            } else if (b.closest('label')?.parentElement !== slotTrimAwareActivationCap) {
+                slotTrimAwareActivationCap.appendChild(b.closest('label'));
+            }
+            gigmaUpdateTrimAwareActivationCapButtonUi(b);
         }
 
         const slotAutoWiOrder = popup.querySelector('#gigma-modal-settings-slot-auto-wi-order');
@@ -16257,8 +16348,9 @@ async function handleWorldInfoEntriesLoaded(eventData) {
 
         // Delegate consolidation, sorting, and budget to dedicated functions
         await applyPriorityOrdering(eventData);
-        // In newer branches (with WORLDINFO_SCAN_DONE), we trim per-loop and skip pre-scan entirely.
-        if (!HAS_WORLDINFO_SCAN_DONE) {
+        if (HAS_WORLDINFO_SCAN_DONE) {
+            await gigmaPrepareIgnoreBudgetBypassForScan(eventData);
+        } else {
             await enforceBudgetPreScan(eventData);
         }
     } catch (error) {
@@ -45878,7 +45970,7 @@ async function onWorldInfoActivated(activatedEntries) {
 
                 let usedEntries = 0;
                 for (const e of sorted) {
-                    const ignore = e?.ignoreBudget === true;
+                    const ignore = gigmaIsRealIgnoreBudgetEntry(e);
                     if (ignore) continue;
                     if (usedEntries < perEntries) {
                         usedEntries += 1;
@@ -45911,7 +46003,7 @@ async function onWorldInfoActivated(activatedEntries) {
                 const content = (typeof e?.content === 'string') ? e.content : '';
                 const enabledNonEmpty = e?.disable !== true && !!content;
                 const leadingNewline = hadAny && enabledNonEmpty;
-                const ignore = e?.ignoreBudget === true;
+                const ignore = gigmaIsRealIgnoreBudgetEntry(e);
 
                 if (ignore) {
                     if (enabledNonEmpty) hadAny = true;
@@ -46066,6 +46158,9 @@ function gigmaSetLastBudgetDropSummary(dropEntries) {
 function resetBudgetRuntimeState() {
     EXTENSION_STATE.dropSet = null;
     EXTENSION_STATE.dropEntries = [];
+    EXTENSION_STATE.budgetIgnoreBypassEnabled = false;
+    EXTENSION_STATE.budgetIgnoreBypassApplied = false;
+    EXTENSION_STATE.budgetIgnoreBypassRealIgnoreKeys = new Set();
     // Periodically clear token cache to avoid unbounded growth between generations/chats
     try {
         TOKEN_COUNT_CACHE.clear();
@@ -46158,6 +46253,440 @@ async function calculateLorebookTotalEntries(worldName){
         return total;
     } catch {
         return 0;
+    }
+}
+
+
+function gigmaGetBudgetEntryKey(entry) {
+    try {
+        const world = String(entry?.world || '').trim();
+        const uid = String(entry?.uid ?? '').trim();
+        if (!world || !uid) return '';
+        return `${world}.${uid}`;
+    } catch {
+        return '';
+    }
+}
+
+function gigmaGetLoadedWorldInfoEntries(eventData) {
+    try {
+        const { globalLore = [], characterLore = [], chatLore = [], personaLore = [] } = eventData || {};
+        return [
+            ...(Array.isArray(globalLore) ? globalLore : []),
+            ...(Array.isArray(characterLore) ? characterLore : []),
+            ...(Array.isArray(chatLore) ? chatLore : []),
+            ...(Array.isArray(personaLore) ? personaLore : []),
+        ];
+    } catch {
+        return [];
+    }
+}
+
+function gigmaCompareHeadroomCandidates(a, b) {
+    const worldCmp = gigmaGetWorldOrderNumber(b?.world) - gigmaGetWorldOrderNumber(a?.world);
+    if (worldCmp !== 0) return worldCmp;
+    const entryCmp = gigmaGetEntryOrderNumber(b) - gigmaGetEntryOrderNumber(a);
+    if (entryCmp !== 0) return entryCmp;
+    return String(a?.uid ?? '').localeCompare(String(b?.uid ?? ''));
+}
+
+function gigmaIsSafeHeadroomEntry(entry) {
+    try {
+        return !!entry && gigmaIsRealIgnoreBudgetEntry(entry) === false && entry.excludeRecursion === true && entry.preventRecursion === true;
+    } catch {
+        return false;
+    }
+}
+
+async function gigmaBuildTrimAwareHeadroomCandidates(entries, totalBudget) {
+    const byWorld = new Map();
+    try {
+        for (const entry of (Array.isArray(entries) ? entries : [])) {
+            if (!entry || typeof entry !== 'object' || !entry.world) continue;
+            if (!byWorld.has(entry.world)) byWorld.set(entry.world, []);
+            byWorld.get(entry.world).push(entry);
+        }
+        const explicit = [];
+        for (const [world, list] of byWorld.entries()) {
+            const worldCandidates = await gigmaBuildExplicitRemovalCandidatesForWorld(world, list, totalBudget);
+            for (const entry of (Array.isArray(worldCandidates) ? worldCandidates : [])) {
+                if (gigmaIsSafeHeadroomEntry(entry)) explicit.push(entry);
+            }
+        }
+        explicit.sort(gigmaCompareHeadroomCandidates);
+        return explicit;
+    } catch (e) {
+        console.warn('[GIGMA] build trim-aware headroom candidates error:', e);
+        return [];
+    }
+}
+
+function gigmaApplyIgnoreBudgetBypassFlags(entries, fakeIgnoreKeys, realIgnoreKeys) {
+    try {
+        const fakeSet = fakeIgnoreKeys instanceof Set ? fakeIgnoreKeys : new Set();
+        const realSet = realIgnoreKeys instanceof Set ? realIgnoreKeys : new Set();
+        for (const entry of (Array.isArray(entries) ? entries : [])) {
+            if (!entry || typeof entry !== 'object') continue;
+            const key = gigmaGetBudgetEntryKey(entry);
+            if (!key) continue;
+            entry.ignoreBudget = realSet.has(key) || fakeSet.has(key);
+        }
+    } catch (e) {
+        console.warn('[GIGMA] apply ignore-budget bypass flags error:', e);
+    }
+}
+
+function gigmaCollectRealIgnoreBudgetKeys(entries) {
+    const realIgnoreKeys = new Set();
+    try {
+        for (const entry of (Array.isArray(entries) ? entries : [])) {
+            if (!entry || typeof entry !== 'object') continue;
+            const key = gigmaGetBudgetEntryKey(entry);
+            if (entry.ignoreBudget === true && key) realIgnoreKeys.add(key);
+        }
+    } catch (_e) {}
+    return realIgnoreKeys;
+}
+
+function gigmaEstimateHeadroomTokens(entries) {
+    let total = 0;
+    try {
+        let hadAny = false;
+        for (const entry of (Array.isArray(entries) ? entries : [])) {
+            const content = (typeof entry?.content === 'string') ? entry.content : '';
+            const enabledNonEmpty = entry?.disable !== true && !!content;
+            const leadingNewline = hadAny && enabledNonEmpty;
+            const tokens = getEntryTokenCountCached(entry, leadingNewline);
+            total += Math.max(0, Number(tokens) || 0);
+            if (enabledNonEmpty) hadAny = true;
+        }
+    } catch (_e) {}
+    return total;
+}
+
+async function gigmaPrepareIgnoreBudgetBypassForScan(eventData) {
+    try {
+        EXTENSION_STATE.budgetIgnoreBypassEnabled = false;
+        EXTENSION_STATE.budgetIgnoreBypassApplied = false;
+        EXTENSION_STATE.budgetIgnoreBypassRealIgnoreKeys = new Set();
+        if (!HAS_WORLDINFO_SCAN_DONE || !gigmaGetIgnoreBudgetBypassPref()) return;
+        const entries = gigmaGetLoadedWorldInfoEntries(eventData);
+        if (!entries.length) return;
+        const realIgnoreKeys = gigmaCollectRealIgnoreBudgetKeys(entries);
+        const fakeIgnoreKeys = new Set();
+
+        if (gigmaGetTrimAwareActivationCapPref()) {
+            const totalBudget = calculateTotalWIBudget();
+            const headroomCandidates = await gigmaBuildTrimAwareHeadroomCandidates(entries, totalBudget);
+            for (const entry of headroomCandidates) {
+                const key = gigmaGetBudgetEntryKey(entry);
+                if (key) fakeIgnoreKeys.add(key);
+            }
+        } else {
+            for (const entry of entries) {
+                if (!entry || typeof entry !== 'object') continue;
+                const key = gigmaGetBudgetEntryKey(entry);
+                if (key) fakeIgnoreKeys.add(key);
+            }
+        }
+
+        gigmaApplyIgnoreBudgetBypassFlags(entries, fakeIgnoreKeys, realIgnoreKeys);
+        EXTENSION_STATE.budgetIgnoreBypassEnabled = true;
+        EXTENSION_STATE.budgetIgnoreBypassApplied = true;
+        EXTENSION_STATE.budgetIgnoreBypassRealIgnoreKeys = realIgnoreKeys;
+    } catch (e) {
+        console.warn('[GIGMA] prepare ignore-budget bypass error:', e);
+        EXTENSION_STATE.budgetIgnoreBypassEnabled = false;
+        EXTENSION_STATE.budgetIgnoreBypassApplied = false;
+        EXTENSION_STATE.budgetIgnoreBypassRealIgnoreKeys = new Set();
+    }
+}
+
+function gigmaIsRealIgnoreBudgetEntry(entry) {
+    try {
+        if (EXTENSION_STATE.budgetIgnoreBypassEnabled && EXTENSION_STATE.budgetIgnoreBypassApplied) {
+            const key = gigmaGetBudgetEntryKey(entry);
+            return !!(key && EXTENSION_STATE.budgetIgnoreBypassRealIgnoreKeys && EXTENSION_STATE.budgetIgnoreBypassRealIgnoreKeys.has(key));
+        }
+        return entry?.ignoreBudget === true;
+    } catch {
+        return entry?.ignoreBudget === true;
+    }
+}
+
+function gigmaGetWorldBudgetSettings(world) {
+    try {
+        const runtime = EXTENSION_STATE.runtimePresetCache;
+        if (runtime && runtime.worldIdByName && runtime.budgetById) {
+            const lorebookId = runtime.worldIdByName.get(world);
+            if (lorebookId) {
+                return runtime.budgetById.get(lorebookId) || GIGMA_BUDGET_DEFAULTS;
+            }
+        }
+    } catch (_e) {}
+    return GIGMA_BUDGET_DEFAULTS;
+}
+
+function gigmaGetWorldOrderNumber(world) {
+    try {
+        const runtime = EXTENSION_STATE.runtimePresetCache;
+        const lorebookId = runtime && runtime.worldIdByName ? runtime.worldIdByName.get(world) : null;
+        const order = lorebookId && runtime && runtime.orderNumberById ? runtime.orderNumberById.get(lorebookId) : null;
+        return Number.isFinite(Number(order)) ? Number(order) : Number.MAX_SAFE_INTEGER;
+    } catch {
+        return Number.MAX_SAFE_INTEGER;
+    }
+}
+
+function gigmaGetEntryOrderNumber(entry) {
+    const order = Number(entry?.order ?? 100);
+    return Number.isFinite(order) ? order : 100;
+}
+
+function gigmaCompareRemovalCandidates(a, b) {
+    const worldCmp = gigmaGetWorldOrderNumber(a?.world) - gigmaGetWorldOrderNumber(b?.world);
+    if (worldCmp !== 0) return worldCmp;
+    const entryCmp = gigmaGetEntryOrderNumber(a) - gigmaGetEntryOrderNumber(b);
+    if (entryCmp !== 0) return entryCmp;
+    return String(a?.uid ?? '').localeCompare(String(b?.uid ?? ''));
+}
+
+function gigmaGetCurrentTokenizerIdSafe() {
+    try {
+        const info = (typeof getFriendlyTokenizerName === 'function') ? getFriendlyTokenizerName() : null;
+        const tid = Number(info && info.tokenizerId);
+        if (Number.isFinite(tid) && tid !== tokenizers.BEST_MATCH && tid !== tokenizers.NONE) return tid;
+    } catch (_e) {}
+    return tokenizers.OPENAI;
+}
+
+function gigmaGetTextTokenCountSync(text) {
+    try {
+        const tokenizerId = gigmaGetCurrentTokenizerIdSafe();
+        const ids = (typeof getTextTokens === 'function') ? getTextTokens(tokenizerId, String(text || '')) : [];
+        return (ids && typeof ids.length === 'number') ? ids.length : 0;
+    } catch {
+        return 0;
+    }
+}
+
+function gigmaRemoveSliceOccurrences(text, slice) {
+    if (!slice) return String(text || '');
+    let out = String(text || '');
+    let idx = out.indexOf(slice);
+    while (idx !== -1) {
+        out = out.slice(0, idx) + out.slice(idx + slice.length);
+        idx = out.indexOf(slice);
+    }
+    return out;
+}
+
+function gigmaEstimateRemovedEntryTokens(text, entry) {
+    try {
+        const slice = typeof entry?.content === 'string' ? entry.content : '';
+        if (!slice) return 0;
+        const source = String(text || '');
+        const idx = source.indexOf(slice);
+        if (idx > 0 && source[idx - 1] === '\n' && gigmaGetCountLeadingNewlinePref()) {
+            return gigmaGetTextTokenCountSync(`\n${slice}`);
+        }
+        return gigmaGetTextTokenCountSync(slice);
+    } catch {
+        return 0;
+    }
+}
+
+function gigmaBuildOrderedFallbackCandidates(byWorld, blockedKeys = new Set()) {
+    const out = [];
+    try {
+        for (const [world, list] of byWorld.entries()) {
+            const sorted = list.slice().sort(gigmaCompareRemovalCandidates);
+            for (const entry of sorted) {
+                const key = gigmaGetBudgetEntryKey(entry);
+                if (!key || blockedKeys.has(key) || gigmaIsRealIgnoreBudgetEntry(entry)) continue;
+                out.push(entry);
+            }
+        }
+        out.sort(gigmaCompareRemovalCandidates);
+    } catch (_e) {}
+    return out;
+}
+
+async function gigmaBuildExplicitRemovalCandidatesForWorld(world, list, totalBudget) {
+    const settings = gigmaGetWorldBudgetSettings(world) || {};
+    const mode = settings?.budgetMode || 'default';
+    const sortedAsc = list.slice().sort(gigmaCompareRemovalCandidates);
+    const removableAsc = sortedAsc.filter(entry => !gigmaIsRealIgnoreBudgetEntry(entry));
+
+    if (mode === 'off' || (mode !== 'default' && !(Number(settings?.budget) > 0))) {
+        return removableAsc;
+    }
+
+    if (mode === 'entries' || mode === 'percentage_entries') {
+        const perEntries = await calculateLorebookEntryBudget(settings, world);
+        if (!(perEntries > 0)) return removableAsc;
+        const removeCount = Math.max(0, removableAsc.length - perEntries);
+        return removableAsc.slice(0, removeCount);
+    }
+
+    const perBudget = await calculateLorebookBudget(settings, totalBudget, world);
+    if (!(perBudget > 0)) return [];
+
+    const sortedDesc = list.slice().sort((a, b) => (gigmaGetEntryOrderNumber(b) - gigmaGetEntryOrderNumber(a)) || String(a?.uid ?? '').localeCompare(String(b?.uid ?? '')));
+    const dropKeys = new Set();
+    let used = 0;
+    let hadAny = false;
+
+    for (const entry of sortedDesc) {
+        const content = (typeof entry?.content === 'string') ? entry.content : '';
+        const enabledNonEmpty = entry?.disable !== true && !!content;
+
+        if (gigmaIsRealIgnoreBudgetEntry(entry)) {
+            if (enabledNonEmpty) hadAny = true;
+            continue;
+        }
+
+        const leadingNewline = hadAny && enabledNonEmpty;
+        const tokens = getEntryTokenCountCached(entry, leadingNewline);
+        if ((used + tokens) <= perBudget) {
+            used += tokens;
+            if (enabledNonEmpty) hadAny = true;
+        } else {
+            const key = gigmaGetBudgetEntryKey(entry);
+            if (key) dropKeys.add(key);
+        }
+    }
+
+    return removableAsc.filter(entry => dropKeys.has(gigmaGetBudgetEntryKey(entry)));
+}
+
+async function gigmaBuildOptimizedIgnoreBudgetRemovalPlan(entriesMap, activatedText, totalBudget) {
+    const plan = {
+        removeEntries: [],
+        overflow: 0,
+        activatedTokens: 0,
+    };
+    try {
+        if (!entriesMap || typeof entriesMap.forEach !== 'function') return plan;
+        const text = String(activatedText || '');
+        const activatedTokens = gigmaGetTextTokenCountSync(text);
+        plan.activatedTokens = activatedTokens;
+        if (!(totalBudget > 0) || !(activatedTokens > totalBudget)) return plan;
+
+        const byWorld = new Map();
+        entriesMap.forEach((entry) => {
+            if (!entry?.world) return;
+            if (!byWorld.has(entry.world)) byWorld.set(entry.world, []);
+            byWorld.get(entry.world).push(entry);
+        });
+
+        const explicitCandidates = [];
+        for (const [world, list] of byWorld.entries()) {
+            const worldCandidates = await gigmaBuildExplicitRemovalCandidatesForWorld(world, list, totalBudget);
+            if (Array.isArray(worldCandidates) && worldCandidates.length) explicitCandidates.push(...worldCandidates);
+        }
+        explicitCandidates.sort(gigmaCompareRemovalCandidates);
+
+        const overflow = activatedTokens - totalBudget;
+        plan.overflow = overflow;
+
+        const chosen = [];
+        const chosenKeys = new Set();
+        let covered = 0;
+        const pushCandidate = (entry, sourceText) => {
+            const key = gigmaGetBudgetEntryKey(entry);
+            if (!key || chosenKeys.has(key)) return false;
+            const tokens = Math.max(0, Number(gigmaEstimateRemovedEntryTokens(sourceText, entry)) || 0);
+            chosen.push({ entry, tokens });
+            chosenKeys.add(key);
+            covered += tokens;
+            return covered >= overflow;
+        };
+
+        for (const entry of explicitCandidates) {
+            if (pushCandidate(entry, text)) break;
+        }
+
+        if (covered < overflow) {
+            const fallbackCandidates = gigmaBuildOrderedFallbackCandidates(byWorld, chosenKeys);
+            for (const entry of fallbackCandidates) {
+                if (pushCandidate(entry, text)) break;
+            }
+        }
+
+        plan.removeEntries = chosen;
+        return plan;
+    } catch (e) {
+        console.warn('[GIGMA] build optimized ignore-budget removal plan error:', e);
+        return plan;
+    }
+}
+
+function gigmaApplyRemovalEntries(entriesMap, text, removalEntries) {
+    const loopDropEntries = [];
+    let nextText = String(text || '');
+    try {
+        for (const item of (removalEntries || [])) {
+            const entry = item?.entry || item;
+            const tokens = Number(item?.tokens) || 0;
+            const key = gigmaGetBudgetEntryKey(entry);
+            if (key) entriesMap.delete(key);
+            const slice = typeof entry?.content === 'string' ? entry.content : '';
+            console.info('[GIGMA] Trimmed WI entry:', { world: entry?.world, uid: entry?.uid, comment: entry?.comment ?? null, tokens });
+            if (slice) {
+                loopDropEntries.push({ world: entry?.world, uid: entry?.uid, content: slice, tokens });
+                nextText = gigmaRemoveSliceOccurrences(nextText, slice);
+            }
+        }
+    } catch (e) {
+        console.warn('[GIGMA] apply removal entries error:', e);
+    }
+    return {
+        text: nextText,
+        dropEntries: loopDropEntries,
+    };
+}
+
+async function gigmaApplyOptimizedIgnoreBudgetTrim(args, entriesMap, activatedText, totalBudget) {
+    try {
+        if (!HAS_WORLDINFO_SCAN_DONE || !gigmaGetIgnoreBudgetBypassPref()) return null;
+        if (!EXTENSION_STATE.budgetIgnoreBypassEnabled || !EXTENSION_STATE.budgetIgnoreBypassApplied) return null;
+        const initialPlan = await gigmaBuildOptimizedIgnoreBudgetRemovalPlan(entriesMap, activatedText, totalBudget);
+        if (!Array.isArray(initialPlan.removeEntries) || initialPlan.removeEntries.length === 0) return { text: String(activatedText || ''), dropEntries: [] };
+
+        let { text, dropEntries } = gigmaApplyRemovalEntries(entriesMap, activatedText, initialPlan.removeEntries);
+        let finalTokens = gigmaGetTextTokenCountSync(text);
+        if (finalTokens > totalBudget) {
+            const byWorld = new Map();
+            entriesMap.forEach((entry) => {
+                if (!entry?.world) return;
+                if (!byWorld.has(entry.world)) byWorld.set(entry.world, []);
+                byWorld.get(entry.world).push(entry);
+            });
+            const fallbackCandidates = gigmaBuildOrderedFallbackCandidates(byWorld, new Set());
+            const remainingOverflow = finalTokens - totalBudget;
+            let covered = 0;
+            const extra = [];
+            for (const entry of fallbackCandidates) {
+                const tokens = Math.max(0, Number(gigmaEstimateRemovedEntryTokens(text, entry)) || 0);
+                extra.push({ entry, tokens });
+                covered += tokens;
+                if (covered >= remainingOverflow) break;
+            }
+            if (extra.length) {
+                const applied = gigmaApplyRemovalEntries(entriesMap, text, extra);
+                text = applied.text;
+                dropEntries = dropEntries.concat(applied.dropEntries);
+            }
+        }
+
+        return {
+            text,
+            dropEntries,
+        };
+    } catch (e) {
+        console.warn('[GIGMA] optimized ignore-budget trim error:', e);
+        return { text: String(activatedText || ''), dropEntries: [] };
     }
 }
 
@@ -46268,7 +46797,55 @@ function registerPerLoopBudgetTrimmer() {
                 const activatedEntriesBeforeTrim = Array.from(entriesMap.values());
 
                 // Compute total WI budget once (used by percentage_budget mode)
-                const totalBudget = calculateTotalWIBudget();
+                const totalBudget = Number(args?.budget?.current) > 0 ? Number(args?.budget?.current) : calculateTotalWIBudget();
+
+                let text = String(args?.activated?.text ?? '');
+                const loopDropEntries = [];
+                const useOptimizedIgnoreBudgetTrim = HAS_WORLDINFO_SCAN_DONE && gigmaGetIgnoreBudgetBypassPref() && EXTENSION_STATE.budgetIgnoreBypassEnabled && EXTENSION_STATE.budgetIgnoreBypassApplied;
+                if (useOptimizedIgnoreBudgetTrim) {
+                    const optimized = await gigmaApplyOptimizedIgnoreBudgetTrim(args, entriesMap, text, totalBudget);
+                    if (optimized) {
+                        text = String(optimized.text || text);
+                        loopDropEntries.push(...(Array.isArray(optimized.dropEntries) ? optimized.dropEntries : []));
+
+                        args.activated.text = text
+                            .replace(/\n{3,}/g, '\n\n')
+                            .replace(/[ \t]+\n/g, '\n');
+
+                        const mergedLoopDropEntries = (() => {
+                            try {
+                                const existing = Array.isArray(EXTENSION_STATE.dropEntries) ? EXTENSION_STATE.dropEntries : [];
+                                if (!existing.length) return loopDropEntries;
+                                if (!loopDropEntries.length) return existing;
+                                const merged = [];
+                                const seen = new Set();
+                                for (const item of existing.concat(loopDropEntries)) {
+                                    if (!item || typeof item !== 'object') continue;
+                                    const key = `${String(item.world || '')}:${String(item.uid || '')}`;
+                                    if (!key || seen.has(key)) continue;
+                                    seen.add(key);
+                                    merged.push(item);
+                                }
+                                return merged;
+                            } catch (_eMergeDrops) {
+                                return loopDropEntries;
+                            }
+                        })();
+                        EXTENSION_STATE.dropEntries = mergedLoopDropEntries;
+                        gigmaSetLastBudgetDropSummary(mergedLoopDropEntries);
+
+                        {
+                            const updated = gigmaSetLastModalLorebookStatsSnapshotPair(Array.isArray(activatedEntriesBeforeTrim) ? activatedEntriesBeforeTrim : [], Array.from(entriesMap.values()));
+                            if (updated) {
+                                try { gigmaQueueWorldInfoTokenUpdate(); } catch (_eQueueWiUi) { }
+                            }
+                            if (updated && gigmaIsOrderingModalActive && gigmaIsOrderingModalActive()) {
+                                try { gigmaUpdateModalLorebookStatsAllRows(); } catch (_eRefresh) { }
+                            }
+                        }
+                        return;
+                    }
+                }
 
                 // Group activated entries by lorebook (world)
                 const byWorld = new Map();
@@ -46280,10 +46857,6 @@ function registerPerLoopBudgetTrimmer() {
 
                 // Cache settings per world for this loop
                 const settingsCache = new Map();
-
-                // Work on a local copy of activated text; write back at the end
-                let text = String(args?.activated?.text ?? '');
-                const loopDropEntries = [];
 
                 for (const [world, list] of byWorld.entries()) {
                     const settings = settingsCache.has(world)
@@ -46316,7 +46889,7 @@ function registerPerLoopBudgetTrimmer() {
                             let usedEntries = 0;
                             toDrop = [];
                             for (const e of sorted) {
-                                if (e?.ignoreBudget === true) continue; // keep without consuming entry count
+                                if (gigmaIsRealIgnoreBudgetEntry(e)) continue; // keep without consuming entry count
                                 if (usedEntries < perEntries) {
                                     usedEntries += 1;
                                 } else {
@@ -46347,7 +46920,7 @@ function registerPerLoopBudgetTrimmer() {
                             const content = (typeof e?.content === 'string') ? e.content : '';
                             const enabledNonEmpty = e?.disable !== true && !!content;
 
-                            if (e?.ignoreBudget === true) {
+                            if (gigmaIsRealIgnoreBudgetEntry(e)) {
                                 if (enabledNonEmpty) hadAny = true;
                                 continue; // keep without consuming budget
                             }
