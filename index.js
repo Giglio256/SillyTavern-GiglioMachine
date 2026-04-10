@@ -4247,7 +4247,7 @@ function gigmaSetAutoUpdateWiOrderPref(enabled){
 
 function gigmaGetIgnoreBudgetBypassPref(){
     try{
-        return HAS_WORLDINFO_SCAN_DONE && gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.ignoreBudgetBypassTrim, false);
+        return HAS_WORLDINFO_SCAN_DONE && gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.ignoreBudgetBypassTrim, true);
     }catch(_){ return false; }
 }
 function gigmaSetIgnoreBudgetBypassPref(enabled){
