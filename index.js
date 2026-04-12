@@ -4256,6 +4256,28 @@ function gigmaSetIgnoreBudgetBypassPref(enabled){
         if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
     }catch(_){ }
 }
+function gigmaGetSelectiveIgnoreBudgetBypassPref(){
+    try{
+        return HAS_WORLDINFO_SCAN_DONE && gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.ignoreBudgetBypassSelective, true);
+    }catch(_){ return false; }
+}
+function gigmaSetSelectiveIgnoreBudgetBypassPref(enabled){
+    try{
+        gigmaPersistBinaryExtensionSetting('ignoreBudgetBypassSelective', !!enabled, 0);
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+    }catch(_){ }
+}
+function gigmaGetBudgetDebugLogsPref(){
+    try{
+        return HAS_WORLDINFO_SCAN_DONE && gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.budgetDebugLogs, false);
+    }catch(_){ return false; }
+}
+function gigmaSetBudgetDebugLogsPref(enabled){
+    try{
+        gigmaPersistBinaryExtensionSetting('budgetDebugLogs', !!enabled, 0);
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+    }catch(_){ }
+}
 function gigmaUpdateViewLockButton(btn, locked){
     try{
         if (!btn || !btn.classList) return;
@@ -5110,6 +5132,69 @@ function gigmaDebug(...args) {
     if (DEBUG_GIGMA && typeof console !== 'undefined') {
         console.info('[GIGMA][DEBUG]', ...args);
     }
+}
+
+function gigmaGetBudgetDebugEntryName(entry) {
+    try {
+        const comment = String(entry?.comment ?? '').trim();
+        if (comment) return comment;
+        const name = String(entry?.name ?? entry?.displayName ?? '').trim();
+        if (name) return name;
+        const keys = Array.isArray(entry?.key) ? entry.key.map(x => String(x ?? '').trim()).filter(Boolean) : [];
+        if (keys.length) return keys.join(', ');
+        const lines = String(entry?.content ?? '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+        if (lines.length) return lines[0];
+        return '';
+    } catch (_e) {
+        return '';
+    }
+}
+
+function gigmaBuildBudgetDebugEntrySnapshot(entry) {
+    return {
+        world: String(entry?.world || ''),
+        uid: String(entry?.uid ?? ''),
+        name: gigmaGetBudgetDebugEntryName(entry),
+        order: gigmaGetEntryOrderNumber(entry),
+        comment: entry?.comment ?? null,
+    };
+}
+
+function gigmaBuildBudgetDebugEntryKey(entry) {
+    return `${String(entry?.world || '')}:${String(entry?.uid ?? '')}`;
+}
+
+function gigmaGetUniqueBudgetDebugEntries(entries) {
+    try {
+        if (!Array.isArray(entries) || !entries.length) return [];
+        const out = [];
+        const seen = new Set();
+        for (const entry of entries) {
+            if (!entry || typeof entry !== 'object') continue;
+            const key = gigmaBuildBudgetDebugEntryKey(entry);
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            out.push(entry);
+        }
+        return out;
+    } catch (_e) {
+        return Array.isArray(entries) ? entries.filter(entry => !!entry && typeof entry === 'object') : [];
+    }
+}
+
+function gigmaLogBudgetDebugEntries(stage, entries, extra = null) {
+    try {
+        if (!gigmaGetBudgetDebugLogsPref() || typeof console === 'undefined') return;
+        const uniqueEntries = gigmaGetUniqueBudgetDebugEntries(entries);
+        const list = uniqueEntries.map(gigmaBuildBudgetDebugEntrySnapshot);
+        console.groupCollapsed(`[GIGMA][DEBUG] ${stage} (${list.length})`);
+        if (extra && typeof extra === 'object') {
+            console.log('[GIGMA][DEBUG] summary:', extra);
+        }
+        console.table(list);
+        console.log('[GIGMA][DEBUG] entries:', list);
+        console.groupEnd();
+    } catch (_e) { }
 }
 // Utility functions
 
@@ -7376,6 +7461,19 @@ function gigmaCreatePrettySwitch(initialChecked, titleText, ariaLabel, changeHan
         sw.addEventListener('change', changeHandler);
     }
     return { switchLabel, input: sw };
+}
+
+function gigmaSetPrettySwitchDisabled(input, disabled){
+    try{
+        if (!input) return;
+        const off = !!disabled;
+        input.disabled = off;
+        input.setAttribute('aria-disabled', off ? 'true' : 'false');
+        const switchLabel = input.closest ? input.closest('.gigma-gwi-pretty-switch') : null;
+        if (switchLabel && switchLabel.classList) {
+            switchLabel.classList.toggle('gigma-disabled-switch', off);
+        }
+    }catch(_){ }
 }
 
 function gigmaBuildGlobalWiStatsPanel(panel, place){
@@ -13670,6 +13768,13 @@ function gigmaInstallModalSettingsPopupStylesOnce() {
 #gigma-modal-root #gigma-modal-settings-popup .gigma-settings-slot .gigma-gwi-pretty-switch input:checked + .gigma-gwi-pretty-switch-track .gigma-gwi-pretty-switch-thumb{
   transform:translateX(1.08em);
 }
+#gigma-modal-root #gigma-modal-settings-popup .gigma-settings-slot .gigma-gwi-pretty-switch.gigma-disabled-switch{
+  cursor:not-allowed;
+  opacity:0.55;
+}
+#gigma-modal-root #gigma-modal-settings-popup .gigma-settings-slot .gigma-gwi-pretty-switch.gigma-disabled-switch .gigma-gwi-pretty-switch-track{
+  box-shadow:inset 0 0 0 0.0625em rgba(0,0,0,0.18);
+}
 #gigma-modal-root #gigma-modal-settings-popup #gigma-clear-folders,
 #gigma-modal-root #gigma-modal-settings-popup #gigma-clear-folders-right{
   display:inline-flex !important;
@@ -14317,6 +14422,8 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Count \\n separator in tokens', 'gigma-modal-settings-slot-newline');
             addRow('Detailed lorebook entries', 'gigma-modal-settings-slot-detailed');
             addRow('Bypass native WI budget before GIGMA trim', 'gigma-modal-settings-slot-ignore-budget-bypass');
+            addRow('Only bypass entries needed to fill post-trim gaps', 'gigma-modal-settings-slot-ignore-budget-bypass-selective');
+            addRow('Debug logs', 'gigma-modal-settings-slot-budget-debug-logs');
             addRow('Auto-update entry order in WI UI', 'gigma-modal-settings-slot-auto-wi-order');
 
             popup.appendChild(table);
@@ -14456,6 +14563,8 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
                     (ev) => {
                         try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
                         gigmaSetIgnoreBudgetBypassPref(ev.currentTarget.checked);
+                        const selectiveBtn = popup.querySelector('#gigma-modal-settings-ignore-budget-bypass-selective-btn');
+                        if (selectiveBtn) gigmaSetPrettySwitchDisabled(selectiveBtn, !ev.currentTarget.checked);
                     },
                 );
                 b = control.input;
@@ -14465,6 +14574,52 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
                 slotIgnoreBudgetBypass.appendChild(b.closest('label'));
             }
             b.checked = !!gigmaGetIgnoreBudgetBypassPref();
+        }
+
+        const slotIgnoreBudgetBypassSelective = popup.querySelector('#gigma-modal-settings-slot-ignore-budget-bypass-selective');
+        if (slotIgnoreBudgetBypassSelective) {
+            let b = popup.querySelector('#gigma-modal-settings-ignore-budget-bypass-selective-btn');
+            if (!b) {
+                const control = gigmaCreatePrettySwitch(
+                    gigmaGetSelectiveIgnoreBudgetBypassPref(),
+                    'Only bypass entries needed to fill post-trim gaps',
+                    'Only bypass entries needed to fill post-trim gaps',
+                    (ev) => {
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
+                        gigmaSetSelectiveIgnoreBudgetBypassPref(ev.currentTarget.checked);
+                    },
+                );
+                b = control.input;
+                b.id = 'gigma-modal-settings-ignore-budget-bypass-selective-btn';
+                slotIgnoreBudgetBypassSelective.appendChild(control.switchLabel);
+            } else if (b.closest('label')?.parentElement !== slotIgnoreBudgetBypassSelective) {
+                slotIgnoreBudgetBypassSelective.appendChild(b.closest('label'));
+            }
+            b.checked = !!gigmaGetSelectiveIgnoreBudgetBypassPref();
+            gigmaSetPrettySwitchDisabled(b, !gigmaGetIgnoreBudgetBypassPref());
+        }
+
+
+        const slotBudgetDebugLogs = popup.querySelector('#gigma-modal-settings-slot-budget-debug-logs');
+        if (slotBudgetDebugLogs) {
+            let b = popup.querySelector('#gigma-modal-settings-budget-debug-logs-btn');
+            if (!b) {
+                const control = gigmaCreatePrettySwitch(
+                    gigmaGetBudgetDebugLogsPref(),
+                    'Debug logs',
+                    'Debug logs',
+                    (ev) => {
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
+                        gigmaSetBudgetDebugLogsPref(ev.currentTarget.checked);
+                    },
+                );
+                b = control.input;
+                b.id = 'gigma-modal-settings-budget-debug-logs-btn';
+                slotBudgetDebugLogs.appendChild(control.switchLabel);
+            } else if (b.closest('label')?.parentElement !== slotBudgetDebugLogs) {
+                slotBudgetDebugLogs.appendChild(b.closest('label'));
+            }
+            b.checked = !!gigmaGetBudgetDebugLogsPref();
         }
 
         const slotAutoWiOrder = popup.querySelector('#gigma-modal-settings-slot-auto-wi-order');
@@ -16297,7 +16452,7 @@ async function handleWorldInfoEntriesLoaded(eventData) {
         // Delegate consolidation, sorting, and budget to dedicated functions
         await applyPriorityOrdering(eventData);
         if (HAS_WORLDINFO_SCAN_DONE) {
-            gigmaPrepareIgnoreBudgetBypassForScan(eventData);
+            await gigmaPrepareIgnoreBudgetBypassForScan(eventData);
         } else {
             await enforceBudgetPreScan(eventData);
         }
@@ -46230,7 +46385,83 @@ function gigmaGetLoadedWorldInfoEntries(eventData) {
     }
 }
 
-function gigmaPrepareIgnoreBudgetBypassForScan(eventData) {
+async function gigmaBuildSelectiveIgnoreBudgetBypassDropKeySet(entries, totalBudget) {
+    const dropKeys = new Set();
+    try {
+        if (!Array.isArray(entries) || !entries.length || !(totalBudget > 0)) return dropKeys;
+        const byWorld = new Map();
+        for (const entry of entries) {
+            if (!entry || typeof entry !== 'object' || !entry.world) continue;
+            if (!byWorld.has(entry.world)) byWorld.set(entry.world, []);
+            byWorld.get(entry.world).push(entry);
+        }
+        for (const [world, list] of byWorld.entries()) {
+            const candidates = await gigmaBuildExplicitRemovalCandidatesForWorld(world, list, totalBudget);
+            for (const entry of (Array.isArray(candidates) ? candidates : [])) {
+                const key = gigmaGetBudgetEntryKey(entry);
+                if (key) dropKeys.add(key);
+            }
+        }
+    } catch (e) {
+        console.warn('[GIGMA] build selective ignore-budget bypass drop keys error:', e);
+    }
+    return dropKeys;
+}
+
+async function gigmaBuildSelectiveIgnoreBudgetBypassKeys(entries, totalBudget, realIgnoreKeys) {
+    const selectedKeys = new Set(realIgnoreKeys || []);
+    try {
+        if (!Array.isArray(entries) || !entries.length || !(totalBudget > 0)) return selectedKeys;
+        const dropKeys = await gigmaBuildSelectiveIgnoreBudgetBypassDropKeySet(entries, totalBudget);
+        if (!dropKeys.size) return selectedKeys;
+
+        let used = 0;
+        let hadAny = false;
+        let missingTokens = 0;
+        let overflowed = false;
+
+        for (const entry of entries) {
+            if (!entry || typeof entry !== 'object') continue;
+            const key = gigmaGetBudgetEntryKey(entry);
+            const content = (typeof entry.content === 'string') ? entry.content : '';
+            const enabledNonEmpty = entry.disable !== true && !!content;
+            const isRealIgnore = !!(key && realIgnoreKeys && realIgnoreKeys.has(key));
+
+            if (!overflowed) {
+                if (isRealIgnore) {
+                    if (enabledNonEmpty) hadAny = true;
+                    continue;
+                }
+
+                const leadingNewline = hadAny && enabledNonEmpty;
+                const tokens = getEntryTokenCountCached(entry, leadingNewline);
+                if ((used + tokens) <= totalBudget) {
+                    used += tokens;
+                    if (key && dropKeys.has(key)) missingTokens += tokens;
+                    if (enabledNonEmpty) hadAny = true;
+                    continue;
+                }
+
+                overflowed = true;
+                if (!(missingTokens > 0)) break;
+            }
+
+            if (!key || !enabledNonEmpty || isRealIgnore || dropKeys.has(key)) continue;
+
+            const leadingNewline = hadAny && enabledNonEmpty;
+            const tokens = getEntryTokenCountCached(entry, leadingNewline);
+            selectedKeys.add(key);
+            missingTokens -= tokens;
+            if (enabledNonEmpty) hadAny = true;
+            if (!(missingTokens > 0)) break;
+        }
+    } catch (e) {
+        console.warn('[GIGMA] build selective ignore-budget bypass keys error:', e);
+    }
+    return selectedKeys;
+}
+
+async function gigmaPrepareIgnoreBudgetBypassForScan(eventData) {
     try {
         EXTENSION_STATE.budgetIgnoreBypassEnabled = false;
         EXTENSION_STATE.budgetIgnoreBypassApplied = false;
@@ -46243,11 +46474,39 @@ function gigmaPrepareIgnoreBudgetBypassForScan(eventData) {
             if (!entry || typeof entry !== 'object') continue;
             const key = gigmaGetBudgetEntryKey(entry);
             if (entry.ignoreBudget === true && key) realIgnoreKeys.add(key);
-            entry.ignoreBudget = true;
         }
+
+        const totalBudget = calculateTotalWIBudget();
+        const useSelectiveBypass = gigmaGetSelectiveIgnoreBudgetBypassPref();
+        const selectedKeys = useSelectiveBypass
+            ? await gigmaBuildSelectiveIgnoreBudgetBypassKeys(entries, totalBudget, realIgnoreKeys)
+            : null;
+
+        for (const entry of entries) {
+            if (!entry || typeof entry !== 'object') continue;
+            const key = gigmaGetBudgetEntryKey(entry);
+            entry.ignoreBudget = useSelectiveBypass
+                ? !!(key && selectedKeys && selectedKeys.has(key))
+                : true;
+        }
+
         EXTENSION_STATE.budgetIgnoreBypassEnabled = true;
         EXTENSION_STATE.budgetIgnoreBypassApplied = true;
         EXTENSION_STATE.budgetIgnoreBypassRealIgnoreKeys = realIgnoreKeys;
+
+        const bypassEntries = useSelectiveBypass
+            ? entries.filter((entry) => {
+                const key = gigmaGetBudgetEntryKey(entry);
+                return !!(key && selectedKeys && selectedKeys.has(key));
+            })
+            : entries.slice();
+        gigmaLogBudgetDebugEntries('temporary bypass entries', bypassEntries, {
+            loadedEntries: entries.length,
+            totalBudget,
+            selectiveBypass: useSelectiveBypass,
+            realIgnoreBudgetEntries: realIgnoreKeys.size,
+            temporaryBypassEntries: bypassEntries.length,
+        });
     } catch (e) {
         console.warn('[GIGMA] prepare ignore-budget bypass error:', e);
         EXTENSION_STATE.budgetIgnoreBypassEnabled = false;
@@ -46680,6 +46939,11 @@ function registerPerLoopBudgetTrimmer() {
 
                 // Compute total WI budget once (used by percentage_budget mode)
                 const totalBudget = Number(args?.budget?.current) > 0 ? Number(args?.budget?.current) : calculateTotalWIBudget();
+                gigmaLogBudgetDebugEntries('activated before trim', activatedEntriesBeforeTrim, {
+                    finalScanLoop: isFinalScanLoop,
+                    totalBudget,
+                    activatedBeforeTrimCount: activatedEntriesBeforeTrim.length,
+                });
 
                 let text = String(args?.activated?.text ?? '');
                 const loopDropEntries = [];
@@ -46717,13 +46981,30 @@ function registerPerLoopBudgetTrimmer() {
                         gigmaSetLastBudgetDropSummary(mergedLoopDropEntries);
 
                         {
-                            const updated = gigmaSetLastModalLorebookStatsSnapshotPair(Array.isArray(activatedEntriesBeforeTrim) ? activatedEntriesBeforeTrim : [], Array.from(entriesMap.values()));
+                            const keptEntriesAfterTrim = Array.from(entriesMap.values());
+                            const updated = gigmaSetLastModalLorebookStatsSnapshotPair(Array.isArray(activatedEntriesBeforeTrim) ? activatedEntriesBeforeTrim : [], keptEntriesAfterTrim);
                             if (updated) {
                                 try { gigmaQueueWorldInfoTokenUpdate(); } catch (_eQueueWiUi) { }
                             }
                             if (updated && gigmaIsOrderingModalActive && gigmaIsOrderingModalActive()) {
                                 try { gigmaUpdateModalLorebookStatsAllRows(); } catch (_eRefresh) { }
                             }
+                            const trimmedEntries = gigmaGetUniqueBudgetDebugEntries(loopDropEntries);
+                            gigmaLogBudgetDebugEntries('trimmed entries', trimmedEntries, {
+                                finalScanLoop: isFinalScanLoop,
+                                totalBudget,
+                                activatedBeforeTrimCount: activatedEntriesBeforeTrim.length,
+                                trimmedEntryCount: trimmedEntries.length,
+                                optimizedIgnoreBudgetTrim: true,
+                            });
+                            gigmaLogBudgetDebugEntries('kept after trim', keptEntriesAfterTrim, {
+                                finalScanLoop: isFinalScanLoop,
+                                totalBudget,
+                                activatedBeforeTrimCount: activatedEntriesBeforeTrim.length,
+                                keptAfterTrimCount: keptEntriesAfterTrim.length,
+                                trimmedEntryCount: trimmedEntries.length,
+                                optimizedIgnoreBudgetTrim: true,
+                            });
                         }
                         return;
                     }
@@ -46870,13 +47151,30 @@ function registerPerLoopBudgetTrimmer() {
                 gigmaSetLastBudgetDropSummary(mergedLoopDropEntries);
 
                 {
-                    const updated = gigmaSetLastModalLorebookStatsSnapshotPair(Array.isArray(activatedEntriesBeforeTrim) ? activatedEntriesBeforeTrim : [], Array.from(entriesMap.values()));
+                    const keptEntriesAfterTrim = Array.from(entriesMap.values());
+                    const updated = gigmaSetLastModalLorebookStatsSnapshotPair(Array.isArray(activatedEntriesBeforeTrim) ? activatedEntriesBeforeTrim : [], keptEntriesAfterTrim);
                     if (updated) {
                         try { gigmaQueueWorldInfoTokenUpdate(); } catch (_eQueueWiUi) { }
                     }
                     if (updated && gigmaIsOrderingModalActive && gigmaIsOrderingModalActive()) {
                         try { gigmaUpdateModalLorebookStatsAllRows(); } catch (_eRefresh) { }
                     }
+                    const trimmedEntries = gigmaGetUniqueBudgetDebugEntries(loopDropEntries);
+                    gigmaLogBudgetDebugEntries('trimmed entries', trimmedEntries, {
+                        finalScanLoop: isFinalScanLoop,
+                        totalBudget,
+                        activatedBeforeTrimCount: activatedEntriesBeforeTrim.length,
+                        trimmedEntryCount: trimmedEntries.length,
+                        optimizedIgnoreBudgetTrim: false,
+                    });
+                    gigmaLogBudgetDebugEntries('kept after trim', keptEntriesAfterTrim, {
+                        finalScanLoop: isFinalScanLoop,
+                        totalBudget,
+                        activatedBeforeTrimCount: activatedEntriesBeforeTrim.length,
+                        keptAfterTrimCount: keptEntriesAfterTrim.length,
+                        trimmedEntryCount: trimmedEntries.length,
+                        optimizedIgnoreBudgetTrim: false,
+                    });
                 }
                 // Note: We do not force-stop the loop here; accepts one-iteration lag for recursion buffer.
 
