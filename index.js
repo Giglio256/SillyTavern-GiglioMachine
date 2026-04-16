@@ -634,7 +634,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         white-space:normal;
         hyphens: manual;
       }
-      /* Remaining stats: JS sets a shared-per-row count; columns shrink from buffer (8em) to content floor (5em) */
+      /* Remaining stats: JS sets a shared-per-row count; columns use a wider fixed floor (6.25em) for calmer chip width. */
       #gigma-modal-root #gigma-ordering-container .gigma-row-stats{
         grid-column: 1 / -1;
         grid-row: 2;
@@ -650,7 +650,8 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       #gigma-modal-root #gigma-ordering-container .gigma-row-stats-section{
         min-width:0;
         display:grid;
-        grid-template-columns: repeat(var(--gigma-row-stats-cols, 1), minmax(5em, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(12em, 12em));
+        justify-content:start;
         gap: 0.25em 0.35em;
       }
 
@@ -6122,15 +6123,15 @@ function gigmaRefreshLorebookStatsUiFromIndex(worldName) {
 
         try {
             if (!gigmaIsOrderingModalActive()) return;
-            const root = document.getElementById('gigma-ordering-container') || document.getElementById('gigma-modal-root') || document;
-            const rows = root.querySelectorAll ? root.querySelectorAll('.gigma-row[data-world]') : [];
-            rows.forEach((row) => {
+            const rows = gigmaGetModalLorebookStatsRows(true);
+            for (const row of rows) {
                 try {
-                    if (!row || !row.dataset) return;
-                    if (String(row.dataset.world || '') !== key) return;
+                    if (!row || !row.isConnected || !row.dataset) continue;
+                    if (String(row.dataset.world || '') !== key) continue;
                     gigmaUpdateModalLorebookRowStats(row);
-                } catch (_eRow) {}
-            });
+                } catch (_eRow) { }
+            }
+            gigmaScheduleModalLorebookStatsRefresh(true);
         } catch (_eModal) {}
     } catch (_eOuter) {}
 }
@@ -6603,7 +6604,14 @@ function gigmaBeginModalLorebookStatsSession() {
         EXTENSION_STATE.modalLorebookStatsSessionActive = true;
         EXTENSION_STATE.modalLorebookStatsSessionId = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
         EXTENSION_STATE.modalLorebookStatsLocalStorageKeys = [];
-        try { GIGMA_MODAL_LOREBOOK_STATS_CACHE.clear(); } catch (_e) {}
+        try { window.__gigmaVisibleModalLorebookStatsRows = new Set(); } catch (_e) { }
+        try { window.__gigmaObservedModalLorebookStatsRows = new WeakSet(); } catch (_e) { }
+        try { window.__gigmaModalLorebookStatsRowsCache = null; } catch (_e) { }
+        try { window.__gigmaModalLorebookStatsBuildQueue = []; } catch (_e) { }
+        try { window.__gigmaModalLorebookStatsBuildPending = new Set(); } catch (_e) { }
+        try { window.__gigmaModalLorebookStatsBuildActive = false; } catch (_e) { }
+        try { window.__gigmaModalLorebookStatsRefreshRaf = 0; } catch (_e) { }
+        try { window.__gigmaModalLorebookStatsTargetCountCache = null; } catch (_e) { }
         scheduleBackground(() => gigmaPrecomputeAllModalLorebookStats());
     } catch (_e) {}
 }
@@ -6619,7 +6627,42 @@ function gigmaEndModalLorebookStatsSession() {
         }
         EXTENSION_STATE.modalLorebookStatsLocalStorageKeys = null;
         EXTENSION_STATE.modalLorebookStatsSessionId = '';
-        try { GIGMA_MODAL_LOREBOOK_STATS_CACHE.clear(); } catch (_e) {}
+        try {
+            if (window.__gigmaModalLorebookStatsIo) {
+                window.__gigmaModalLorebookStatsIo.disconnect();
+                window.__gigmaModalLorebookStatsIo = null;
+            }
+        } catch (_e) { }
+        try {
+            if (window.__gigmaModalLorebookStatsObserveTimer) {
+                clearTimeout(window.__gigmaModalLorebookStatsObserveTimer);
+                window.__gigmaModalLorebookStatsObserveTimer = 0;
+            }
+        } catch (_e) { }
+        try {
+            if (window.__gigmaModalLorebookStatsBuildTimer) {
+                clearTimeout(window.__gigmaModalLorebookStatsBuildTimer);
+                window.__gigmaModalLorebookStatsBuildTimer = 0;
+            }
+        } catch (_e) { }
+        try {
+            if (window.__gigmaModalLorebookStatsBuildIdle && window.cancelIdleCallback) {
+                window.cancelIdleCallback(window.__gigmaModalLorebookStatsBuildIdle);
+                window.__gigmaModalLorebookStatsBuildIdle = 0;
+            }
+        } catch (_e) { }
+        try {
+            if (window.__gigmaModalLorebookStatsRefreshRaf) {
+                cancelAnimationFrame(window.__gigmaModalLorebookStatsRefreshRaf);
+                window.__gigmaModalLorebookStatsRefreshRaf = 0;
+            }
+        } catch (_e) { }
+        try { window.__gigmaVisibleModalLorebookStatsRows = new Set(); } catch (_e) { }
+        try { window.__gigmaObservedModalLorebookStatsRows = new WeakSet(); } catch (_e) { }
+        try { window.__gigmaModalLorebookStatsRowsCache = null; } catch (_e) { }
+        try { window.__gigmaModalLorebookStatsBuildQueue = []; } catch (_e) { }
+        try { window.__gigmaModalLorebookStatsBuildPending = new Set(); } catch (_e) { }
+        try { window.__gigmaModalLorebookStatsBuildActive = false; } catch (_e) { }
         try { if (window.__gigmaGlobalWiStatsModalTimer) { clearTimeout(window.__gigmaGlobalWiStatsModalTimer); window.__gigmaGlobalWiStatsModalTimer = null; } } catch (_e) {}
     } catch (_e) {}
 }
@@ -9146,6 +9189,206 @@ function gigmaFlushQueuedModalLorebookStatsAffectedLorebooks() {
     } catch (_e) { }
 }
 
+function gigmaGetOrderingModalStatsRoot() {
+    try {
+        return document.getElementById('gigma-ordering-container') || document.getElementById('gigma-modal-root') || null;
+    } catch (_e) { }
+    return null;
+}
+
+function gigmaGetModalLorebookStatsRows(forceRefresh = false) {
+    try {
+        if (!forceRefresh && Array.isArray(window.__gigmaModalLorebookStatsRowsCache)) {
+            return window.__gigmaModalLorebookStatsRowsCache;
+        }
+        const root = gigmaGetOrderingModalStatsRoot();
+        const rows = root && root.querySelectorAll ? Array.from(root.querySelectorAll('.gigma-row[data-world]')) : [];
+        window.__gigmaModalLorebookStatsRowsCache = rows;
+        return rows;
+    } catch (_e) { }
+    return [];
+}
+
+function gigmaObserveModalLorebookStatsRow(row) {
+    try {
+        if (!row || !row.isConnected || !row.dataset || !row.dataset.world) return;
+        gigmaBindModalLorebookStatsObserversOnce();
+        const io = window.__gigmaModalLorebookStatsIo;
+        if (!io) return;
+        let observed = window.__gigmaObservedModalLorebookStatsRows;
+        if (!(observed && typeof observed.has === 'function' && typeof observed.add === 'function')) {
+            observed = new WeakSet();
+            window.__gigmaObservedModalLorebookStatsRows = observed;
+        }
+        if (observed.has(row)) return;
+        observed.add(row);
+        io.observe(row);
+    } catch (_e) { }
+}
+
+function gigmaObserveModalLorebookStatsRows(forceRefresh = false) {
+    try {
+        if (!gigmaIsOrderingModalActive()) return;
+        const rows = gigmaGetModalLorebookStatsRows(!!forceRefresh);
+        if (!rows.length) return;
+        let index = 0;
+        const batchSize = 200;
+        const step = () => {
+            try {
+                if (!gigmaIsOrderingModalActive()) return;
+                const end = Math.min(index + batchSize, rows.length);
+                for (; index < end; index += 1) {
+                    gigmaObserveModalLorebookStatsRow(rows[index]);
+                }
+                if (index < rows.length) {
+                    window.__gigmaModalLorebookStatsObserveTimer = setTimeout(step, 0);
+                } else {
+                    window.__gigmaModalLorebookStatsObserveTimer = 0;
+                }
+            } catch (_e) {
+                window.__gigmaModalLorebookStatsObserveTimer = 0;
+            }
+        };
+        if (window.__gigmaModalLorebookStatsObserveTimer) return;
+        step();
+    } catch (_e) { }
+}
+
+function gigmaBindModalLorebookStatsObserversOnce() {
+    try {
+        if (window.__gigmaModalLorebookStatsIo) return;
+        let visibleRows = window.__gigmaVisibleModalLorebookStatsRows;
+        if (!(visibleRows && typeof visibleRows.add === 'function' && typeof visibleRows.delete === 'function')) {
+            visibleRows = new Set();
+            window.__gigmaVisibleModalLorebookStatsRows = visibleRows;
+        }
+        window.__gigmaModalLorebookStatsIo = new IntersectionObserver((entries) => {
+            try {
+                let changed = false;
+                for (const entry of entries) {
+                    const row = entry && entry.target;
+                    if (!row || !row.isConnected) continue;
+                    if (entry.isIntersecting) {
+                        visibleRows.add(row);
+                    } else {
+                        visibleRows.delete(row);
+                    }
+                    changed = true;
+                }
+                if (changed) gigmaScheduleModalLorebookStatsRefresh();
+            } catch (_e) { }
+        }, {
+            root: null,
+            rootMargin: '160px 0px 160px 0px',
+            threshold: 0,
+        });
+    } catch (_e) { }
+}
+
+function gigmaQueueModalLorebookStatsBuild(worldName) {
+    try {
+        const key = String(worldName || '').trim();
+        if (!key) return;
+        let queue = window.__gigmaModalLorebookStatsBuildQueue;
+        if (!Array.isArray(queue)) {
+            queue = [];
+            window.__gigmaModalLorebookStatsBuildQueue = queue;
+        }
+        let pending = window.__gigmaModalLorebookStatsBuildPending;
+        if (!(pending && typeof pending.has === 'function' && typeof pending.add === 'function' && typeof pending.delete === 'function')) {
+            pending = new Set();
+            window.__gigmaModalLorebookStatsBuildPending = pending;
+        }
+        if (pending.has(key)) return;
+        pending.add(key);
+        queue.push(key);
+        gigmaScheduleModalLorebookStatsBuildQueue();
+    } catch (_e) { }
+}
+
+async function gigmaDrainModalLorebookStatsBuildQueue() {
+    try {
+        if (window.__gigmaModalLorebookStatsBuildActive) return;
+        window.__gigmaModalLorebookStatsBuildActive = true;
+        const queue = Array.isArray(window.__gigmaModalLorebookStatsBuildQueue) ? window.__gigmaModalLorebookStatsBuildQueue : [];
+        const pending = window.__gigmaModalLorebookStatsBuildPending;
+        while (queue.length && gigmaIsOrderingModalActive() && !!EXTENSION_STATE.modalLorebookStatsEnabled) {
+            const key = String(queue.shift() || '').trim();
+            if (!key) continue;
+            try {
+                await gigmaGetLorebookStats(key);
+            } catch (_eItem) { }
+            try { if (pending && typeof pending.delete === 'function') pending.delete(key); } catch (_eDelete) { }
+            gigmaScheduleModalLorebookStatsRefresh();
+            break;
+        }
+    } catch (_e) { }
+    finally {
+        window.__gigmaModalLorebookStatsBuildActive = false;
+        const queue = Array.isArray(window.__gigmaModalLorebookStatsBuildQueue) ? window.__gigmaModalLorebookStatsBuildQueue : [];
+        if (queue.length && gigmaIsOrderingModalActive() && !!EXTENSION_STATE.modalLorebookStatsEnabled) {
+            gigmaScheduleModalLorebookStatsBuildQueue();
+        }
+    }
+}
+
+function gigmaScheduleModalLorebookStatsBuildQueue() {
+    try {
+        if (window.__gigmaModalLorebookStatsBuildActive) return;
+        if (window.__gigmaModalLorebookStatsBuildTimer || window.__gigmaModalLorebookStatsBuildIdle) return;
+        const run = () => {
+            window.__gigmaModalLorebookStatsBuildTimer = 0;
+            window.__gigmaModalLorebookStatsBuildIdle = 0;
+            gigmaDrainModalLorebookStatsBuildQueue();
+        };
+        if (window.requestIdleCallback) {
+            window.__gigmaModalLorebookStatsBuildIdle = window.requestIdleCallback(run, { timeout: 250 });
+            return;
+        }
+        window.__gigmaModalLorebookStatsBuildTimer = setTimeout(run, 16);
+    } catch (_e) { }
+}
+
+function gigmaRefreshVisibleModalLorebookStats() {
+    try {
+        if (!gigmaIsOrderingModalActive()) return;
+        const root = gigmaGetOrderingModalStatsRoot();
+        if (!root) return;
+
+        if (!EXTENSION_STATE.modalLorebookStatsEnabled || gigmaGetLorebookStatsDisplayCollapsed('modal')) {
+            const hosts = root.querySelectorAll ? root.querySelectorAll('.gigma-row-header-grid > .gigma-row-stats') : [];
+            hosts.forEach((host) => {
+                try {
+                    host.classList.add('gigma-hidden');
+                    host.textContent = '';
+                } catch (_eHost) { }
+            });
+            return;
+        }
+
+        const rows = gigmaGetModalLorebookStatsRows(false);
+        for (const row of rows) {
+            try {
+                if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
+                gigmaUpdateModalLorebookRowStats(row);
+            } catch (_eRow) { }
+        }
+    } catch (_e) { }
+}
+
+function gigmaScheduleModalLorebookStatsRefresh(forceRefresh = false) {
+    try {
+        if (forceRefresh) {
+            try { window.__gigmaModalLorebookStatsRowsCache = null; } catch (_eCache) { }
+        }
+        if (window.__gigmaModalLorebookStatsRefreshRaf) return;
+        window.__gigmaModalLorebookStatsRefreshRaf = requestAnimationFrame(() => {
+            window.__gigmaModalLorebookStatsRefreshRaf = 0;
+            gigmaRefreshVisibleModalLorebookStats();
+        });
+    } catch (_e) { }
+}
+
 function gigmaApplyModalLorebookStatsColumnCount(el) {
     try {
         if (!el || !el.isConnected) return;
@@ -9155,27 +9398,18 @@ function gigmaApplyModalLorebookStatsColumnCount(el) {
             try { el.style.removeProperty('--gigma-row-stats-cols'); } catch (_e) { }
             return;
         }
-
-        const minColEm = 5;       // content floor before column count may shrink
-        const gapEm = gigmaGetModalLorebookStatsColumnGapEm(el);
-        const rowWidthEm = gigmaGetModalLorebookStatsLayoutWidthEm((el && el.parentElement) ? el.parentElement : el);
-
-        const safeFloor = (n) => Math.max(1, Math.floor(n));
         const nTarget = Math.max(1, Number(gigmaGetModalLorebookStatsTargetCount(el)) || 1);
-        const nFit = safeFloor((rowWidthEm + gapEm) / (minColEm + gapEm));
-        const n = Math.max(1, Math.min(nTarget, nFit));
-
-        el.style.setProperty('--gigma-row-stats-cols', String(n));
+        el.style.setProperty('--gigma-row-stats-cols', String(nTarget));
     } catch (_e) { }
 }
 
 function gigmaUpdateModalLorebookStatsColumnCountsAllRows() {
     try {
         if (!gigmaIsOrderingModalActive()) return;
-        const root = document.getElementById('gigma-ordering-container') || document.getElementById('gigma-modal-root') || document;
+        const root = gigmaGetOrderingModalStatsRoot() || document;
         const hosts = root.querySelectorAll ? root.querySelectorAll('.gigma-row[data-world] > .gigma-row-header-grid > .gigma-row-stats') : [];
-        const firstHost = (hosts && hosts.length) ? hosts[0] : null;
-        gigmaRecomputeModalLorebookStatsTargetCountCache(firstHost || root);
+        const firstHost = (hosts && hosts.length) ? hosts[0] : root;
+        gigmaRecomputeModalLorebookStatsTargetCountCache(firstHost);
         hosts.forEach((el) => gigmaApplyModalLorebookStatsColumnCount(el));
     } catch (_e) { }
 }
@@ -9283,12 +9517,8 @@ function gigmaRenderLorebookStatsInto(el, rawStats, worldName) {
 
     el.replaceChildren(frag);
     if (totalChipCount > 0) {
-        try { gigmaRecomputeModalLorebookStatsTargetCountCache(el); } catch (_eStatsCache) { }
         try { gigmaApplyModalLorebookStatsColumnCount(el); } catch (_eStatsCols) { }
-        try { gigmaApplyStatChipFitModeIn(el); } catch (_eStatsFit) { }
         el.classList.remove('gigma-hidden');
-        gigmaUpdateModalLorebookStatsColumnCountsAllRows();
-        gigmaQueueStatChipFitModeIn(el);
     } else {
         el.classList.add('gigma-hidden');
     }
@@ -9298,76 +9528,66 @@ function gigmaUpdateModalLorebookRowStats(row) {
     try {
         if (!gigmaIsOrderingModalActive()) return;
         if (!row || !row.dataset) return;
-        const worldName = row.dataset.world;
+        const worldName = String(row.dataset.world || '').trim();
         if (!worldName) return;
 
-        const host = gigmaEnsureModalRowStatsHost(row);
-        if (!host) return;
+        let host = row.querySelector ? row.querySelector(':scope > .gigma-row-header-grid > .gigma-row-stats') : null;
 
-        // Parent presets (Order mode): when unchained lorebooks are shown as "text between lorebooks",
-        // their placeholder rows are just marker text, so do not show stats.
         if (row.classList && row.classList.contains('gigma-parent-unchained-placeholder')) {
             const asSel = gigmaGetParentUnchainedAsSelect();
             const asMode = (asSel && typeof asSel.value === 'string') ? asSel.value.trim() : '';
             if (asMode === 'text between lorebooks') {
-                gigmaRenderLorebookStatsInto(host, null, worldName);
+                if (host) gigmaRenderLorebookStatsInto(host, null, worldName);
                 return;
             }
         }
 
         if (!EXTENSION_STATE.modalLorebookStatsEnabled || gigmaGetLorebookStatsDisplayCollapsed('modal')) {
-            gigmaRenderLorebookStatsInto(host, null);
+            if (host) gigmaRenderLorebookStatsInto(host, null);
             return;
         }
 
-        const req = (Number(row.dataset.gigmaStatsReq || '0') || 0) + 1;
-        row.dataset.gigmaStatsReq = String(req);
+        host = host || gigmaEnsureModalRowStatsHost(row);
+        if (!host) return;
 
-        if (!gigmaIsModalLorebookStatsRawSectionEnabled()) {
-            gigmaRenderLorebookStatsInto(host, null, worldName);
-            return;
+        let stats = gigmaGetLorebookStatsIndexStatsByWorldName(worldName);
+        if (!stats) {
+            const cached = GIGMA_MODAL_LOREBOOK_STATS_CACHE.get(worldName);
+            if (cached && cached.stats) stats = cached.stats;
         }
 
-        // Fast render from cache if present
-        const cached = GIGMA_MODAL_LOREBOOK_STATS_CACHE.get(worldName);
-        if (cached && cached.stats) {
-            gigmaRenderLorebookStatsInto(host, cached.stats, worldName);
-            return;
+        if (!stats && gigmaIsModalLorebookStatsRawSectionEnabled()) {
+            gigmaQueueModalLorebookStatsBuild(worldName);
         }
 
-        // Loading placeholder
-        host.classList.remove('gigma-hidden');
-        host.textContent = '';
-        const chip = document.createElement('span');
-        chip.className = 'gigma-row-stat-chip';
-        chip.textContent = '…';
-        host.appendChild(chip);
-        gigmaUpdateModalLorebookStatsColumnCountsAllRows();
-
-        gigmaGetLorebookStats(worldName).then((stats) => {
-            try {
-                if (!row.isConnected) return;
-                if (String(row.dataset.gigmaStatsReq || '') !== String(req)) return;
-                gigmaRenderLorebookStatsInto(host, stats, worldName);
-            } catch (_e) { }
-        });
+        gigmaRenderLorebookStatsInto(host, stats || null, worldName);
     } catch (_e) { }
 }
 
 function gigmaUpdateModalLorebookStatsAllRows() {
     try {
         if (!gigmaIsOrderingModalActive()) return;
-        const root = document.getElementById('gigma-ordering-container') || document.getElementById('gigma-modal-root') || document;
-        const rows = root.querySelectorAll ? root.querySelectorAll('.gigma-row[data-world]') : [];
-        rows.forEach((row) => gigmaUpdateModalLorebookRowStats(row));
-        gigmaUpdateModalLorebookStatsColumnCountsAllRows();
-        try { gigmaQueueGlobalWiStatsUpdate('modal'); } catch (_e) {}
+        const rows = gigmaGetModalLorebookStatsRows(true);
+        for (const row of rows) {
+            try {
+                if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
+                gigmaEnsureModalRowStatsHost(row);
+            } catch (_eHost) { }
+        }
+        for (const row of rows) {
+            try {
+                if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
+                gigmaUpdateModalLorebookRowStats(row);
+            } catch (_eRow) { }
+        }
+        try { gigmaUpdateModalLorebookStatsColumnCountsAllRows(); } catch (_eCols) { }
     } catch (_e) { }
 }
 
 function gigmaMaybeAttachModalLorebookStats(labelEl, worldName) {
     try {
         if (!labelEl || !worldName) return;
+        if (!EXTENSION_STATE.modalLorebookStatsEnabled) return;
         const root = labelEl.closest && labelEl.closest('#gigma-modal-root');
         if (!root) return;
         const row = labelEl.closest && labelEl.closest('.gigma-row');
@@ -9952,7 +10172,8 @@ const GIGMA_PRESET_TREE_PREVIEW_LOREBOOK_STATS_LS_KEY = 'gigma_preset_tree_previ
 #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row-stats .gigma-row-stats-section{
   min-width:0;
   display:grid;
-  grid-template-columns: repeat(var(--gigma-row-stats-cols, 1), minmax(5em, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(12em, 12em));
+        justify-content:start;
   gap:0.2em 0.3em;
 }
 #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-row-stats .gigma-row-stat-chip{
@@ -11103,6 +11324,15 @@ function gigmaGetLatestLayoutPresetTreePreviewRoot() {
     }
 }
 
+// Preview row stats are already driven by IntersectionObserver.
+// Do not re-prime the full preview tree on every scroll event.
+(function gigmaBindLayoutPresetTreePreviewLorebookStatsScrollOnce() {
+    try {
+        if (window.__gigmaLayoutPresetTreePreviewLoreStatsScrollBound) return;
+        window.__gigmaLayoutPresetTreePreviewLoreStatsScrollBound = true;
+    } catch (_e) { }
+})();
+
 function gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row) {
     try {
         if (!row) return null;
@@ -11117,6 +11347,76 @@ function gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row) {
     } catch (_e) {
         return null;
     }
+}
+
+function gigmaGetLayoutPresetTreePreviewStatsViewport(rootOverride) {
+    try {
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
+        if (!root) return null;
+        return (root.querySelector && root.querySelector('.gigma-layout-preset-tree')) || root;
+    } catch (_e) {
+        return null;
+    }
+}
+
+function gigmaDisconnectLayoutPresetTreePreviewLorebookStatsObserver(rootOverride) {
+    try {
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
+        if (!root) return;
+        const obs = root.__gigmaPreviewLoreStatsObserver;
+        if (obs && typeof obs.disconnect === 'function') obs.disconnect();
+        root.__gigmaPreviewLoreStatsObserver = null;
+        root.__gigmaPreviewLoreStatsObserverViewport = null;
+    } catch (_e) { }
+}
+
+function gigmaEnsureLayoutPresetTreePreviewLorebookStatsObserver(rootOverride) {
+    try {
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
+        if (!root || typeof IntersectionObserver !== 'function') return null;
+        const viewport = gigmaGetLayoutPresetTreePreviewStatsViewport(root);
+        if (!viewport) return null;
+        const current = root.__gigmaPreviewLoreStatsObserver || null;
+        if (current && root.__gigmaPreviewLoreStatsObserverViewport === viewport) return current;
+        gigmaDisconnectLayoutPresetTreePreviewLorebookStatsObserver(root);
+        const obs = new IntersectionObserver((entries) => {
+            try {
+                for (const entry of entries) {
+                    if (!entry || !entry.target || !entry.isIntersecting) continue;
+                    const row = entry.target;
+                    try { obs.unobserve(row); } catch (_eUnobserve) { }
+                    try { gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row); } catch (_eHost) { }
+                    try { gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row); } catch (_eRow) { }
+                }
+            } catch (_eEntries) { }
+        }, { root: viewport, rootMargin: '20% 0px 20% 0px' });
+        root.__gigmaPreviewLoreStatsObserver = obs;
+        root.__gigmaPreviewLoreStatsObserverViewport = viewport;
+        return obs;
+    } catch (_e) {
+        return null;
+    }
+}
+
+function gigmaPrimeLayoutPresetTreePreviewLorebookStatsRows(rootOverride) {
+    try {
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
+        if (!root) return;
+        const rows = root.querySelectorAll ? root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name], .gigma-layout-preset-tree-row[data-world]') : [];
+        const obs = gigmaEnsureLayoutPresetTreePreviewLorebookStatsObserver(root);
+        if (obs) {
+            rows.forEach((row) => {
+                try { obs.observe(row); } catch (_eObserve) { }
+            });
+            return;
+        }
+        rows.forEach((row) => {
+            try {
+                gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row);
+                gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row);
+            } catch (_eRow) { }
+        });
+    } catch (_e) { }
 }
 
 function gigmaGetLayoutPresetTreePreviewLorebookStatsTheoreticalRootWidthEm(fallbackEl) {
@@ -11171,16 +11471,8 @@ function gigmaApplyLayoutPresetTreePreviewLorebookStatsColumnCount(el) {
             return;
         }
 
-        const minColEm = 5;
-        const gapEm = gigmaGetModalLorebookStatsColumnGapEm(el);
-        const rowWidthEm = gigmaGetModalLorebookStatsLayoutWidthEm((el && el.parentElement) ? el.parentElement : el);
-
-        const safeFloor = (n) => Math.max(1, Math.floor(n));
         const nTarget = Math.max(1, Number(gigmaGetLayoutPresetTreePreviewLorebookStatsTargetCount(el)) || 1);
-        const nFit = safeFloor((rowWidthEm + gapEm) / (minColEm + gapEm));
-        const n = Math.max(1, Math.min(nTarget, nFit));
-
-        el.style.setProperty('--gigma-row-stats-cols', String(n));
+        el.style.setProperty('--gigma-row-stats-cols', String(nTarget));
     } catch (_e) { }
 }
 
@@ -11272,11 +11564,7 @@ function gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows(rootOverride) {
     try {
         const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
-        const rows = root.querySelectorAll ? root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name], .gigma-layout-preset-tree-row[data-world]') : [];
-        rows.forEach((row) => {
-            gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row);
-            gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row);
-        });
+        gigmaPrimeLayoutPresetTreePreviewLorebookStatsRows(root);
         gigmaUpdateLayoutPresetTreePreviewLorebookStatsColumnCountsAllRows(root);
         try { gigmaQueueGlobalWiStatsUpdate('preview'); } catch (_e) {}
     } catch (_e) { }
@@ -11769,7 +12057,7 @@ function gigmaInitLayoutPresetTreePreviewLorebookStatsUi() {
         try { gigmaUpdateLorebookContentExpandersInLayoutPresetTreePreview(root); } catch (_e) { }
 
         gigmaEnsureLayoutPresetTreePreviewLorebookStatsUi(root);
-        gigmaUpdateLayoutPresetTreePreviewLorebookStatsAllRows(root);
+        gigmaPrimeLayoutPresetTreePreviewLorebookStatsRows(root);
         gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
         gigmaUpdateManualUsageRefreshButtonsUi();
         try { gigmaUpdateGlobalWiStatsControlsUi('preview'); } catch (_e) {}
@@ -17418,6 +17706,24 @@ try {
                     EXTENSION_STATE.pendingAnimationFrame = null;
                     cancelAnimationFrame(frameId);
                 }
+                if (EXTENSION_STATE.pendingAfterPaintInit) {
+                    const pendingInit = EXTENSION_STATE.pendingAfterPaintInit;
+                    EXTENSION_STATE.pendingAfterPaintInit = null;
+                    gigmaCancelRunAfterNextPaint(pendingInit);
+                }
+                if (EXTENSION_STATE._gigmaPreviewCacheObserver) {
+                    try { EXTENSION_STATE._gigmaPreviewCacheObserver.disconnect(); } catch (_eObsDisconnect) {}
+                    EXTENSION_STATE._gigmaPreviewCacheObserver = null;
+                }
+                if (EXTENSION_STATE._gigmaPreviewCacheWarmHandle) {
+                    const previewWarmHandle = EXTENSION_STATE._gigmaPreviewCacheWarmHandle;
+                    EXTENSION_STATE._gigmaPreviewCacheWarmHandle = null;
+                    gigmaCancelRunAfterNextPaint(previewWarmHandle);
+                }
+                if (window.__gigmaLastLayoutPresetTreePopupWarmHandle) {
+                    gigmaCancelRunAfterNextPaint(window.__gigmaLastLayoutPresetTreePopupWarmHandle);
+                    window.__gigmaLastLayoutPresetTreePopupWarmHandle = null;
+                }
             };
             // Create popup with onClosing callback to capture form data
             const popup = new Popup(modalHtml, POPUP_TYPE.CONFIRM, '', {
@@ -17448,10 +17754,10 @@ try {
             });
             // Show the popup
             popup.show();
-            // Set up modal behavior immediately after popup creation
-            // Use requestAnimationFrame to ensure DOM is ready
-            EXTENSION_STATE.pendingAnimationFrame = requestAnimationFrame(() => {
-                EXTENSION_STATE.pendingAnimationFrame = null;
+            // Let the popup paint first, then hydrate the heavy modal behavior.
+            EXTENSION_STATE.pendingAfterPaintInit = gigmaRunAfterNextPaint(() => {
+                EXTENSION_STATE.pendingAfterPaintInit = null;
+                if (!document.getElementById('gigma-modal-root')) return;
                 setupModalBehavior(modalEventListeners, currentSettings);
                 try { gigmaInitOrderingModalStatsUi(modalEventListeners); } catch (_e) { }
                 try { gigmaInitBudgetHeaderSideToggles(); } catch (_e) { }
@@ -17554,6 +17860,24 @@ if (footer) {
     } catch (_eGlobalSettings) {
         // Non-fatal; ignore.
     }
+
+    try {
+        const orderingContainer = document.getElementById('gigma-ordering-container');
+        if (orderingContainer && typeof MutationObserver === 'function') {
+            try {
+                if (EXTENSION_STATE._gigmaPreviewCacheObserver) {
+                    EXTENSION_STATE._gigmaPreviewCacheObserver.disconnect();
+                }
+            } catch (_ePrevObsCleanup) { }
+            const observer = new MutationObserver(() => {
+                try { gigmaInvalidateLastLayoutPresetTreePopupCache(); } catch (_ePreviewInvalidate) { }
+                try { gigmaScheduleLastLayoutPresetTreePopupCacheWarm(true); } catch (_ePreviewWarm) { }
+            });
+            observer.observe(orderingContainer, { subtree: true, childList: true, attributes: true });
+            EXTENSION_STATE._gigmaPreviewCacheObserver = observer;
+            gigmaScheduleLastLayoutPresetTreePopupCacheWarm(true);
+        }
+    } catch (_ePreviewCacheObserverSetup) { }
 
     // Prime Budget controls in the Lorebook Budget Drawer based on current lorebook budget settings
     if (currentSettings) {
@@ -39578,6 +39902,36 @@ function makeRowNodeFromToken(token) {
                     }
                 });
             });
+            // Keep preview snapshots complete even when childrenOrder is stale or partial.
+            // Any lorebook missing from the tree belongs in the Unsorted folder when it exists.
+            try {
+                var missingRowsParentNode = folderNodes.unsorted || rootNode;
+                var seenNames = new Set();
+                Object.keys(rowNodeByKey).forEach(function (rowKey) {
+                    var existingNode = rowNodeByKey[rowKey];
+                    if (!existingNode || existingNode.type !== 'row') return;
+                    var existingName = String(existingNode.name || '').trim();
+                    if (existingName) seenNames.add(existingName);
+                });
+                if (typeof world_names !== 'undefined' && Array.isArray(world_names)) {
+                    world_names.forEach(function (worldNameRaw) {
+                        var worldName = String(worldNameRaw || '').trim();
+                        if (!worldName || seenNames.has(worldName)) return;
+                        var mappedId = nameToId[worldName] || null;
+                        var missingToken = mappedId ? ('rowId:' + mappedId) : ('row:' + worldName);
+                        var builtMissing = makeRowNodeFromToken(missingToken);
+                        if (!builtMissing) return;
+                        var missingKey = builtMissing.worldId ? ('id:' + String(builtMissing.worldId)) : ('tok:' + missingToken);
+                        if (rowNodeByKey[missingKey]) return;
+                        rowNodeByKey[missingKey] = builtMissing;
+                        rowParentByKey[missingKey] = missingRowsParentNode;
+                        seenNames.add(worldName);
+                        if (Array.isArray(missingRowsParentNode.children) && missingRowsParentNode.children.indexOf(builtMissing) === -1) {
+                            missingRowsParentNode.children.push(builtMissing);
+                        }
+                    });
+                }
+            } catch (_eMissingRows) {}
         } else {
             // Fallback: build a simple structure from rowFolder when no childrenOrder exists.
             Object.keys(folderNodes).forEach(function (fid) {
@@ -39930,6 +40284,390 @@ function gigmaBuildEffectivePresetForTree(kind, presetName, preset) {
     }
 }
 
+
+function gigmaBuildLayoutPresetTreeHtmlFromLiveDom(kind, viewMode) {
+    try {
+        if (typeof document === 'undefined') return '';
+        var rootList = document.getElementById('gigma-ordering-list');
+        if (!rootList) return '';
+
+        var presetKind = (kind === 'parent') ? 'parent' : 'child';
+        var previewMode = (viewMode === 'budget') ? 'budget' : 'order';
+        var folderMetaById = {};
+        try {
+            var metas = Array.isArray(window.gigmaFolders) ? window.gigmaFolders : [];
+            metas.forEach(function (meta) {
+                if (!meta || meta.id == null) return;
+                var fid = String(meta.id).trim();
+                if (!fid) return;
+                folderMetaById[fid] = meta;
+            });
+        } catch (_eFolderMeta) {}
+
+        function getSelectedParentChildPresetSet() {
+            var out = new Set();
+            try {
+                if (presetKind !== 'parent') return out;
+                var selectId = (previewMode === 'budget')
+                    ? 'gigma-parent-budget-unchained-childpresets'
+                    : 'gigma-parent-unchained-childpresets';
+                var multi = document.getElementById(selectId);
+                if (!multi) return out;
+                var vals = [];
+                try {
+                    if (typeof $ === 'function' && $.fn && $.fn.select2 && $(multi).length) {
+                        vals = $(multi).val() || [];
+                    } else {
+                        vals = Array.from(multi.selectedOptions || []).map(function (o) { return o && o.value; });
+                    }
+                } catch (_eVals) {
+                    vals = [];
+                }
+                (Array.isArray(vals) ? vals : []).forEach(function (value) {
+                    var name = (value == null ? '' : String(value)).trim();
+                    if (name) out.add(name);
+                });
+            } catch (_eSel) {}
+            return out;
+        }
+
+        var selectedParentChildPresets = getSelectedParentChildPresetSet();
+        var seenLists = new Set();
+
+        function resolveRowName(rowEl, worldId, fallbackName) {
+            var name = (fallbackName == null ? '' : String(fallbackName)).trim();
+            if (name) return name;
+            try {
+                if (rowEl && rowEl.dataset && typeof rowEl.dataset.world === 'string' && rowEl.dataset.world.trim()) {
+                    return rowEl.dataset.world.trim();
+                }
+            } catch (_eDsName) {}
+            try {
+                if (worldId && typeof gigmaResolveLorebookNameById === 'function') {
+                    var resolved = gigmaResolveLorebookNameById(worldId, '');
+                    if (resolved && String(resolved).trim()) return String(resolved).trim();
+                }
+            } catch (_eResolve) {}
+            try {
+                if (worldId && window.gigmaNameByWorldId && window.gigmaNameByWorldId[worldId]) {
+                    return String(window.gigmaNameByWorldId[worldId]).trim();
+                }
+            } catch (_eMap) {}
+            return '(Lorebook)';
+        }
+
+        function buildRowNode(rowEl) {
+            try {
+                if (!rowEl || !rowEl.classList || !rowEl.classList.contains('gigma-row')) return null;
+                var dataset = rowEl.dataset || {};
+                var worldId = (dataset.worldId == null ? '' : String(dataset.worldId)).trim() || null;
+                var childName = (dataset.gigmaParentUnchainedChild == null ? '' : String(dataset.gigmaParentUnchainedChild)).trim();
+                var isParentOrderPlaceholder = !!(rowEl.classList.contains('gigma-parent-unchained-placeholder'));
+                var isParentBudgetPlaceholder = !!(rowEl.classList.contains('gigma-parent-budget-unchained-row'));
+                var name = resolveRowName(rowEl, worldId, dataset.world);
+                var unchainedOrder = false;
+                var unchainedBudget = false;
+
+                try {
+                    unchainedOrder = isParentOrderPlaceholder || dataset.gigmaRetroLockedOrder === '1';
+                    unchainedBudget = isParentBudgetPlaceholder || dataset.gigmaRetroLockedBudget === '1';
+                    if (!unchainedOrder && !unchainedBudget) {
+                        var circle = rowEl.querySelector ? rowEl.querySelector('.gigma-retro-lock-circle') : null;
+                        if (circle && circle.classList && circle.classList.contains('gigma-retro-locked')) {
+                            if (previewMode === 'budget') unchainedBudget = true;
+                            else unchainedOrder = true;
+                        }
+                    }
+                } catch (_eLockState) {}
+
+                var token = worldId ? ('rowId:' + worldId) : ('row:' + name);
+                var modeOnly = null;
+                if (isParentOrderPlaceholder) {
+                    token = 'urowid:' + encodeURIComponent(childName || '') + ':' + String(worldId || '');
+                    modeOnly = 'order';
+                } else if (isParentBudgetPlaceholder) {
+                    token = 'burowid:' + encodeURIComponent(childName || '') + ':' + String(worldId || '');
+                    modeOnly = 'budget';
+                }
+
+                var node = {
+                    type: 'row',
+                    token: token,
+                    name: name,
+                    worldId: worldId,
+                    unchained: (previewMode === 'budget') ? !!unchainedBudget : !!unchainedOrder,
+                    unchainedOrder: !!unchainedOrder,
+                    unchainedBudget: !!unchainedBudget,
+                    unchainedChildName: childName || null,
+                    unchainedSelected: !!(childName && selectedParentChildPresets && selectedParentChildPresets.has(childName)),
+                    modeOnly: modeOnly
+                };
+
+                try {
+                    if (dataset.gigmaBudgetMode != null) {
+                        node.budgetMode = String(dataset.gigmaBudgetMode || 'default');
+                        node.budgetValue = gigmaParseBudgetValueForMode(node.budgetMode, dataset.gigmaBudgetValue || '0');
+                    }
+                } catch (_eBudget) {}
+
+                return node;
+            } catch (_eRow) {
+                return null;
+            }
+        }
+
+        function buildFolderNode(folderEl) {
+            try {
+                if (!folderEl || !folderEl.classList || !folderEl.classList.contains('gigma-folder')) return null;
+                var dataset = folderEl.dataset || {};
+                var fid = (dataset.folderId == null ? '' : String(dataset.folderId)).trim();
+                var meta = fid ? folderMetaById[fid] : null;
+                var titleEl = folderEl.querySelector
+                    ? (folderEl.querySelector(':scope > .gigma-folder-header .gigma-folder-title') || folderEl.querySelector(':scope > .gigma-folder-header > div'))
+                    : null;
+                var fallbackName = titleEl && titleEl.textContent ? String(titleEl.textContent).trim() : 'Folder';
+                var node = {
+                    type: 'folder',
+                    id: fid || '',
+                    name: (meta && typeof meta.name === 'string' && meta.name.trim()) ? meta.name : fallbackName,
+                    unsorted: !!(meta && meta.unsorted),
+                    collapsed: !!(meta && meta.collapsed),
+                    children: []
+                };
+
+                var listWrap = null;
+                try {
+                    if (typeof gigmaGetFolderContentList === 'function') {
+                        listWrap = gigmaGetFolderContentList(folderEl);
+                    } else if (typeof window !== 'undefined' && typeof window.gigmaGetFolderContentList === 'function') {
+                        listWrap = window.gigmaGetFolderContentList(folderEl);
+                    }
+                } catch (_eListWrap) {
+                    listWrap = null;
+                }
+                if (!listWrap && folderEl.querySelector) {
+                    try { listWrap = folderEl.querySelector(':scope > .gigma-folder-list'); } catch (_eListFallback) { listWrap = null; }
+                }
+                if (!listWrap || seenLists.has(listWrap)) return node;
+                seenLists.add(listWrap);
+                node.children = buildListNodes(listWrap);
+                return node;
+            } catch (_eFolder) {
+                return null;
+            }
+        }
+
+        function buildListNodes(listEl) {
+            var out = [];
+            try {
+                if (!listEl) return out;
+                var children = Array.from(listEl.children || []);
+                children.forEach(function (child) {
+                    try {
+                        if (!child || !child.classList) return;
+                        if (child.classList.contains('gigma-empty-drop')) return;
+                        if (child.classList.contains('gigma-row')) {
+                            var rowNode = buildRowNode(child);
+                            if (rowNode) out.push(rowNode);
+                            return;
+                        }
+                        if (child.classList.contains('gigma-folder')) {
+                            var folderNode = buildFolderNode(child);
+                            if (folderNode) out.push(folderNode);
+                        }
+                    } catch (_eChild) {}
+                });
+            } catch (_eList) {}
+            return out;
+        }
+
+        var rootNode = {
+            type: 'root',
+            id: 'ROOT',
+            name: 'ROOT',
+            children: buildListNodes(rootList),
+            presetKind: presetKind
+        };
+
+        try {
+            var seenWorldIds = new Set();
+            var seenWorldNames = new Set();
+            var unsortedNode = null;
+            (function walk(node) {
+                if (!node) return;
+                if (node.type === 'folder') {
+                    if (node.unsorted && !unsortedNode) unsortedNode = node;
+                    (node.children || []).forEach(walk);
+                    return;
+                }
+                if (node.type === 'row') {
+                    var wid = (node.worldId == null ? '' : String(node.worldId)).trim();
+                    var nm = (node.name == null ? '' : String(node.name)).trim();
+                    if (wid) seenWorldIds.add(wid);
+                    if (nm) seenWorldNames.add(nm);
+                }
+            })(rootNode);
+
+            var liveRowById = {};
+            var liveRowByName = {};
+            try {
+                var liveRowScope = document.getElementById('gigma-ordering-container') || document;
+                var liveRows = liveRowScope.querySelectorAll('.gigma-row[data-world], .gigma-row[data-world-id]');
+                Array.from(liveRows || []).forEach(function (rowEl) {
+                    if (!rowEl || !rowEl.dataset) return;
+                    var liveWorldId = (rowEl.dataset.worldId == null ? '' : String(rowEl.dataset.worldId)).trim();
+                    var liveWorldName = (rowEl.dataset.world == null ? '' : String(rowEl.dataset.world)).trim();
+                    if (liveWorldId) {
+                        seenWorldIds.add(liveWorldId);
+                        if (!liveRowById[liveWorldId]) liveRowById[liveWorldId] = rowEl;
+                    }
+                    if (liveWorldName) {
+                        seenWorldNames.add(liveWorldName);
+                        if (!liveRowByName[liveWorldName]) liveRowByName[liveWorldName] = rowEl;
+                    }
+                });
+            } catch (_eLiveRows) {}
+
+            if (Array.isArray(world_names)) {
+                world_names.forEach(function (worldNameRaw) {
+                    var worldName = (worldNameRaw == null ? '' : String(worldNameRaw)).trim();
+                    if (!worldName) return;
+                    var mappedId = null;
+                    try {
+                        mappedId = (window.gigmaWorldIdByName && window.gigmaWorldIdByName[worldName])
+                            ? String(window.gigmaWorldIdByName[worldName]).trim()
+                            : null;
+                    } catch (_eMappedId) {
+                        mappedId = null;
+                    }
+                    if (mappedId && seenWorldIds.has(mappedId)) return;
+                    if (seenWorldNames.has(worldName)) return;
+                    var liveRow = null;
+                    try {
+                        if (mappedId && liveRowById[mappedId]) {
+                            liveRow = liveRowById[mappedId];
+                        } else if (liveRowByName[worldName]) {
+                            liveRow = liveRowByName[worldName];
+                        }
+                    } catch (_eLiveRow) {
+                        liveRow = null;
+                    }
+                    var missingNode = buildRowNode(liveRow || { classList: { contains: function(){ return false; } }, dataset: { worldId: mappedId || '', world: worldName } });
+                    if (!missingNode) {
+                        missingNode = {
+                            type: 'row',
+                            token: mappedId ? ('rowId:' + mappedId) : ('row:' + worldName),
+                            name: worldName,
+                            worldId: mappedId,
+                            unchained: false,
+                            unchainedOrder: false,
+                            unchainedBudget: false,
+                            unchainedChildName: null,
+                            unchainedSelected: false,
+                            modeOnly: null
+                        };
+                    }
+                    if (mappedId) seenWorldIds.add(mappedId);
+                    seenWorldNames.add(worldName);
+                    (unsortedNode || rootNode).children.push(missingNode);
+                });
+            }
+        } catch (_eComplete) {}
+
+        return gigmaRenderLayoutPresetTree(rootNode);
+    } catch (e) {
+        console.warn('GIGMA: failed to build live layout preset tree HTML', e);
+        return '';
+    }
+}
+
+
+function gigmaRunAfterNextPaint(fn){
+    try {
+        const state = { frameA: 0, frameB: 0, cancelled: false };
+        state.frameA = requestAnimationFrame(() => {
+            state.frameA = 0;
+            state.frameB = requestAnimationFrame(() => {
+                state.frameB = 0;
+                if (state.cancelled) return;
+                try { fn(); } catch (_eRunAfterPaint) { }
+            });
+        });
+        return state;
+    } catch (_eRunAfterPaintOuter) {
+        const state = { frameA: 0, frameB: 0, cancelled: false, timeout: 0 };
+        state.timeout = setTimeout(() => {
+            state.timeout = 0;
+            if (state.cancelled) return;
+            try { fn(); } catch (_eRunAfterPaintFallback) { }
+        }, 0);
+        return state;
+    }
+}
+
+function gigmaCancelRunAfterNextPaint(state){
+    try {
+        if (!state) return;
+        state.cancelled = true;
+        if (state.frameA) cancelAnimationFrame(state.frameA);
+        if (state.frameB) cancelAnimationFrame(state.frameB);
+        if (state.timeout) clearTimeout(state.timeout);
+        state.frameA = 0;
+        state.frameB = 0;
+        state.timeout = 0;
+    } catch (_eCancelAfterPaint) { }
+}
+
+function gigmaWarmLastLayoutPresetTreePopupCache(forceRebuild = false){
+    try {
+        if (typeof window === 'undefined' || typeof document === 'undefined') return;
+        if (!document.getElementById('gigma-ordering-list')) return;
+        if (typeof gigmaBuildLayoutPresetTreeHtmlFromLiveDom !== 'function') return;
+
+        let kind = 'child';
+        try {
+            if (typeof gigmaGetActiveLayoutPresetKindForLorebookSettings === 'function') {
+                const detected = gigmaGetActiveLayoutPresetKindForLorebookSettings();
+                if (detected === 'parent' || detected === 'child') kind = detected;
+            }
+        } catch (_eWarmKind) { }
+
+        let desiredViewMode = 'order';
+        try {
+            const rootVM = document.documentElement;
+            desiredViewMode = (rootVM && rootVM.classList && rootVM.classList.contains('gigma-budget-mode-active')) ? 'budget' : 'order';
+        } catch (_eWarmViewMode) { }
+
+        const cacheKey = 'modal|' + kind + '|' + desiredViewMode;
+        const cache = window.__gigmaLastLayoutPresetTreePopupBodyCache || (window.__gigmaLastLayoutPresetTreePopupBodyCache = Object.create(null));
+        if (!forceRebuild && cache[cacheKey]) return;
+
+        const body = gigmaBuildLayoutPresetTreeHtmlFromLiveDom(kind, desiredViewMode) || '';
+        if (body) cache[cacheKey] = body;
+    } catch (_eWarmPreviewCache) { }
+}
+
+function gigmaInvalidateLastLayoutPresetTreePopupCache(){
+    try {
+        window.__gigmaLastLayoutPresetTreePopupBodyCache = Object.create(null);
+    } catch (_eInvalidatePreviewCache) { }
+}
+
+function gigmaScheduleLastLayoutPresetTreePopupCacheWarm(forceRebuild = false){
+    try {
+        if (window.__gigmaLastLayoutPresetTreePopupWarmHandle) {
+            gigmaCancelRunAfterNextPaint(window.__gigmaLastLayoutPresetTreePopupWarmHandle);
+            window.__gigmaLastLayoutPresetTreePopupWarmHandle = null;
+        }
+        window.__gigmaLastLayoutPresetTreePopupWarmHandle = gigmaRunAfterNextPaint(() => {
+            window.__gigmaLastLayoutPresetTreePopupWarmHandle = null;
+            gigmaWarmLastLayoutPresetTreePopupCache(forceRebuild);
+        });
+    } catch (_eScheduleWarmPreviewCache) {
+        try { gigmaWarmLastLayoutPresetTreePopupCache(forceRebuild); } catch (_eWarmPreviewCacheSync) { }
+    }
+}
+
 async function gigmaShowLastLayoutPresetTreePopup() {
     var __gigmaModalLeftAnchorForPreview = null;
     try{
@@ -40080,7 +40818,23 @@ async function gigmaShowLastLayoutPresetTreePopup() {
             } catch (_eHdrSoft) {}
             var headerLabel = presetNameForHeader ? (kindLabel + ' ' + presetDisplayForHeader) : kindLabel;
 
-            var body = gigmaBuildLayoutPresetTreeHtml(snapshot, { kind: kind, viewMode: desiredViewMode, parentPresetId: (kind === 'parent' ? presetNameForHeader : null) });
+            var body = '';
+            try {
+                if (typeof window !== 'undefined' && window && window.__gigmaLastLayoutPresetTreeOrigin === 'modal') {
+                    var __gigmaBodyCache = window.__gigmaLastLayoutPresetTreePopupBodyCache || (window.__gigmaLastLayoutPresetTreePopupBodyCache = Object.create(null));
+                    var __gigmaBodyCacheKey = 'modal|' + kind + '|' + desiredViewMode;
+                    body = (__gigmaBodyCache && typeof __gigmaBodyCache[__gigmaBodyCacheKey] === 'string') ? (__gigmaBodyCache[__gigmaBodyCacheKey] || '') : '';
+                    if (!body && typeof gigmaBuildLayoutPresetTreeHtmlFromLiveDom === 'function') {
+                        body = gigmaBuildLayoutPresetTreeHtmlFromLiveDom(kind, desiredViewMode) || '';
+                        if (body) __gigmaBodyCache[__gigmaBodyCacheKey] = body;
+                    }
+                }
+            } catch (_eLiveBody) {
+                body = '';
+            }
+            if (!body) {
+                body = gigmaBuildLayoutPresetTreeHtml(snapshot, { kind: kind, viewMode: desiredViewMode, parentPresetId: (kind === 'parent' ? presetNameForHeader : null) });
+            }
             html =
                 '<div id="gigma-layout-preset-tree-preview-root"' + (desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained2 + '" data-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" data-default-viewmode="' + gigmaEscapeHtml(desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="' + __gigmaPreviewDimChained2 + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
                 '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
@@ -40110,7 +40864,7 @@ async function gigmaShowLastLayoutPresetTreePopup() {
                     cancelButton: true,
                     allowVerticalScrolling: true
                 });
-                requestAnimationFrame(function(){ try{ var __prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr){ try{ if (typeof window.gigmaLoadLayoutPresetTreePreviewButtonState === 'function') window.gigmaLoadLayoutPresetTreePreviewButtonState(__pr); }catch(_){ } try{ if (typeof window.gigmaInstallLayoutPresetTreePreviewCloseHook === 'function') window.gigmaInstallLayoutPresetTreePreviewCloseHook(__pr); }catch(_){ } } }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreeChainedToggle === 'function') window.gigmaInitLayoutPresetTreeChainedToggle();
+                gigmaRunAfterNextPaint(function(){ try{ var __prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr){ try{ if (typeof window.gigmaLoadLayoutPresetTreePreviewButtonState === 'function') window.gigmaLoadLayoutPresetTreePreviewButtonState(__pr); }catch(_){ } try{ if (typeof window.gigmaInstallLayoutPresetTreePreviewCloseHook === 'function') window.gigmaInstallLayoutPresetTreePreviewCloseHook(__pr); }catch(_){ } } }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreeChainedToggle === 'function') window.gigmaInitLayoutPresetTreeChainedToggle();
                 try{ if (typeof window.gigmaInitLayoutPresetTreeUnchainedToggle === 'function') window.gigmaInitLayoutPresetTreeUnchainedToggle(); }catch(_){ }                 try{ if (typeof window.gigmaInitLayoutPresetTreeDimToggles === 'function') window.gigmaInitLayoutPresetTreeDimToggles(); }catch(_){ } }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreeViewMode === 'function') window.gigmaInitLayoutPresetTreeViewMode(); }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreePreviewLorebookStatsUi === 'function') window.gigmaInitLayoutPresetTreePreviewLorebookStatsUi(); }catch(_){ }  try{ var __prsPreview = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __prPreview = (__prsPreview && __prsPreview.length) ? __prsPreview[__prsPreview.length - 1] : null; if (__prPreview && typeof gigmaRefreshLayoutPresetTreeBudgetPreviewFields === 'function') gigmaRefreshLayoutPresetTreeBudgetPreviewFields(__prPreview); }catch(_){ }  try{ var __prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr && typeof window.gigmaCaptureLayoutPresetTreeFolderDefaults === 'function') window.gigmaCaptureLayoutPresetTreeFolderDefaults(__pr); }catch(_){ }  try{ if (__gigmaModalLeftAnchorForPreview){ var _prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var _pr = (_prs && _prs.length) ? _prs[_prs.length - 1] : null; if (_pr && typeof gigmaRestoreLayoutPresetTreePreviewScrollAnchor === 'function'){ var _k = __gigmaModalLeftAnchorForPreview.key; var _key = null; if (_k && _k.indexOf('r:') === 0) _key = 'row:' + _k.slice(2); else if (_k && _k.indexOf('f:') === 0) _key = 'folder:' + _k.slice(2); if (_key) gigmaRestoreLayoutPresetTreePreviewScrollAnchor({ key: _key, pct: __gigmaModalLeftAnchorForPreview.pct }, _pr); } } }catch(_){ }});
                 await _p;
                 try {
@@ -40141,7 +40895,7 @@ async function gigmaShowLastLayoutPresetTreePopup() {
                 }
             });
             popup.show();
-            requestAnimationFrame(function(){ try{ var __prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr){ try{ if (typeof window.gigmaLoadLayoutPresetTreePreviewButtonState === 'function') window.gigmaLoadLayoutPresetTreePreviewButtonState(__pr); }catch(_){ } try{ if (typeof window.gigmaInstallLayoutPresetTreePreviewCloseHook === 'function') window.gigmaInstallLayoutPresetTreePreviewCloseHook(__pr); }catch(_){ } } }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreeChainedToggle === 'function') window.gigmaInitLayoutPresetTreeChainedToggle();
+            gigmaRunAfterNextPaint(function(){ try{ var __prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr){ try{ if (typeof window.gigmaLoadLayoutPresetTreePreviewButtonState === 'function') window.gigmaLoadLayoutPresetTreePreviewButtonState(__pr); }catch(_){ } try{ if (typeof window.gigmaInstallLayoutPresetTreePreviewCloseHook === 'function') window.gigmaInstallLayoutPresetTreePreviewCloseHook(__pr); }catch(_){ } } }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreeChainedToggle === 'function') window.gigmaInitLayoutPresetTreeChainedToggle();
                 try{ if (typeof window.gigmaInitLayoutPresetTreeUnchainedToggle === 'function') window.gigmaInitLayoutPresetTreeUnchainedToggle(); }catch(_){ }                 try{ if (typeof window.gigmaInitLayoutPresetTreeDimToggles === 'function') window.gigmaInitLayoutPresetTreeDimToggles(); }catch(_){ } }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreeViewMode === 'function') window.gigmaInitLayoutPresetTreeViewMode(); }catch(_){ } try{ if (typeof window.gigmaInitLayoutPresetTreePreviewLorebookStatsUi === 'function') window.gigmaInitLayoutPresetTreePreviewLorebookStatsUi(); }catch(_){ }  try{ var __prsPreview = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __prPreview = (__prsPreview && __prsPreview.length) ? __prsPreview[__prsPreview.length - 1] : null; if (__prPreview && typeof gigmaRefreshLayoutPresetTreeBudgetPreviewFields === 'function') gigmaRefreshLayoutPresetTreeBudgetPreviewFields(__prPreview); }catch(_){ }  try{ var __prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var __pr = (__prs && __prs.length) ? __prs[__prs.length - 1] : null; if (__pr && typeof window.gigmaCaptureLayoutPresetTreeFolderDefaults === 'function') window.gigmaCaptureLayoutPresetTreeFolderDefaults(__pr); }catch(_){ }  try{ if (__gigmaModalLeftAnchorForPreview){ var _prs = document.querySelectorAll('#gigma-layout-preset-tree-preview-root'); var _pr = (_prs && _prs.length) ? _prs[_prs.length - 1] : null; if (_pr && typeof gigmaRestoreLayoutPresetTreePreviewScrollAnchor === 'function'){ var _k = __gigmaModalLeftAnchorForPreview.key; var _key = null; if (_k && _k.indexOf('r:') === 0) _key = 'row:' + _k.slice(2); else if (_k && _k.indexOf('f:') === 0) _key = 'folder:' + _k.slice(2); if (_key) gigmaRestoreLayoutPresetTreePreviewScrollAnchor({ key: _key, pct: __gigmaModalLeftAnchorForPreview.pct }, _pr); } } }catch(_){ }});
             return;
         } catch (_ePopup) {
