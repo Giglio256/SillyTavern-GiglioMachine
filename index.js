@@ -9320,6 +9320,7 @@ async function gigmaDrainModalLorebookStatsBuildQueue() {
             } catch (_eItem) { }
             try { if (pending && typeof pending.delete === 'function') pending.delete(key); } catch (_eDelete) { }
             gigmaScheduleModalLorebookStatsRefresh();
+            try { gigmaRefreshLayoutPresetTreePreviewLorebookRowsByWorldName(key); } catch (_ePreviewRefresh) { }
             break;
         }
     } catch (_e) { }
@@ -11324,8 +11325,9 @@ function gigmaGetLatestLayoutPresetTreePreviewRoot() {
     }
 }
 
-// Preview row stats are already driven by IntersectionObserver.
-// Do not re-prime the full preview tree on every scroll event.
+// Keep preview lorebook stats eager and stable, like the ordering modal.
+// The old preview path deferred row rendering to IntersectionObserver, which
+// introduced visible chip pop-in while scrolling large trees.
 (function gigmaBindLayoutPresetTreePreviewLorebookStatsScrollOnce() {
     try {
         if (window.__gigmaLayoutPresetTreePreviewLoreStatsScrollBound) return;
@@ -11372,30 +11374,11 @@ function gigmaDisconnectLayoutPresetTreePreviewLorebookStatsObserver(rootOverrid
 
 function gigmaEnsureLayoutPresetTreePreviewLorebookStatsObserver(rootOverride) {
     try {
-        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
-        if (!root || typeof IntersectionObserver !== 'function') return null;
-        const viewport = gigmaGetLayoutPresetTreePreviewStatsViewport(root);
-        if (!viewport) return null;
-        const current = root.__gigmaPreviewLoreStatsObserver || null;
-        if (current && root.__gigmaPreviewLoreStatsObserverViewport === viewport) return current;
-        gigmaDisconnectLayoutPresetTreePreviewLorebookStatsObserver(root);
-        const obs = new IntersectionObserver((entries) => {
-            try {
-                for (const entry of entries) {
-                    if (!entry || !entry.target || !entry.isIntersecting) continue;
-                    const row = entry.target;
-                    try { obs.unobserve(row); } catch (_eUnobserve) { }
-                    try { gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row); } catch (_eHost) { }
-                    try { gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row); } catch (_eRow) { }
-                }
-            } catch (_eEntries) { }
-        }, { root: viewport, rootMargin: '20% 0px 20% 0px' });
-        root.__gigmaPreviewLoreStatsObserver = obs;
-        root.__gigmaPreviewLoreStatsObserverViewport = viewport;
-        return obs;
-    } catch (_e) {
-        return null;
-    }
+        // The preview now renders stats eagerly for every row, so there is no
+        // lazy observer to install or maintain.
+        gigmaDisconnectLayoutPresetTreePreviewLorebookStatsObserver(rootOverride);
+    } catch (_e) { }
+    return null;
 }
 
 function gigmaPrimeLayoutPresetTreePreviewLorebookStatsRows(rootOverride) {
@@ -11403,13 +11386,6 @@ function gigmaPrimeLayoutPresetTreePreviewLorebookStatsRows(rootOverride) {
         const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
         const rows = root.querySelectorAll ? root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name], .gigma-layout-preset-tree-row[data-world]') : [];
-        const obs = gigmaEnsureLayoutPresetTreePreviewLorebookStatsObserver(root);
-        if (obs) {
-            rows.forEach((row) => {
-                try { obs.observe(row); } catch (_eObserve) { }
-            });
-            return;
-        }
         rows.forEach((row) => {
             try {
                 gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row);
@@ -11509,12 +11485,28 @@ function gigmaRenderLayoutPresetTreePreviewLorebookStatsInto(host, rawStats, wor
         gigmaWithLayoutPresetTreePreviewLorebookStatsStateScope(() => {
             gigmaRenderLorebookStatsInto(host, rawStats, worldName);
         });
-        const root = host.closest ? host.closest('#gigma-layout-preset-tree-preview-root') : null;
-        gigmaUpdateLayoutPresetTreePreviewLorebookStatsColumnCountsAllRows(root || undefined);
+        gigmaApplyLayoutPresetTreePreviewLorebookStatsColumnCount(host);
     } catch (_e) { }
 }
 
-async function gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row) {
+function gigmaRefreshLayoutPresetTreePreviewLorebookRowsByWorldName(worldName, rootOverride) {
+    try {
+        const key = String(worldName || '').trim();
+        if (!key) return;
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
+        if (!root || !root.querySelectorAll) return;
+        const rows = root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name]');
+        for (const row of rows) {
+            try {
+                if (!row || !row.dataset) continue;
+                if (String(row.dataset.worldName || '').trim() !== key) continue;
+                gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row);
+            } catch (_eRow) { }
+        }
+    } catch (_e) { }
+}
+
+function gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row) {
     try {
         if (!row || !row.dataset) return;
         const worldName = String(row.dataset.worldName || '').trim();
@@ -11532,31 +11524,22 @@ async function gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row) {
             return;
         }
 
-        const req = (Number(row.dataset.gigmaPreviewStatsReq || '0') || 0) + 1;
-        row.dataset.gigmaPreviewStatsReq = String(req);
-
         if (!state.sectionRaw) {
             gigmaRenderLayoutPresetTreePreviewLorebookStatsInto(host, null, worldName);
             return;
         }
 
-        const cached = GIGMA_MODAL_LOREBOOK_STATS_CACHE.get(worldName);
-        if (cached && cached.stats) {
-            gigmaRenderLayoutPresetTreePreviewLorebookStatsInto(host, cached.stats, worldName);
-            return;
+        let stats = gigmaGetLorebookStatsIndexStatsByWorldName(worldName);
+        if (!stats) {
+            const cached = GIGMA_MODAL_LOREBOOK_STATS_CACHE.get(worldName);
+            if (cached && cached.stats) stats = cached.stats;
         }
 
-        host.classList.remove('gigma-hidden');
-        host.replaceChildren();
-        const chip = document.createElement('span');
-        chip.className = 'gigma-row-stat-chip';
-        chip.textContent = 'Loading…';
-        host.appendChild(chip);
-        gigmaApplyLayoutPresetTreePreviewLorebookStatsColumnCount(host);
+        if (!stats) {
+            gigmaQueueModalLorebookStatsBuild(worldName);
+        }
 
-        const stats = await gigmaGetLorebookStats(worldName);
-        if (!row.isConnected || String(row.dataset.gigmaPreviewStatsReq || '') !== String(req)) return;
-        gigmaRenderLayoutPresetTreePreviewLorebookStatsInto(host, stats, worldName);
+        gigmaRenderLayoutPresetTreePreviewLorebookStatsInto(host, stats || null, worldName);
     } catch (_e) { }
 }
 
