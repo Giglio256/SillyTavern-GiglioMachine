@@ -36083,13 +36083,6 @@ function gigmaEnsureDuplicateSentenceState(root) {
             lastError: '',
             customSelectedPreviewKeys: new Set(),
             customSelectedWorldNames: new Set(),
-            detailGroupedCache: new Map(),
-            detailHtmlCache: new Map(),
-            detailPreloadQueue: [],
-            detailPreloadCursor: 0,
-            detailPreloadHandle: 0,
-            detailPreloadHandleKind: '',
-            detailPreloadToken: 0,
         };
     }
     return root.__gigmaDuplicateSentenceState;
@@ -36154,20 +36147,13 @@ async function gigmaCollectDuplicateSentences(options) {
                     groups.set(sentence.normalized, group);
                 }
 
-                const context = gigmaDuplicateSentenceBuildContextParts(content, sentence.start, sentence.end);
                 group.occurrences.push({
                     world: worldName,
                     uid: entry.uid,
                     entryLabel: gigmaDuplicateSentenceEntryLabel(entry),
-                    entryContent: content,
                     sentenceIndex,
                     start: sentence.start,
                     end: sentence.end,
-                    raw: sentence.raw,
-                    preview: sentence.preview,
-                    contextBefore: context.before,
-                    contextMatch: context.match,
-                    contextAfter: context.after,
                     order: globalOrder++,
                 });
                 group.books.add(worldName);
@@ -36302,7 +36288,6 @@ function gigmaDuplicateSentenceGroupOccurrences(result) {
             entryGroup = {
                 uid: occurrence.uid,
                 entryLabel: occurrence.entryLabel,
-                entryContent: occurrence.entryContent,
                 occurrences: [],
             };
             worldGroup.entryMap.set(entryKey, entryGroup);
@@ -36319,27 +36304,11 @@ function gigmaDuplicateSentenceGroupOccurrences(result) {
 function gigmaDuplicateSentenceEnsureDetailCaches(state) {
     if (!state) return;
     if (!(state.resultIndexByKey instanceof Map)) state.resultIndexByKey = new Map();
-    if (!(state.detailGroupedCache instanceof Map)) state.detailGroupedCache = new Map();
-    if (!(state.detailHtmlCache instanceof Map)) state.detailHtmlCache = new Map();
-    if (!Array.isArray(state.detailPreloadQueue)) state.detailPreloadQueue = [];
-    if (!Number.isFinite(state.detailPreloadCursor)) state.detailPreloadCursor = 0;
-    if (!Number.isFinite(state.detailPreloadHandle)) state.detailPreloadHandle = 0;
-    if (typeof state.detailPreloadHandleKind !== 'string') state.detailPreloadHandleKind = '';
-    if (!Number.isFinite(state.detailPreloadToken)) state.detailPreloadToken = 0;
 }
 
 function gigmaDuplicateSentenceResetDetailCaches(state) {
     if (!state) return;
     gigmaDuplicateSentenceEnsureDetailCaches(state);
-    state.detailGroupedCache = new Map();
-    state.detailHtmlCache = new Map();
-    state.detailPreloadQueue = [];
-    state.detailPreloadCursor = 0;
-    state.detailPreloadToken = (Number(state.detailPreloadToken) || 0) + 1;
-}
-
-function gigmaDuplicateSentenceDetailCacheKey(resultKey, detailViewMode) {
-    return `${detailViewMode === 'full' ? 'full' : 'excerpt'}:${String(resultKey || '')}`;
 }
 
 function gigmaDuplicateSentenceGetResultByKey(state, resultKey) {
@@ -36351,23 +36320,23 @@ function gigmaDuplicateSentenceGetResultByKey(state, resultKey) {
 
 function gigmaDuplicateSentenceGetGroupedOccurrencesCached(state, result) {
     if (!state || !result) return [];
-    gigmaDuplicateSentenceEnsureDetailCaches(state);
-    if (state.detailGroupedCache.has(result.key)) return state.detailGroupedCache.get(result.key);
-    const grouped = gigmaDuplicateSentenceGroupOccurrences(result);
-    state.detailGroupedCache.set(result.key, grouped);
-    return grouped;
+    return gigmaDuplicateSentenceGroupOccurrences(result);
+}
+
+function gigmaDuplicateSentenceGetEntryContent(state, worldName, uid) {
+    const book = state?.scanBooks instanceof Map ? state.scanBooks.get(worldName) : null;
+    const entries = book?.entries;
+    if (!entries || typeof entries !== 'object') return '';
+    const entry = entries[uid] ?? entries[String(uid)];
+    return typeof entry?.content === 'string' ? entry.content : '';
 }
 
 function gigmaBuildDuplicateSentenceDetailHtml(state, result, detailViewMode) {
     if (!state || !result) return '';
-    gigmaDuplicateSentenceEnsureDetailCaches(state);
     const mode = detailViewMode === 'full' ? 'full' : 'excerpt';
-    const cacheKey = gigmaDuplicateSentenceDetailCacheKey(result.key, mode);
-    if (state.detailHtmlCache.has(cacheKey)) return state.detailHtmlCache.get(cacheKey) || '';
-
     const grouped = gigmaDuplicateSentenceGetGroupedOccurrencesCached(state, result);
     const toggleLabel = mode === 'full' ? 'Show excerpts' : 'Show full entry';
-    const html = `
+    return `
         <div class="gigma-dedupe-detail-card">
             <div class="gigma-dedupe-detail-label">Sentence</div>
             <div class="gigma-dedupe-detail-sentence">${gigmaEscapeHtml(result.display)}</div>
@@ -36403,14 +36372,18 @@ function gigmaBuildDuplicateSentenceDetailHtml(state, result, detailViewMode) {
                     <div class="gigma-dedupe-group-body">
                         <div class="gigma-dedupe-entry-list">
                             ${worldGroup.entries.map((entryGroup, entryIndex) => {
-                                const fullEntryHtml = gigmaDuplicateSentenceFullTextHtml(entryGroup.entryContent, entryGroup.occurrences);
+                                const entryContent = gigmaDuplicateSentenceGetEntryContent(state, worldGroup.world, entryGroup.uid);
+                                const fullEntryHtml = gigmaDuplicateSentenceFullTextHtml(entryContent, entryGroup.occurrences);
                                 const contentHtml = mode === 'full'
                                     ? `<div class="gigma-dedupe-entry-content">${fullEntryHtml}</div>`
-                                    : `<div class="gigma-dedupe-entry-snippets">${entryGroup.occurrences.map(occurrence => `
+                                    : `<div class="gigma-dedupe-entry-snippets">${entryGroup.occurrences.map(occurrence => {
+                                        const context = gigmaDuplicateSentenceBuildContextParts(entryContent, occurrence.start, occurrence.end);
+                                        return `
                                         <div class="gigma-dedupe-occurrence${occurrence.survivor ? ' is-survivor' : ''}">
-                                            <div class="gigma-dedupe-context">${gigmaDuplicateSentenceContextHtml({ before: occurrence.contextBefore, match: occurrence.contextMatch, after: occurrence.contextAfter })}</div>
+                                            <div class="gigma-dedupe-context">${gigmaDuplicateSentenceContextHtml(context)}</div>
                                         </div>
-                                    `).join('')}</div>`;
+                                        `;
+                                    }).join('')}</div>`;
                                 return `
                                 <details class="gigma-dedupe-entry" data-gigma-dedupe-scope="entry" ${worldIndex === 0 && entryIndex === 0 ? 'open' : ''}>
                                     <summary>
@@ -36432,98 +36405,14 @@ function gigmaBuildDuplicateSentenceDetailHtml(state, result, detailViewMode) {
             }).join('')}
         </div>
     `;
-    state.detailHtmlCache.set(cacheKey, html);
-    return html;
 }
 
 function gigmaDuplicateSentenceCancelDetailPreload(root) {
-    const state = gigmaEnsureDuplicateSentenceState(root);
-    if (!state) return;
-    gigmaDuplicateSentenceEnsureDetailCaches(state);
-    const handle = Number(state.detailPreloadHandle) || 0;
-    if (handle) {
-        try {
-            if (state.detailPreloadHandleKind === 'idle' && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(handle);
-            else clearTimeout(handle);
-        } catch (_eDuplicateSentenceCancelDetailPreload) { }
-    }
-    state.detailPreloadHandle = 0;
-    state.detailPreloadHandleKind = '';
-    state.detailPreloadQueue = [];
-    state.detailPreloadCursor = 0;
+    void root;
 }
 
 function gigmaDuplicateSentenceScheduleDetailPreload(root) {
-    const state = gigmaEnsureDuplicateSentenceState(root);
-    if (!state || state.busy || !root?.isConnected || !state.results.length) return;
-    gigmaDuplicateSentenceEnsureDetailCaches(state);
-    if (state.detailPreloadHandle) return;
-
-    const queue = [];
-    for (let index = 0; index < state.results.length; index++) {
-        const result = state.results[index];
-        if (!result) continue;
-        const excerptKey = gigmaDuplicateSentenceDetailCacheKey(result.key, 'excerpt');
-        if (!state.detailHtmlCache.has(excerptKey)) queue.push({ index, mode: 'excerpt' });
-    }
-    for (let index = 0; index < state.results.length; index++) {
-        const result = state.results[index];
-        if (!result) continue;
-        const fullKey = gigmaDuplicateSentenceDetailCacheKey(result.key, 'full');
-        if (!state.detailHtmlCache.has(fullKey)) queue.push({ index, mode: 'full' });
-    }
-    if (!queue.length) return;
-
-    state.detailPreloadQueue = queue;
-    state.detailPreloadCursor = 0;
-    const token = Number(state.detailPreloadToken) || 0;
-
-    const schedule = () => {
-        if (!root?.isConnected) return;
-        try {
-            if (typeof window.requestIdleCallback === 'function') {
-                state.detailPreloadHandleKind = 'idle';
-                state.detailPreloadHandle = window.requestIdleCallback(run, { timeout: 120 });
-                return;
-            }
-        } catch (_eDuplicateSentenceScheduleIdle) { }
-        state.detailPreloadHandleKind = 'timeout';
-        state.detailPreloadHandle = window.setTimeout(() => run(null), 16);
-    };
-
-    const run = (deadline) => {
-        state.detailPreloadHandle = 0;
-        state.detailPreloadHandleKind = '';
-        if (!root?.isConnected) {
-            gigmaDuplicateSentenceCancelDetailPreload(root);
-            return;
-        }
-        if ((Number(state.detailPreloadToken) || 0) !== token) return;
-        const startedAt = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : Date.now();
-        while (state.detailPreloadCursor < state.detailPreloadQueue.length) {
-            const task = state.detailPreloadQueue[state.detailPreloadCursor++];
-            const result = state.results[task.index];
-            if (result) gigmaBuildDuplicateSentenceDetailHtml(state, result, task.mode);
-            if (deadline && typeof deadline.timeRemaining === 'function') {
-                if (deadline.timeRemaining() < 6) break;
-            } else {
-                const now = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : Date.now();
-                if ((now - startedAt) > 10) break;
-            }
-        }
-        if (state.detailPreloadCursor < state.detailPreloadQueue.length) {
-            schedule();
-            return;
-        }
-        state.detailPreloadQueue = [];
-        state.detailPreloadCursor = 0;
-    };
-
-    try {
-        requestAnimationFrame(() => schedule());
-    } catch (_eDuplicateSentenceScheduleRaf) {
-        schedule();
-    }
+    void root;
 }
 
 function gigmaUpdateDuplicateSentenceActiveRow(root, resultKey, active) {
