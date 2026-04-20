@@ -1,7 +1,7 @@
 import { event_types, eventSource } from '../../../events.js';
 import { getTextTokens, getFriendlyTokenizerName, tokenizers } from '../../../tokenizers.js';
 import { getContext, extension_settings } from '../../../extensions.js';
-import { characters, stopGeneration, getMaxContextSize, getMaxContextTokens, getMaxResponseTokens, saveSettingsDebounced, getCurrentChatDetails, this_chid, chat_metadata, extension_prompt_roles } from '../../../../script.js';
+import { characters, stopGeneration, getMaxContextSize, getMaxContextTokens, getMaxResponseTokens, saveSettings, saveSettingsDebounced, getCurrentChatDetails, this_chid, chat_metadata, extension_prompt_roles } from '../../../../script.js';
 import { selected_group, getGroupMembers } from '../../../group-chats.js';
 import { loadWorldInfo, saveWorldInfo, worldInfoCache, world_info_character_strategy, world_info_insertion_strategy, world_info_budget, world_info_budget_cap, world_names, selected_world_info, METADATA_KEY, world_info, checkWorldInfo, getWorldInfoPrompt } from '../../../world-info.js';
 import { prepareOpenAIMessages, setOpenAIMessages, setOpenAIMessageExamples, promptManager as stPromptManager } from '../../../openai.js';
@@ -4278,6 +4278,256 @@ function gigmaSetBudgetDebugLogsPref(enabled){
         gigmaPersistBinaryExtensionSetting('budgetDebugLogs', !!enabled, 0);
         if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
     }catch(_){ }
+}
+
+function gigmaInstallEraseSettingsConfirmStylesOnce(){
+    try{
+        if (document.getElementById('gigma-erase-settings-confirm-style')) return;
+        const s = document.createElement('style');
+        s.id = 'gigma-erase-settings-confirm-style';
+        s.textContent = `
+dialog:has(#gigma-erase-settings-confirm-root){
+  width:34em !important;
+}
+#gigma-erase-settings-confirm-root{
+  width:100%;
+  box-sizing:border-box;
+  padding:1em;
+  display:flex;
+  flex-direction:column;
+  gap:0.85em;
+}
+#gigma-erase-settings-confirm-root .gigma-erase-settings-confirm-title{
+  font-size:1.02em;
+  font-weight:700;
+  line-height:1.35;
+  color:var(--white100);
+}
+#gigma-erase-settings-confirm-root .gigma-erase-settings-confirm-copy{
+  font-size:0.95em;
+  line-height:1.35;
+  opacity:0.94;
+}
+#gigma-erase-settings-confirm-root .gigma-erase-settings-confirm-panel{
+  border:0.0625em solid rgba(255,255,255,0.14);
+  border-radius:0.75em;
+  padding:0.9em;
+  background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  box-shadow:inset 0 0 0 0.0625em rgba(255,255,255,0.03);
+}
+#gigma-erase-settings-confirm-root .gigma-erase-settings-equation-label{
+  display:block;
+  font-size:0.85em;
+  opacity:0.76;
+  margin-bottom:0.45em;
+}
+#gigma-erase-settings-confirm-root .gigma-erase-settings-equation-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:0.75em;
+  flex-wrap:nowrap;
+}
+#gigma-erase-settings-confirm-root .gigma-erase-settings-equation{
+  width:8.5em;
+  min-width:8.5em;
+  min-height:2.3em;
+  padding:0.42em 0.58em;
+  border-radius:0.5em;
+  border:0.0625em solid rgba(255,255,255,0.12);
+  background:rgba(0,0,0,0.28);
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.2em;
+  font-weight:700;
+  letter-spacing:0.02em;
+  text-align:center;
+}
+#gigma-erase-settings-confirm-root .gigma-erase-settings-answer{
+  width:8.5em;
+  min-width:8.5em;
+  min-height:2.3em;
+  max-width:8.5em;
+  box-sizing:border-box;
+  padding:0.42em 0.58em;
+  text-align:center;
+  font-size:1.05em;
+}
+#gigma-erase-settings-confirm-root .gigma-erase-settings-status{
+  min-height:1.2em;
+  font-size:0.85em;
+  line-height:1.2;
+  color:rgba(255,210,210,0.94);
+}
+#gigma-erase-settings-confirm-root .gigma-erase-settings-status.is-ready{
+  color:rgba(168,255,186,0.96);
+}
+.gigma-popup-action-disabled{
+  pointer-events:none !important;
+  opacity:0.46 !important;
+  filter:grayscale(1);
+}
+`;
+        document.head.appendChild(s);
+    }catch(_){ }
+}
+
+function gigmaSetPopupActionDisabled(btn, disabled){
+    try{
+        if (!btn) return;
+        btn.classList.toggle('gigma-popup-action-disabled', !!disabled);
+        btn.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+        if ('disabled' in btn) btn.disabled = !!disabled;
+    }catch(_){ }
+}
+
+function gigmaCreateEraseSettingsMathChallenge(){
+    const challenges = [];
+    for (let left = 3; left <= 12; left++) {
+        for (let right = 3; right <= 12; right++) {
+            const result = left * right;
+            if (result >= 12 && result < 100) {
+                challenges.push({ prompt: `${left} × ${right} =`, answer: result });
+            }
+        }
+    }
+    for (let divisor = 3; divisor <= 12; divisor++) {
+        for (let quotient = 2; quotient <= 12; quotient++) {
+            const dividend = divisor * quotient;
+            if (dividend >= 12 && dividend < 100 && quotient < 100) {
+                challenges.push({ prompt: `${dividend} : ${divisor} =`, answer: quotient });
+            }
+        }
+    }
+    const index = Math.floor(Math.random() * challenges.length);
+    return challenges[index] || { prompt: '12 × 8 =', answer: 96 };
+}
+
+function gigmaEraseOwnLocalStorageSettings(){
+    try{
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+            if (!String(key).startsWith('gigma')) continue;
+            localStorage.removeItem(key);
+        }
+    }catch(_){ }
+}
+
+async function gigmaEraseAllGigmaExtensionSettings(){
+    try{
+        gigmaEraseOwnLocalStorageSettings();
+        if (typeof extension_settings === 'object' && extension_settings) {
+            delete extension_settings[EXTENSION_NAME];
+        }
+        gigmaExtensionSettings = {};
+        await saveSettings();
+        try{
+            const popup = document.getElementById('gigma-modal-settings-popup');
+            if (popup) popup.style.display = 'none';
+        }catch(_){ }
+        try{
+            if (typeof toastr !== 'undefined' && toastr && typeof toastr.success === 'function') {
+                toastr.success('All GIGMA extension settings were erased.');
+            }
+        }catch(_){ }
+        return true;
+    }catch(error){
+        console.error('GIGMA: Failed to erase all GIGMA extension settings.', error);
+        try{
+            if (typeof toastr !== 'undefined' && toastr && typeof toastr.error === 'function') {
+                toastr.error('Failed to erase all GIGMA extension settings. See console for details.');
+            }
+        }catch(_){ }
+        return false;
+    }
+}
+
+async function gigmaShowEraseAllGigmaExtensionSettingsConfirmPopup(){
+    return await new Promise((resolve) => {
+        try{
+            gigmaInstallEraseSettingsConfirmStylesOnce();
+            const challenge = gigmaCreateEraseSettingsMathChallenge();
+            const html = `
+                <div id="gigma-erase-settings-confirm-root">
+                    <div class="gigma-erase-settings-confirm-title">Are you sure that you want to erase ALL GIGMA extension settings, including ALL layout and assignment presets? This can NOT be undone!</div>
+                    <div class="gigma-erase-settings-confirm-copy">Solve this math equation to confirm that you really want to erase ALL GIGMA extension settings.</div>
+                    <div class="gigma-erase-settings-confirm-panel">
+                        <label class="gigma-erase-settings-equation-label" for="gigma-erase-settings-answer-input">Enter the result:</label>
+                        <div class="gigma-erase-settings-equation-row">
+                            <div id="gigma-erase-settings-equation-text" class="gigma-erase-settings-equation">${challenge.prompt}</div>
+                            <input id="gigma-erase-settings-answer-input" class="text_pole textarea_compact gigma-erase-settings-answer" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" />
+                        </div>
+                    </div>
+                    <div id="gigma-erase-settings-status" class="gigma-erase-settings-status">Enter the correct result to enable erasing.</div>
+                </div>
+            `;
+            const state = { correct: false, resolved: false };
+            const popup = new Popup(html, POPUP_TYPE.CONFIRM, '', {
+                okButton: 'Erase all GIGMA settings',
+                cancelButton: 'Cancel',
+                wide: false,
+                large: false,
+                allowVerticalScrolling: false,
+                onClosing: (p) => {
+                    const wantsConfirm = !!(p && p.result === 1);
+                    if (wantsConfirm && !state.correct) return false;
+                    if (!state.resolved) {
+                        state.resolved = true;
+                        resolve(wantsConfirm && state.correct);
+                    }
+                    return true;
+                },
+            });
+            popup.show();
+            setTimeout(() => {
+                try{
+                    const dialog = document.querySelector('dialog.popup:last-of-type, dialog.gigma-narrow:last-of-type, dialog.gigma-wide:last-of-type');
+                    if (!dialog) return;
+                    const okBtn = dialog.querySelector('.popup-button-ok, [data-result="1"]');
+                    const answerInput = dialog.querySelector('#gigma-erase-settings-answer-input');
+                    const statusEl = dialog.querySelector('#gigma-erase-settings-status');
+                    gigmaSetPopupActionDisabled(okBtn, true);
+                    const update = () => {
+                        const raw = answerInput && typeof answerInput.value === 'string' ? answerInput.value.trim() : '';
+                        const isWholeNumber = /^-?\d+$/.test(raw);
+                        const isCorrect = isWholeNumber && Number(raw) === challenge.answer;
+                        state.correct = !!isCorrect;
+                        gigmaSetPopupActionDisabled(okBtn, !isCorrect);
+                        if (statusEl) {
+                            statusEl.textContent = isCorrect
+                                ? 'Correct. Erasing is now enabled.'
+                                : 'Enter the correct result to enable erasing.';
+                            statusEl.classList.toggle('is-ready', isCorrect);
+                        }
+                    };
+                    if (answerInput) {
+                        answerInput.addEventListener('input', update);
+                        answerInput.addEventListener('keydown', (ev) => {
+                            if (ev && ev.key === 'Enter' && !state.correct) {
+                                ev.preventDefault();
+                            }
+                        });
+                        answerInput.focus();
+                        answerInput.select();
+                    }
+                    if (okBtn) {
+                        okBtn.addEventListener('click', (ev) => {
+                            if (state.correct) return;
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                            if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation();
+                        }, true);
+                    }
+                    update();
+                }catch(_){ }
+            }, 0);
+        }catch(_){
+            resolve(false);
+        }
+    });
 }
 function gigmaUpdateViewLockButton(btn, locked){
     try{
@@ -14061,6 +14311,23 @@ function gigmaInstallModalSettingsPopupStylesOnce() {
   width:0.9em;
   height:0.9em;
 }
+#gigma-modal-root #gigma-modal-settings-popup #gigma-modal-settings-erase-all-btn{
+  display:inline-flex !important;
+  color:#ffd7d7;
+  border-color:rgba(255,90,90,0.34) !important;
+  background:linear-gradient(180deg, rgba(120,10,10,0.82), rgba(70,0,0,0.96)) !important;
+}
+#gigma-modal-root #gigma-modal-settings-popup #gigma-modal-settings-erase-all-btn:hover,
+#gigma-modal-root #gigma-modal-settings-popup #gigma-modal-settings-erase-all-btn:focus-visible{
+  background:linear-gradient(180deg, rgba(160,16,16,0.9), rgba(100,0,0,1)) !important;
+  border-color:rgba(255,120,120,0.62) !important;
+}
+#gigma-modal-root #gigma-modal-settings-popup #gigma-modal-settings-erase-all-btn i{
+  font-size:0.92em;
+}
+dialog:has(#gigma-erase-settings-confirm-root){
+  width:34em !important;
+}
 dialog:has(#gigma-multi-preset-delete-root){
   width:34em !important;
 }
@@ -14696,6 +14963,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Only bypass entries needed to fill post-trim gaps', 'gigma-modal-settings-slot-ignore-budget-bypass-selective');
             addRow('Debug logs', 'gigma-modal-settings-slot-budget-debug-logs');
             addRow('Auto-update entry order in WI UI', 'gigma-modal-settings-slot-auto-wi-order');
+            addRow('Erase all GIGMA extension settings', 'gigma-modal-settings-slot-erase-all');
 
             popup.appendChild(table);
             root.appendChild(popup);
@@ -14917,6 +15185,28 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
                 slotAutoWiOrder.appendChild(b.closest('label'));
             }
             gigmaUpdateAutoUpdateWiOrderButtonUi(b);
+        }
+
+        const slotEraseAll = popup.querySelector('#gigma-modal-settings-slot-erase-all');
+        if (slotEraseAll) {
+            let b = popup.querySelector('#gigma-modal-settings-erase-all-btn');
+            if (!b) {
+                b = document.createElement('button');
+                b.id = 'gigma-modal-settings-erase-all-btn';
+                b.type = 'button';
+                b.className = 'menu_button gigma-icon-btn';
+                b.title = 'Erase all GIGMA extension settings';
+                b.setAttribute('aria-label', 'Erase all GIGMA extension settings');
+                b.innerHTML = '<i class="fa-solid fa-trash-can" aria-hidden="true"></i>';
+                b.addEventListener('click', async (ev) => {
+                    try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
+                    const confirmed = await gigmaShowEraseAllGigmaExtensionSettingsConfirmPopup();
+                    if (!confirmed) return;
+                    await gigmaEraseAllGigmaExtensionSettings();
+                });
+            }
+            slotEraseAll.replaceChildren(b);
+            try { gigmaSquareButtonToHeight(b); } catch (_e) { }
         }
 
         gigmaUpdateModalSettingsConvertButtonVisibility(root);
