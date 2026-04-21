@@ -7061,6 +7061,14 @@ function gigmaSerializeOrderingModalUndoLockLists(orderList, budgetList){
         return '';
     }
 }
+function gigmaSerializeOrderingModalUndoAssignmentSnapshot(snapshot){
+    try{
+        const rows = (snapshot && Array.isArray(snapshot.rows)) ? snapshot.rows : [];
+        return JSON.stringify({ rows });
+    }catch(_){
+        return '';
+    }
+}
 function gigmaSerializeOrderingModalUndoState(state){
     try{
         const kind = state && state.kind ? String(state.kind) : '';
@@ -7068,7 +7076,8 @@ function gigmaSerializeOrderingModalUndoState(state){
         const layoutSerial = state && typeof state.__layoutSerial === 'string' ? state.__layoutSerial : gigmaSerializeOrderingModalUndoLayoutStateForUndo(state && state.layout);
         const budgetSerial = state && typeof state.__budgetSerial === 'string' ? state.__budgetSerial : gigmaSerializeOrderingModalUndoBudgets(state && state.budgets);
         const lockSerial = state && typeof state.__lockSerial === 'string' ? state.__lockSerial : gigmaSerializeOrderingModalUndoLockLists(state && state.retroLocksOrder, state && state.retroLocksBudget);
-        return kind + '\n' + presetId + '\n===\n' + layoutSerial + '\n===\n' + budgetSerial + '\n===\n' + lockSerial;
+        const assignmentSerial = state && typeof state.__assignmentSerial === 'string' ? state.__assignmentSerial : gigmaSerializeOrderingModalUndoAssignmentSnapshot(state && state.assignmentPreset);
+        return kind + '\n' + presetId + '\n===\n' + layoutSerial + '\n===\n' + budgetSerial + '\n===\n' + lockSerial + '\n===\n' + assignmentSerial;
     }catch(_){
         return '';
     }
@@ -7109,6 +7118,7 @@ function gigmaNormalizeOrderingModalUndoStateWithoutFolderNames(state){
             budgets: normalizeMap(state && state.budgets),
             retroLocksOrder: normalizeList(state && state.retroLocksOrder),
             retroLocksBudget: normalizeList(state && state.retroLocksBudget),
+            assignmentPreset: (state && state.assignmentPreset && Array.isArray(state.assignmentPreset.rows)) ? state.assignmentPreset.rows : [],
         });
     }catch(_){
         return '';
@@ -7368,6 +7378,9 @@ function gigmaCaptureOrderingModalUndoState(){
             }catch(_eRow){ }
         }
         const cache = (typeof gigmaEnsurePerModeRetroLockCache === 'function') ? gigmaEnsurePerModeRetroLockCache() : null;
+        const assignmentPreset = (typeof gigmaCaptureLiveAssignmentPresetSnapshot === 'function')
+            ? (gigmaCaptureLiveAssignmentPresetSnapshot() || { rows: [] })
+            : { rows: [] };
         const state = {
             kind: info.kind,
             presetId: info.presetId,
@@ -7375,10 +7388,12 @@ function gigmaCaptureOrderingModalUndoState(){
             budgets,
             retroLocksOrder: cache && cache.order instanceof Set ? Array.from(cache.order || []).map(String) : [],
             retroLocksBudget: cache && cache.budget instanceof Set ? Array.from(cache.budget || []).map(String) : [],
+            assignmentPreset,
         };
         state.__layoutSerial = gigmaSerializeOrderingModalUndoLayoutStateForUndo(layout);
         state.__budgetSerial = gigmaSerializeOrderingModalUndoBudgets(budgets);
         state.__lockSerial = gigmaSerializeOrderingModalUndoLockLists(state.retroLocksOrder, state.retroLocksBudget);
+        state.__assignmentSerial = gigmaSerializeOrderingModalUndoAssignmentSnapshot(assignmentPreset);
         state.__withoutNamesSerial = gigmaNormalizeOrderingModalUndoStateWithoutFolderNames(state);
         state.__serial = gigmaSerializeOrderingModalUndoState(state);
         return state;
@@ -7685,6 +7700,32 @@ function gigmaRestoreOrderingModalUndoQuickScrollState(state){
         }
     }catch(_){ }
 }
+function gigmaCaptureOrderingModalUndoAssignmentScrollState(){
+    try{
+        const out = [];
+        const modalScroll = document.getElementById('gigma-modal-scroll');
+        const assignmentSections = document.getElementById('gigma-assignment-sections-container');
+        for (const el of [modalScroll, assignmentSections]){
+            if (!el) continue;
+            out.push({ el, top: el.scrollTop || 0, left: el.scrollLeft || 0 });
+        }
+        return out;
+    }catch(_){
+        return [];
+    }
+}
+function gigmaRestoreOrderingModalUndoAssignmentScrollState(state){
+    try{
+        if (!Array.isArray(state) || !state.length) return;
+        for (const item of state){
+            try{
+                if (!item || !item.el || !item.el.isConnected) continue;
+                item.el.scrollTop = item.top || 0;
+                item.el.scrollLeft = item.left || 0;
+            }catch(_eItem){ }
+        }
+    }catch(_){ }
+}
 function gigmaScheduleOrderingModalUndoDeferredLayoutRefresh(){
     try{
         const store = gigmaGetOrderingModalUndoStore();
@@ -7950,6 +7991,7 @@ async function gigmaApplyOrderingModalUndoState(state, currentState = null){
         const layoutChanged = !hasCurrentState || currentState.__layoutSerial !== state.__layoutSerial;
         const budgetsChanged = !hasCurrentState || currentState.__budgetSerial !== state.__budgetSerial;
         const locksChanged = !hasCurrentState || currentState.__lockSerial !== state.__lockSerial;
+        const assignmentChanged = !hasCurrentState || currentState.__assignmentSerial !== state.__assignmentSerial;
         store.applyBusy = true;
         store.suspendDepth = (store.suspendDepth || 0) + 1;
         if (renameOnly) {
@@ -7999,6 +8041,22 @@ async function gigmaApplyOrderingModalUndoState(state, currentState = null){
                 const currentMode = (root && root.classList && root.classList.contains('gigma-budget-mode-active')) ? 'budget' : 'order';
                 if (typeof gigmaApplyPerModeRetroLocksToDom === 'function') gigmaApplyPerModeRetroLocksToDom(currentMode);
             } catch (_eApplyLocks) { }
+        }
+        if (assignmentChanged) {
+            const assignmentScrollState = gigmaCaptureOrderingModalUndoAssignmentScrollState();
+            try {
+                const applyAssignmentSnapshot = (typeof window !== 'undefined' && typeof window.gigmaApplyAssignmentPresetSnapshot === 'function')
+                    ? window.gigmaApplyAssignmentPresetSnapshot
+                    : null;
+                if (applyAssignmentSnapshot) {
+                    applyAssignmentSnapshot(state.assignmentPreset || { rows: [] });
+                }
+            } finally {
+                gigmaRestoreOrderingModalUndoAssignmentScrollState(assignmentScrollState);
+                requestAnimationFrame(() => {
+                    gigmaRestoreOrderingModalUndoAssignmentScrollState(assignmentScrollState);
+                });
+            }
         }
         if (drawerNeedsRefresh) {
             try { gigmaRefreshOrderingModalUndoDrawerFromRows(); } catch (_eDrawer) { }
@@ -8085,12 +8143,22 @@ function gigmaIsOrderingModalUndoMutationRelevant(mutation){
                 return false;
             }
         };
+        const isInAssignmentArea = (node) => {
+            try {
+                return !!(node && node.nodeType === 1 && node.closest && node.closest('#gigma-assignment-sections-container'));
+            } catch (_eNode) {
+                return false;
+            }
+        };
         if (mutation.type === 'attributes') {
             const target = mutation.target;
             if (!isInOrderingArea(target)) return false;
             return !!(target && target.classList && target.classList.contains('gigma-row'));
         }
         if (mutation.type === 'childList') {
+            if (isInAssignmentArea(mutation.target)) {
+                return true;
+            }
             if (!isInOrderingArea(mutation.target)) return false;
             const hasRelevantNode = (nodes) => {
                 for (const node of Array.from(nodes || [])) {
@@ -8142,7 +8210,7 @@ function gigmaIsOrderingModalUndoMutationRelevant(mutation){
         }, true);
         document.addEventListener('click', (ev) => {
             try {
-                const target = ev && ev.target && ev.target.closest ? ev.target.closest('#gigma-layout-preset-kind-toggle') : null;
+                const target = ev && ev.target && ev.target.closest ? ev.target.closest('#gigma-layout-preset-kind-toggle, .gigma-assignment-section-layout-preset-kind-toggle') : null;
                 if (!target) return;
                 setTimeout(() => {
                     try { gigmaEnsureOrderingModalUndoBaseline(); } catch (_eInner) { }
@@ -8154,7 +8222,9 @@ function gigmaIsOrderingModalUndoMutationRelevant(mutation){
             try {
                 const target = ev && ev.target;
                 if (!target || !(target instanceof HTMLElement)) return;
-                if (target.id !== 'gigma-parent-preset-select' && target.id !== 'gigma-child-preset-select') return;
+                const isMainPresetSelect = (target.id === 'gigma-parent-preset-select' || target.id === 'gigma-child-preset-select');
+                const isAssignmentSelect = !!(target.matches && target.matches('.gigma-assignment-section-characters, .gigma-assignment-section-layout-preset-select'));
+                if (!isMainPresetSelect && !isAssignmentSelect) return;
                 setTimeout(() => {
                     try { gigmaEnsureOrderingModalUndoBaseline(); } catch (_eInner) { }
                     try { gigmaFlushOrderingModalUndoSnapshot(); } catch (_eFlush) { }
@@ -20863,8 +20933,69 @@ function populateCharacterSelect(select) {
             }
         }
         
+        function gigmaGetAssignmentPresetKindToggleWidth(btn) {
+            try {
+                if (!btn || typeof document === 'undefined' || !document.body) return '';
+                const style = getComputedStyle(btn);
+                const cacheKey = [
+                    style.fontSize || '',
+                    style.fontFamily || '',
+                    style.fontWeight || '',
+                    style.letterSpacing || '',
+                    style.paddingLeft || '',
+                    style.paddingRight || '',
+                    style.borderLeftWidth || '',
+                    style.borderRightWidth || '',
+                ].join('|');
+                const cache = gigmaGetAssignmentPresetKindToggleWidth.__cache || (gigmaGetAssignmentPresetKindToggleWidth.__cache = new Map());
+                if (cache.has(cacheKey)) {
+                    return cache.get(cacheKey) || '';
+                }
+                const probe = btn.cloneNode(false);
+                probe.className = btn.className;
+                probe.type = 'button';
+                probe.style.position = 'absolute';
+                probe.style.visibility = 'hidden';
+                probe.style.pointerEvents = 'none';
+                probe.style.left = '-99999px';
+                probe.style.top = '0';
+                probe.style.width = 'auto';
+                probe.style.minWidth = '';
+                probe.style.maxWidth = '';
+                probe.style.boxSizing = 'border-box';
+                document.body.appendChild(probe);
+                probe.textContent = 'Child Preset:';
+                const childWidthPx = probe.offsetWidth || 0;
+                probe.textContent = 'Parent Preset:';
+                const parentWidthPx = probe.offsetWidth || 0;
+                probe.remove();
+                const fontSizePx = parseFloat(style.fontSize) || 0;
+                if (!(fontSizePx > 0)) return '';
+                const cushionEm = 1;
+                const targetEm = Math.ceil((((Math.max(childWidthPx, parentWidthPx) / fontSizePx) + cushionEm) * 1000)) / 1000;
+                const width = (targetEm > 0) ? (targetEm + 'em') : '';
+                cache.set(cacheKey, width);
+                return width;
+            } catch (_ePresetWidth) {
+                return '';
+            }
+        }
+
+        function gigmaApplyAssignmentPresetKindToggleWidth(btn) {
+            try {
+                if (!btn) return;
+                const width = gigmaGetAssignmentPresetKindToggleWidth(btn);
+                if (!width) return;
+                btn.style.width = width;
+                btn.style.minWidth = width;
+                btn.style.maxWidth = width;
+                btn.style.boxSizing = 'border-box';
+            } catch (_ePresetWidthApply) {}
+        }
+
         function wireKindToggle(btn, select) {
             if (!btn || !select) return;
+            gigmaApplyAssignmentPresetKindToggleWidth(btn);
             function applyKind(kind) {
                 const isParentPresetKind = (kind === 'parent');
                 btn.dataset.gigmaPresetKind = isParentPresetKind ? 'parent' : 'child';
@@ -20951,30 +21082,6 @@ function populateCharacterSelect(select) {
             });
             // Default to child presets to match legacy behaviour
             applyKind('child');
-            // Ensure the Child/Parent Preset toggle button keeps one width for both labels
-            // while scaling with the button font size.
-            try{
-                if (!btn.__gigmaPresetToggleSized){
-                    btn.__gigmaPresetToggleSized = true;
-                    const originalLabel = btn.textContent;
-                    // Clear explicit widths while measuring
-                    btn.style.minWidth = '';
-                    btn.style.maxWidth = '';
-                    btn.textContent = 'Child Preset:';
-                    const childWidthPx = btn.offsetWidth || 0;
-                    btn.textContent = 'Parent Preset:';
-                    const parentWidthPx = btn.offsetWidth || 0;
-                    const fontSizePx = parseFloat(getComputedStyle(btn).fontSize) || 0;
-                    const cushionEm = 1;
-                    const targetEm = Math.ceil((((Math.max(childWidthPx, parentWidthPx) / fontSizePx) + cushionEm) * 1000)) / 1000;
-                    if (fontSizePx > 0 && targetEm > 0){
-                        const widthEm = targetEm + 'em';
-                        btn.style.minWidth = widthEm;
-                        btn.style.maxWidth = widthEm;
-                    }
-                    btn.textContent = originalLabel;
-                }
-            }catch(_ePresetSize){}
         }
 function createUnassignedAssignmentSection() {
     const idx = container.querySelectorAll('.gigma-assignment-section').length;
@@ -21019,6 +21126,7 @@ function createUnassignedAssignmentSection() {
     kindBtn.className = 'menu_button gigma-layout-preset-kind-toggle gigma-assignment-section-layout-preset-kind-toggle';
     kindBtn.textContent = 'Child Preset:';
     kindBtn.dataset.gigmaPresetKind = 'child';
+    gigmaApplyAssignmentPresetKindToggleWidth(kindBtn);
     kindRow.appendChild(kindBtn);
     const presetRow = document.createElement('div');
     presetRow.style.display = 'flex';
@@ -21121,6 +21229,7 @@ function createUnassignedAssignmentSection() {
             kindBtn.className = 'menu_button gigma-layout-preset-kind-toggle gigma-assignment-section-layout-preset-kind-toggle';
             kindBtn.textContent = 'Child Preset:';
             kindBtn.dataset.gigmaPresetKind = 'child';
+            gigmaApplyAssignmentPresetKindToggleWidth(kindBtn);
             kindRow.appendChild(kindBtn);
             const presetRow = document.createElement('div');
             presetRow.style.display = 'flex';
@@ -21308,6 +21417,14 @@ function createUnassignedAssignmentSection() {
             if (!snapshot || typeof snapshot !== 'object' || !Array.isArray(snapshot.rows)) {
                 return;
             }
+            const scrollState = [];
+            try {
+                const modalScroll = document.getElementById('gigma-modal-scroll');
+                for (const el of [modalScroll, container]) {
+                    if (!el) continue;
+                    scrollState.push({ el, top: el.scrollTop || 0, left: el.scrollLeft || 0 });
+                }
+            } catch (_eScrollCapture) {}
             try {
                 container.innerHTML = '';
             } catch (_eClear) {}
@@ -21387,7 +21504,28 @@ function createUnassignedAssignmentSection() {
             try {
                 refreshAllAssignmentSectionLayoutPresetSelects(null);
             } catch (_eRefreshFromSnapshot) {}
+            try {
+                for (const item of scrollState) {
+                    if (!item || !item.el || !item.el.isConnected) continue;
+                    item.el.scrollTop = item.top || 0;
+                    item.el.scrollLeft = item.left || 0;
+                }
+                requestAnimationFrame(() => {
+                    for (const item of scrollState) {
+                        try {
+                            if (!item || !item.el || !item.el.isConnected) continue;
+                            item.el.scrollTop = item.top || 0;
+                            item.el.scrollLeft = item.left || 0;
+                        } catch (_eItem) {}
+                    }
+                });
+            } catch (_eScrollRestore) {}
         }
+        try {
+            if (typeof window !== 'undefined') {
+                window.gigmaApplyAssignmentPresetSnapshot = gigmaApplyAssignmentPresetSnapshot;
+            }
+        } catch (_eExposeAssignmentApply) {}
         function gigmaRefreshAssignmentPresetSelect() {
             try { gigmaRefreshAllAssignmentPresetSelects(); } catch (_eRefreshAssignSelects) {}
         }
