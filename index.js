@@ -4280,6 +4280,51 @@ function gigmaSetBudgetDebugLogsPref(enabled){
     }catch(_){ }
 }
 
+function gigmaClampModalUndoHistorySteps(value){
+    try{
+        const n = parseInt(value, 10);
+        if (!Number.isFinite(n)) return 20;
+        if (n < 1) return 1;
+        if (n > 99) return 99;
+        return n;
+    }catch(_){
+        return 20;
+    }
+}
+function gigmaGetModalUndoHistoryStepsPref(){
+    try{
+        return gigmaClampModalUndoHistorySteps(gigmaExtensionSettings && gigmaExtensionSettings.modalUndoHistorySteps);
+    }catch(_){
+        return 20;
+    }
+}
+function gigmaTrimOrderingModalUndoHistoryAll(){
+    try{
+        if (typeof window === 'undefined') return;
+        const store = window.__gigmaOrderingModalUndoStore;
+        if (!store || !store.stacksByKey || typeof store.stacksByKey !== 'object') return;
+        const maxUndo = gigmaGetModalUndoHistoryStepsPref();
+        const maxUndoEntries = maxUndo + 1;
+        Object.keys(store.stacksByKey).forEach((key) => {
+            const stack = store.stacksByKey[key];
+            if (!stack || !Array.isArray(stack.undo) || !Array.isArray(stack.redo)) return;
+            while (stack.undo.length > maxUndoEntries) stack.undo.shift();
+            while (stack.redo.length > maxUndo) stack.redo.shift();
+        });
+    }catch(_){ }
+}
+function gigmaSetModalUndoHistoryStepsPref(value){
+    try{
+        const next = gigmaClampModalUndoHistorySteps(value);
+        gigmaExtensionSettings.modalUndoHistorySteps = next;
+        try { gigmaTrimOrderingModalUndoHistoryAll(); } catch (_eTrim) { }
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+        return next;
+    }catch(_){
+        return 20;
+    }
+}
+
 function gigmaInstallEraseSettingsConfirmStylesOnce(){
     try{
         if (document.getElementById('gigma-erase-settings-confirm-style')) return;
@@ -6928,6 +6973,1231 @@ function gigmaIsOrderingModalActive() {
         return false;
     }
 }
+
+function gigmaGetOrderingModalUndoStore(){
+    try{
+        if (typeof window === 'undefined') return null;
+        if (!window.__gigmaOrderingModalUndoStore || typeof window.__gigmaOrderingModalUndoStore !== 'object') {
+            window.__gigmaOrderingModalUndoStore = {
+                stacksByKey: Object.create(null),
+                timer: null,
+                suspendDepth: 0,
+                applyBusy: false,
+            };
+        }
+        return window.__gigmaOrderingModalUndoStore;
+    }catch(_){
+        return null;
+    }
+}
+function gigmaGetOrderingModalUndoPresetInfo(){
+    try{
+        if (typeof gigmaIsOrderingModalActive === 'function' && !gigmaIsOrderingModalActive()) return null;
+        if (typeof gigmaGetActivePresetKindAndId !== 'function') return null;
+        const info = gigmaGetActivePresetKindAndId();
+        if (!info || (info.kind !== 'parent' && info.kind !== 'child') || !info.presetId) return null;
+        return { kind: info.kind, presetId: String(info.presetId) };
+    }catch(_){
+        return null;
+    }
+}
+function gigmaGetOrderingModalUndoPresetKey(){
+    try{
+        const info = gigmaGetOrderingModalUndoPresetInfo();
+        return info ? (info.kind + '::' + info.presetId) : null;
+    }catch(_){
+        return null;
+    }
+}
+function gigmaGetOrderingModalUndoStack(key){
+    try{
+        const store = gigmaGetOrderingModalUndoStore();
+        if (!store || !key) return null;
+        if (!store.stacksByKey[key] || typeof store.stacksByKey[key] !== 'object') {
+            store.stacksByKey[key] = { undo: [], redo: [] };
+        }
+        return store.stacksByKey[key];
+    }catch(_){
+        return null;
+    }
+}
+function gigmaTrimOrderingModalUndoHistoryStack(stack){
+    try{
+        if (!stack || !Array.isArray(stack.undo) || !Array.isArray(stack.redo)) return;
+        const maxUndo = gigmaGetModalUndoHistoryStepsPref();
+        const maxUndoEntries = maxUndo + 1;
+        while (stack.undo.length > maxUndoEntries) stack.undo.shift();
+        while (stack.redo.length > maxUndo) stack.redo.shift();
+    }catch(_){ }
+}
+function gigmaSerializeOrderingModalUndoLayoutStateForUndo(layout){
+    try{
+        return JSON.stringify(layout || null);
+    }catch(_){
+        return '';
+    }
+}
+function gigmaSerializeOrderingModalUndoBudgets(budgets){
+    try{
+        if (!budgets || typeof budgets !== 'object') return '';
+        const keys = Object.keys(budgets).sort();
+        const out = [];
+        for (const key of keys){
+            const entry = budgets[key];
+            const data = Array.isArray(entry) ? entry : ['default', 0, 0];
+            out.push(key + '=' + gigmaNormalizeBudgetHeaderMode(data[0] || 'default') + '|' + String(data[1] == null ? 0 : data[1]) + '|' + (data[2] ? '1' : '0'));
+        }
+        return out.join('\n');
+    }catch(_){
+        return '';
+    }
+}
+function gigmaSerializeOrderingModalUndoLockLists(orderList, budgetList){
+    try{
+        const a = Array.isArray(orderList) ? orderList.map(String).filter(Boolean).join('\n') : '';
+        const b = Array.isArray(budgetList) ? budgetList.map(String).filter(Boolean).join('\n') : '';
+        return a + '\n---\n' + b;
+    }catch(_){
+        return '';
+    }
+}
+function gigmaSerializeOrderingModalUndoState(state){
+    try{
+        const kind = state && state.kind ? String(state.kind) : '';
+        const presetId = state && state.presetId ? String(state.presetId) : '';
+        const layoutSerial = state && typeof state.__layoutSerial === 'string' ? state.__layoutSerial : gigmaSerializeOrderingModalUndoLayoutStateForUndo(state && state.layout);
+        const budgetSerial = state && typeof state.__budgetSerial === 'string' ? state.__budgetSerial : gigmaSerializeOrderingModalUndoBudgets(state && state.budgets);
+        const lockSerial = state && typeof state.__lockSerial === 'string' ? state.__lockSerial : gigmaSerializeOrderingModalUndoLockLists(state && state.retroLocksOrder, state && state.retroLocksBudget);
+        return kind + '\n' + presetId + '\n===\n' + layoutSerial + '\n===\n' + budgetSerial + '\n===\n' + lockSerial;
+    }catch(_){
+        return '';
+    }
+}
+
+function gigmaNormalizeOrderingModalUndoStateWithoutFolderNames(state){
+    try{
+        const layout = (state && state.layout && typeof state.layout === 'object') ? state.layout : {};
+        const folders = Array.isArray(layout.folders) ? layout.folders : [];
+        const normalizedFolders = [];
+        for (const folder of folders){
+            try{
+                if (!folder || typeof folder !== 'object') continue;
+                const id = String(folder.id || '').trim();
+                if (!id) continue;
+                normalizedFolders.push({
+                    id,
+                    collapsed: !!folder.collapsed,
+                    unsorted: !!folder.unsorted,
+                });
+            }catch(_eFolder){ }
+        }
+        const normalizeMap = (value) => {
+            const out = {};
+            if (!value || typeof value !== 'object') return out;
+            const keys = Object.keys(value).sort();
+            for (const key of keys) out[key] = value[key];
+            return out;
+        };
+        const normalizeList = (value) => Array.isArray(value) ? value.map(String) : [];
+        return JSON.stringify({
+            kind: state && state.kind ? String(state.kind) : '',
+            presetId: state && state.presetId ? String(state.presetId) : '',
+            folders: normalizedFolders,
+            folderParent: normalizeMap(layout.folderParent),
+            rowFolder: normalizeMap(layout.rowFolder),
+            childrenOrder: normalizeMap(layout.childrenOrder),
+            budgets: normalizeMap(state && state.budgets),
+            retroLocksOrder: normalizeList(state && state.retroLocksOrder),
+            retroLocksBudget: normalizeList(state && state.retroLocksBudget),
+        });
+    }catch(_){
+        return '';
+    }
+}
+function gigmaDoOrderingModalUndoFolderNamesDiffer(currentState, targetState){
+    try{
+        const currentFolders = Array.isArray(currentState && currentState.layout && currentState.layout.folders) ? currentState.layout.folders : [];
+        const targetFolders = Array.isArray(targetState && targetState.layout && targetState.layout.folders) ? targetState.layout.folders : [];
+        if (currentFolders.length !== targetFolders.length) return true;
+        const currentById = Object.create(null);
+        for (const folder of currentFolders){
+            if (!folder || folder.id == null) continue;
+            currentById[String(folder.id)] = folder;
+        }
+        for (const folder of targetFolders){
+            if (!folder || folder.id == null) return true;
+            const id = String(folder.id);
+            const current = currentById[id];
+            if (!current) return true;
+            const currentName = String(current.name || '');
+            const targetName = String(folder.name || '');
+            if (currentName !== targetName) return true;
+        }
+        return false;
+    }catch(_){
+        return true;
+    }
+}
+function gigmaIsOrderingModalUndoFolderRenameOnly(currentState, targetState){
+    try{
+        if (!currentState || !targetState || !currentState.layout || !targetState.layout) return false;
+        const currentSerial = (typeof currentState.__withoutNamesSerial === 'string') ? currentState.__withoutNamesSerial : gigmaNormalizeOrderingModalUndoStateWithoutFolderNames(currentState);
+        const targetSerial = (typeof targetState.__withoutNamesSerial === 'string') ? targetState.__withoutNamesSerial : gigmaNormalizeOrderingModalUndoStateWithoutFolderNames(targetState);
+        if (currentSerial !== targetSerial) return false;
+        return gigmaDoOrderingModalUndoFolderNamesDiffer(currentState, targetState);
+    }catch(_){
+        return false;
+    }
+}
+function gigmaApplyOrderingModalUndoFolderNamesOnly(layout){
+    try{
+        const folders = Array.isArray(layout && layout.folders) ? layout.folders : [];
+        if (!folders.length) return false;
+        const metas = Array.isArray(window.gigmaFolders) ? window.gigmaFolders : [];
+        const folderEls = Array.from(document.querySelectorAll('.gigma-folder[data-folder-id]') || []);
+        const folderElById = Object.create(null);
+        for (const folderEl of folderEls){
+            try{
+                const fid = folderEl && folderEl.dataset ? String(folderEl.dataset.folderId || '').trim() : '';
+                if (fid && !folderElById[fid]) folderElById[fid] = folderEl;
+            }catch(_eFolderEl){ }
+        }
+        const activeId = (typeof window !== 'undefined' && typeof window.gigmaRightPaneActiveFolderId === 'string')
+            ? window.gigmaRightPaneActiveFolderId
+            : 'none';
+        let activeLabel = null;
+        for (const folder of folders){
+            try{
+                if (!folder || folder.id == null) continue;
+                const fid = String(folder.id || '').trim();
+                if (!fid) continue;
+                const isUnsorted = !!folder.unsorted;
+                const nameValue = (typeof folder.name === 'string' && folder.name.trim()) ? folder.name : (isUnsorted ? 'unsorted' : 'Folder');
+                const label = isUnsorted ? 'Unsorted Folder' : nameValue;
+                const meta = metas.find((entry) => entry && String(entry.id) === fid) || null;
+                if (meta) meta.name = nameValue;
+                const folderEl = folderElById[fid] || null;
+                if (folderEl) {
+                    const titleEl = folderEl.querySelector('.gigma-folder-title');
+                    if (titleEl && !titleEl.querySelector('textarea.gigma-rename-input')) {
+                        titleEl.textContent = label;
+                    }
+                }
+                if (activeId === fid) activeLabel = label;
+            }catch(_eFolder){ }
+        }
+        if (activeLabel !== null) {
+            try{
+                let pane = document.querySelector('.gigma-unsorted-pane');
+                if (!pane) pane = document.querySelector('.gigma-folder.gigma-unsorted .gigma-unsorted-pane');
+                if (pane) {
+                    pane.setAttribute('data-gigma-title', activeLabel);
+                    const stickyTitle = pane.querySelector('#gigma-unsorted-title');
+                    if (stickyTitle) stickyTitle.textContent = activeLabel;
+                }
+            }catch(_ePane){ }
+        }
+        try { gigmaAdjustFolderHeaderHeights(); } catch (_eAdjust) { }
+        return true;
+    }catch(_){
+        return false;
+    }
+}
+function gigmaRecordOrderingModalUndoRenameCommit(){
+    try{
+        gigmaEnsureOrderingModalUndoBaseline();
+        gigmaFlushOrderingModalUndoSnapshot();
+    }catch(_){ }
+}
+function gigmaCloneOrderingModalUndoLayoutState(layout){
+    try{
+        const currentFolders = Array.isArray(window.gigmaFolders) ? window.gigmaFolders : [];
+        const currentById = Object.create(null);
+        for (const folder of currentFolders){
+            try{
+                if (!folder || folder.id == null) continue;
+                currentById[String(folder.id)] = folder;
+            }catch(_eFolder){ }
+        }
+        const foldersSrc = Array.isArray(layout && layout.folders) ? layout.folders : currentFolders;
+        const folders = [];
+        for (const folder of foldersSrc){
+            try{
+                if (!folder || typeof folder !== 'object') continue;
+                const id = String(folder.id || '').trim();
+                if (!id) continue;
+                const current = currentById[id] || null;
+                folders.push({
+                    id,
+                    name: (typeof folder.name === 'string' && folder.name.trim()) ? folder.name : 'Folder',
+                    collapsed: current ? !!current.collapsed : !!folder.collapsed,
+                    unsorted: !!folder.unsorted,
+                });
+            }catch(_eFolder){ }
+        }
+        const folderParent = {};
+        const folderParentSrc = (layout && layout.folderParent && typeof layout.folderParent === 'object') ? layout.folderParent : (window.gigmaFolderParent || {});
+        for (const [fid, parent] of Object.entries(folderParentSrc)) {
+            const id = String(fid || '').trim();
+            if (!id) continue;
+            folderParent[id] = (typeof parent === 'string' && parent) ? parent : 'ROOT';
+        }
+        const rowFolder = {};
+        const rowFolderSrc = (layout && layout.rowFolder && typeof layout.rowFolder === 'object') ? layout.rowFolder : (window.gigmaRowFolder || {});
+        for (const [world, fid] of Object.entries(rowFolderSrc)) {
+            const key = String(world || '').trim();
+            if (!key) continue;
+            rowFolder[key] = (typeof fid === 'string' && fid) ? fid : 'ROOT';
+        }
+        const childrenOrder = {};
+        const childrenOrderSrc = (layout && layout.childrenOrder && typeof layout.childrenOrder === 'object') ? layout.childrenOrder : null;
+        if (childrenOrderSrc) {
+            for (const [parentKey, raw] of Object.entries(childrenOrderSrc)) {
+                if (!Array.isArray(raw)) continue;
+                childrenOrder[String(parentKey || 'ROOT')] = raw.filter((token) => typeof token === 'string').slice();
+            }
+        }
+        return { folders, folderParent, rowFolder, childrenOrder };
+    }catch(_){
+        return null;
+    }
+}
+function gigmaCaptureOrderingModalUndoLayoutState(){
+    try{
+        if (!Array.isArray(window.gigmaFolders) || !window.gigmaRowFolder || !window.gigmaFolderParent) return null;
+        const snapshot = gigmaCloneOrderingModalUndoLayoutState({
+            folders: window.gigmaFolders,
+            folderParent: window.gigmaFolderParent,
+            rowFolder: window.gigmaRowFolder,
+            childrenOrder: {},
+        });
+        if (!snapshot) return null;
+        const orderByParent = Object.create(null);
+        const addChild = (parentId, key) => {
+            if (!key) return;
+            const pid = parentId || 'ROOT';
+            if (!orderByParent[pid]) orderByParent[pid] = [];
+            orderByParent[pid].push(key);
+        };
+        const folderById = Object.create(null);
+        const allFolders = Array.from(document.querySelectorAll('.gigma-folder[data-folder-id]') || []);
+        for (const folderEl of allFolders){
+            try{
+                const fid = folderEl && folderEl.dataset ? folderEl.dataset.folderId : null;
+                if (fid && !folderById[fid]) folderById[fid] = folderEl;
+            }catch(_eFolder){ }
+        }
+        const captureList = (parentId, list) => {
+            if (!list) return;
+            const children = Array.from(list.children || []);
+            for (const child of children){
+                try{
+                    if (!child || !child.classList) continue;
+                    if (child.classList.contains('gigma-row')) {
+                        try{
+                            if (child.classList.contains('gigma-parent-unchained-placeholder')){
+                                const childPreset = (child.dataset && child.dataset.gigmaParentUnchainedChild) ? String(child.dataset.gigmaParentUnchainedChild) : '';
+                                const worldId = (child.dataset && child.dataset.worldId) ? String(child.dataset.worldId) : '';
+                                if (childPreset && worldId) {
+                                    addChild(parentId, 'urowid:' + encodeURIComponent(childPreset) + ':' + worldId);
+                                    continue;
+                                }
+                            }
+                        }catch(_ePlaceholder){ }
+                        const worldId = child.dataset ? (child.dataset.worldId || child.dataset.world) : null;
+                        if (!worldId) continue;
+                        addChild(parentId, (child.dataset && child.dataset.worldId) ? ('rowId:' + worldId) : ('row:' + worldId));
+                        continue;
+                    }
+                    if (child.classList.contains('gigma-folder')) {
+                        const fid = child.dataset ? child.dataset.folderId : null;
+                        if (fid) addChild(parentId, 'folder:' + fid);
+                    }
+                }catch(_eChild){ }
+            }
+        };
+        const rootList = document.getElementById('gigma-ordering-list');
+        captureList('ROOT', rootList);
+        const folderMeta = Array.isArray(window.gigmaFolders) ? window.gigmaFolders : [];
+        for (const meta of folderMeta){
+            try{
+                if (!meta || meta.id == null) continue;
+                const fid = String(meta.id);
+                const folderEl = folderById[fid];
+                if (!folderEl) continue;
+                let list = null;
+                try{
+                    if (typeof gigmaGetFolderContentList === 'function') list = gigmaGetFolderContentList(folderEl);
+                    else if (typeof window !== 'undefined' && typeof window.gigmaGetFolderContentList === 'function') list = window.gigmaGetFolderContentList(folderEl);
+                }catch(_eList){ }
+                if (!list) {
+                    try { list = folderEl.querySelector('.gigma-folder-list'); } catch (_eQuery) { list = null; }
+                }
+                captureList(fid, list);
+            }catch(_eMeta){ }
+        }
+        snapshot.childrenOrder = orderByParent;
+        return snapshot;
+    }catch(_){
+        return null;
+    }
+}
+function gigmaCaptureOrderingModalUndoState(){
+    try{
+        const info = gigmaGetOrderingModalUndoPresetInfo();
+        if (!info) return null;
+        const layout = gigmaCaptureOrderingModalUndoLayoutState();
+        if (!layout || typeof layout !== 'object') return null;
+        const budgets = Object.create(null);
+        const container = document.getElementById('gigma-ordering-container') || document.getElementById('gigma-ordering-list');
+        const rows = container && container.querySelectorAll
+            ? container.querySelectorAll('.gigma-row[data-world], .gigma-row[data-world-id]')
+            : [];
+        for (const row of rows){
+            try{
+                if (!row || !row.dataset) continue;
+                const lorebookId = String(row.dataset.worldId || row.dataset.world || '').trim();
+                if (!lorebookId || Object.prototype.hasOwnProperty.call(budgets, lorebookId)) continue;
+                const mode = gigmaNormalizeBudgetHeaderMode(row.dataset.gigmaBudgetMode || 'default');
+                let value = 0;
+                if (mode !== 'default' && mode !== 'off') {
+                    value = gigmaParseBudgetValueForMode(mode, row.dataset.gigmaBudgetValue || '0');
+                    if (!Number.isFinite(value)) value = 0;
+                }
+                budgets[lorebookId] = [mode, value, row.dataset.gigmaRandomTrim === '1' ? 1 : 0];
+            }catch(_eRow){ }
+        }
+        const cache = (typeof gigmaEnsurePerModeRetroLockCache === 'function') ? gigmaEnsurePerModeRetroLockCache() : null;
+        const state = {
+            kind: info.kind,
+            presetId: info.presetId,
+            layout,
+            budgets,
+            retroLocksOrder: cache && cache.order instanceof Set ? Array.from(cache.order || []).map(String) : [],
+            retroLocksBudget: cache && cache.budget instanceof Set ? Array.from(cache.budget || []).map(String) : [],
+        };
+        state.__layoutSerial = gigmaSerializeOrderingModalUndoLayoutStateForUndo(layout);
+        state.__budgetSerial = gigmaSerializeOrderingModalUndoBudgets(budgets);
+        state.__lockSerial = gigmaSerializeOrderingModalUndoLockLists(state.retroLocksOrder, state.retroLocksBudget);
+        state.__withoutNamesSerial = gigmaNormalizeOrderingModalUndoStateWithoutFolderNames(state);
+        state.__serial = gigmaSerializeOrderingModalUndoState(state);
+        return state;
+    }catch(_){
+        return null;
+    }
+}
+function gigmaEnsureOrderingModalUndoBaseline(){
+    try{
+        const key = gigmaGetOrderingModalUndoPresetKey();
+        if (!key) return null;
+        const stack = gigmaGetOrderingModalUndoStack(key);
+        if (!stack) return null;
+        if (stack.undo.length) return stack;
+        const state = gigmaCaptureOrderingModalUndoState();
+        if (!state) return stack;
+        stack.undo.push(state);
+        stack.redo.length = 0;
+        gigmaTrimOrderingModalUndoHistoryStack(stack);
+        return stack;
+    }catch(_){
+        return null;
+    }
+}
+function gigmaIsOrderingModalUndoSuspended(){
+    try{
+        const store = gigmaGetOrderingModalUndoStore();
+        return !!(store && (store.applyBusy || store.suspendDepth > 0));
+    }catch(_){
+        return false;
+    }
+}
+function gigmaScheduleOrderingModalUndoSnapshot(){
+    try{
+        const store = gigmaGetOrderingModalUndoStore();
+        if (!store) return;
+        if (store.timer) clearTimeout(store.timer);
+        store.timer = setTimeout(() => {
+            try { store.timer = null; } catch (_eNull) { }
+            try { gigmaFlushOrderingModalUndoSnapshot(); } catch (_eFlush) { }
+        }, 90);
+    }catch(_){ }
+}
+function gigmaSyncOrderingModalUndoTopWithLiveState(key){
+    try{
+        const stack = gigmaGetOrderingModalUndoStack(key || gigmaGetOrderingModalUndoPresetKey());
+        if (!stack || !Array.isArray(stack.undo) || !stack.undo.length) return null;
+        const liveState = gigmaCaptureOrderingModalUndoState();
+        if (!liveState) return null;
+        stack.undo[stack.undo.length - 1] = liveState;
+        gigmaTrimOrderingModalUndoHistoryStack(stack);
+        return liveState;
+    }catch(_){
+        return null;
+    }
+}
+function gigmaFlushOrderingModalUndoSnapshot(){
+    try{
+        if (gigmaIsOrderingModalUndoSuspended()) return;
+        if (typeof gigmaIsOrderingModalActive === 'function' && !gigmaIsOrderingModalActive()) return;
+        try{
+            const draggingNow = !!document.querySelector('.gigma-dragging') || !!(window.gigmaDragState && window.gigmaDragState.draggingEl);
+            if (draggingNow) {
+                gigmaScheduleOrderingModalUndoSnapshot();
+                return;
+            }
+        }catch(_eDrag){ }
+        const key = gigmaGetOrderingModalUndoPresetKey();
+        if (!key) return;
+        const stack = gigmaGetOrderingModalUndoStack(key);
+        if (!stack) return;
+        if (!stack.undo.length) {
+            gigmaEnsureOrderingModalUndoBaseline();
+            if (!stack.undo.length) return;
+        }
+        const state = gigmaCaptureOrderingModalUndoState();
+        if (!state) return;
+        const top = stack.undo[stack.undo.length - 1] || null;
+        if (top && top.__serial === state.__serial) return;
+        stack.undo.push(state);
+        stack.redo.length = 0;
+        gigmaTrimOrderingModalUndoHistoryStack(stack);
+    }catch(_){ }
+}
+function gigmaGetOrderingModalUndoBudgetEntrySignature(entry){
+    try{
+        const data = Array.isArray(entry) ? entry : ['default', 0, 0];
+        const mode = gigmaNormalizeBudgetHeaderMode(data[0] || 'default');
+        const rawValue = (mode === 'default' || mode === 'off') ? 0 : gigmaParseBudgetValueForMode(mode, data[1] == null ? 0 : data[1]);
+        const value = Number.isFinite(rawValue) ? rawValue : 0;
+        return mode + '|' + String(value || 0) + '|' + (data[2] ? '1' : '0');
+    }catch(_){
+        return 'default|0|0';
+    }
+}
+function gigmaGetOrderingModalUndoBudgetUi(row){
+    try{
+        if (!row) return null;
+        let ui = row.__gigmaUndoBudgetUi;
+        if (ui && ui.modeSelect && ui.valueInput) return ui;
+        ui = {
+            modeSelect: row.querySelector ? row.querySelector('.gigma-budget-header-select') : null,
+            valueInput: row.querySelector ? row.querySelector('.gigma-budget-header-value') : null,
+            randomBox: row.querySelector ? row.querySelector('.gigma-budget-random-box') : null,
+        };
+        row.__gigmaUndoBudgetUi = ui;
+        return ui;
+    }catch(_){
+        return null;
+    }
+}
+function gigmaScheduleOrderingModalUndoDeferredRefresh(opts = {}){
+    try{
+        const store = gigmaGetOrderingModalUndoStore();
+        if (!store) return;
+        if (!store.deferredPreviewRows) store.deferredPreviewRows = new Set();
+        const rows = Array.isArray(opts.rows) ? opts.rows : [];
+        for (const row of rows){
+            if (row) store.deferredPreviewRows.add(row);
+        }
+        if (opts.refreshStats) store.deferStats = true;
+        if (opts.refreshDistribution) store.deferDistribution = true;
+        if (store.deferredRefreshRaf) return;
+        store.deferredRefreshRaf = requestAnimationFrame(() => {
+            try { store.deferredRefreshRaf = null; } catch (_eRaf) { }
+            const previewRows = store.deferredPreviewRows ? Array.from(store.deferredPreviewRows) : [];
+            try { if (store.deferredPreviewRows) store.deferredPreviewRows.clear(); } catch (_eClear) { }
+            const batch = previewRows.slice(0, 16);
+            for (const row of batch){
+                try { if (row && typeof row.__gigmaRefreshBudgetPreview === 'function') row.__gigmaRefreshBudgetPreview(); } catch (_ePreview) { }
+            }
+            if (previewRows.length > batch.length) {
+                if (!store.deferredPreviewRows) store.deferredPreviewRows = new Set();
+                for (const row of previewRows.slice(batch.length)) store.deferredPreviewRows.add(row);
+            }
+            try {
+                if (store.deferDistribution && typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') {
+                    store.deferDistribution = false;
+                    window.gigmaScheduleBudgetDistributionRefresh();
+                }
+            } catch (_eDistribution) { }
+            try {
+                if (store.deferStats && typeof gigmaUpdateModalLorebookStatsAllRows === 'function') {
+                    store.deferStats = false;
+                    gigmaUpdateModalLorebookStatsAllRows();
+                }
+            } catch (_eStats) { }
+            try {
+                if ((store.deferredPreviewRows && store.deferredPreviewRows.size) || store.deferDistribution || store.deferStats) {
+                    gigmaScheduleOrderingModalUndoDeferredRefresh();
+                }
+            } catch (_eResched) { }
+        });
+    }catch(_){ }
+}
+function gigmaGetOrderingModalUndoChangedBudgetIds(currentState, targetState){
+    try{
+        const currentBudgets = (currentState && currentState.budgets && typeof currentState.budgets === 'object') ? currentState.budgets : null;
+        const targetBudgets = (targetState && targetState.budgets && typeof targetState.budgets === 'object') ? targetState.budgets : null;
+        if (!targetBudgets) return [];
+        if (!currentBudgets) return Object.keys(targetBudgets);
+        const ids = [];
+        const seen = Object.create(null);
+        for (const source of [currentBudgets, targetBudgets]) {
+            for (const key of Object.keys(source || {})) {
+                if (seen[key]) continue;
+                seen[key] = true;
+                if (gigmaGetOrderingModalUndoBudgetEntrySignature(currentBudgets[key]) !== gigmaGetOrderingModalUndoBudgetEntrySignature(targetBudgets[key])) ids.push(key);
+            }
+        }
+        return ids;
+    }catch(_){
+        return [];
+    }
+}
+function gigmaApplyOrderingModalUndoBudgetEntryToRow(row, entry, opts = {}){
+    try{
+        if (!row || !row.dataset) return false;
+        const data = Array.isArray(entry) ? entry : ['default', 0, 0];
+        const mode = gigmaNormalizeBudgetHeaderMode(data[0] || 'default');
+        let value = 0;
+        if (mode !== 'default' && mode !== 'off') {
+            value = gigmaParseBudgetValueForMode(mode, data[1] == null ? 0 : data[1]);
+            if (!Number.isFinite(value)) value = 0;
+        }
+        const randomTrim = !!data[2];
+        const nextSig = mode + '|' + String(value || 0) + '|' + (randomTrim ? '1' : '0');
+        const currentSig = String(row.dataset.gigmaBudgetMode || 'default') + '|' + String(row.dataset.gigmaBudgetValue || '0') + '|' + (row.dataset.gigmaRandomTrim === '1' ? '1' : '0');
+        if (currentSig === nextSig) {
+            try { row.__gigmaUndoBudgetSig = nextSig; } catch (_eSig) { }
+            return false;
+        }
+        row.dataset.gigmaBudgetMode = mode;
+        row.dataset.gigmaBudgetValue = String(value || 0);
+        row.dataset.gigmaRandomTrim = randomTrim ? '1' : '0';
+        try { row.__gigmaUndoBudgetSig = nextSig; } catch (_eSig2) { }
+
+        const ui = gigmaGetOrderingModalUndoBudgetUi(row);
+        const modeSelect = ui ? ui.modeSelect : null;
+        const valueInput = ui ? ui.valueInput : null;
+        const randomBox = ui ? ui.randomBox : null;
+        if (modeSelect) modeSelect.value = mode;
+        if (valueInput) {
+            valueInput.value = String(value || 0);
+            if (mode === 'default' || mode === 'off') {
+                valueInput.style.display = '';
+                valueInput.style.visibility = 'hidden';
+                valueInput.style.pointerEvents = 'none';
+                try { valueInput.removeAttribute('min'); } catch (_eMin) { }
+                try { valueInput.removeAttribute('max'); } catch (_eMax) { }
+                if (randomBox) {
+                    randomBox.style.visibility = 'hidden';
+                    randomBox.style.pointerEvents = 'none';
+                }
+            } else {
+                valueInput.style.display = '';
+                valueInput.style.visibility = '';
+                valueInput.style.pointerEvents = '';
+                if (mode === 'percentage_budget' || mode === 'percentage_context' || mode === 'percentage_lorebook' || mode === 'percentage_entries') {
+                    valueInput.min = '0';
+                    valueInput.max = '100';
+                    valueInput.step = '0.001';
+                    try { if (valueInput.dataset) valueInput.dataset.gigmaPrevValidPct = String(valueInput.value || '0'); } catch (_ePct) { }
+                } else {
+                    valueInput.min = '0';
+                    valueInput.max = '99999';
+                    valueInput.step = '1';
+                }
+                if (randomBox) {
+                    randomBox.style.visibility = '';
+                    randomBox.style.pointerEvents = '';
+                }
+            }
+            try { valueInput.style.fontSize = ''; } catch (_eFs) { }
+            try { valueInput.style.letterSpacing = ''; } catch (_eLs) { }
+        }
+        try {
+            if (typeof gigmaUpdateDeterministicRandomBoxVisual === 'function') gigmaUpdateDeterministicRandomBoxVisual(randomBox, randomTrim);
+        } catch (_eRandomUi) { }
+        if (opts.deferPreview) {
+            gigmaScheduleOrderingModalUndoDeferredRefresh({ rows: [row] });
+        } else {
+            try { if (typeof row.__gigmaRefreshBudgetPreview === 'function') row.__gigmaRefreshBudgetPreview(); } catch (_ePreview) { }
+        }
+        return true;
+    }catch(_){
+        return false;
+    }
+}
+function gigmaRefreshOrderingModalUndoDrawerFromRows(){
+    try{
+        const selectEl = document.getElementById('gigma-lorebook-dropdown-toggle');
+        if (!selectEl || !selectEl.value || typeof gigmaApplyLorebookSettingsToForm !== 'function') return;
+        const lorebookId = String(selectEl.value || '').trim();
+        if (!lorebookId) return;
+        const esc = (window.CSS && typeof CSS.escape === 'function') ? CSS.escape(lorebookId) : lorebookId.replace(/"/g, '\"');
+        const row = document.querySelector('.gigma-row[data-world-id="' + esc + '"], .gigma-row[data-world="' + esc + '"]');
+        if (!row || !row.dataset) return;
+        const mode = gigmaNormalizeBudgetHeaderMode(row.dataset.gigmaBudgetMode || 'default');
+        let value = 0;
+        if (mode !== 'default' && mode !== 'off') {
+            value = gigmaParseBudgetValueForMode(mode, row.dataset.gigmaBudgetValue || '0');
+            if (!Number.isFinite(value)) value = 0;
+        }
+        const randomTrim = row.dataset.gigmaRandomTrim === '1';
+        gigmaApplyLorebookSettingsToForm(Object.assign({}, DEFAULT_LOREBOOK_SETTINGS, {
+            budgetMode: mode,
+            budget: (mode === 'default' || mode === 'off') ? 0 : value,
+            randomTrim,
+        }));
+        try { if (typeof gigmaSyncLorebookDrawerLockBoxFromCache === 'function') gigmaSyncLorebookDrawerLockBoxFromCache(); } catch (_eLock) { }
+    }catch(_){ }
+}
+function gigmaCaptureOrderingModalUndoQuickScrollState(){
+    try{
+        const seen = new Set();
+        const out = [];
+        const add = (el) => {
+            try{
+                if (!el || seen.has(el)) return;
+                seen.add(el);
+                out.push({ el, top: el.scrollTop || 0, left: el.scrollLeft || 0 });
+            }catch(_eAdd){ }
+        };
+        add(document.querySelector('#gigma-ordering-container .gigma-unsorted-content'));
+        add(document.querySelector('#gigma-ordering-container .gigma-focus-pane-list'));
+        add(document.querySelector('#gigma-ordering-container .gigma-focus-pane-scroll'));
+        const rootList = document.getElementById('gigma-ordering-list');
+        add(rootList ? rootList.parentElement : null);
+        return out;
+    }catch(_){
+        return null;
+    }
+}
+function gigmaRestoreOrderingModalUndoQuickScrollState(state){
+    try{
+        const items = Array.isArray(state) ? state : [];
+        for (const item of items){
+            try{
+                if (!item || !item.el) continue;
+                item.el.scrollTop = item.top || 0;
+                item.el.scrollLeft = item.left || 0;
+            }catch(_eItem){ }
+        }
+    }catch(_){ }
+}
+function gigmaScheduleOrderingModalUndoDeferredLayoutRefresh(){
+    try{
+        const store = gigmaGetOrderingModalUndoStore();
+        if (!store) return;
+        if (store.deferredLayoutRefreshRaf) return;
+        store.deferredLayoutRefreshRaf = requestAnimationFrame(() => {
+            try { store.deferredLayoutRefreshRaf = null; } catch (_eNull) { }
+            try {
+                if (typeof window.gigmaRenumberRows === 'function') window.gigmaRenumberRows();
+                else if (typeof renumberRows === 'function') renumberRows();
+            } catch (_eRenumber) { }
+            try {
+                if (typeof window.gigmaRefreshEmptyFoldersUI === 'function') window.gigmaRefreshEmptyFoldersUI();
+                else if (typeof gigmaRefreshEmptyFoldersUI === 'function') gigmaRefreshEmptyFoldersUI();
+            } catch (_eEmpty) { }
+            try { if (typeof gigmaSyncParentUnchainedLorebooksInParent === 'function') gigmaSyncParentUnchainedLorebooksInParent(); } catch (_eParent) { }
+        });
+    }catch(_){ }
+}
+function gigmaCanInstantApplyOrderingModalUndoLayout(currentLayout, nextLayout){
+    try{
+        if (!currentLayout || !nextLayout) return false;
+        const currentFolders = Array.isArray(currentLayout.folders) ? currentLayout.folders : [];
+        const nextFolders = Array.isArray(nextLayout.folders) ? nextLayout.folders : [];
+        if (currentFolders.length !== nextFolders.length) return false;
+        const currentById = Object.create(null);
+        for (const folder of currentFolders){
+            if (!folder || folder.id == null) continue;
+            currentById[String(folder.id)] = folder;
+        }
+        for (const folder of nextFolders){
+            if (!folder || folder.id == null) return false;
+            const fid = String(folder.id);
+            const currentFolder = currentById[fid];
+            if (!currentFolder) return false;
+            if (String(currentFolder.name || '') !== String(folder.name || '')) return false;
+            if (!!currentFolder.unsorted !== !!folder.unsorted) return false;
+            if (!!currentFolder.collapsed !== !!folder.collapsed) return false;
+        }
+        return !!document.getElementById('gigma-ordering-list');
+    }catch(_){
+        return false;
+    }
+}
+function gigmaCanFastApplyOrderingModalUndoLayout(layout){
+    try{
+        if (!layout || typeof layout !== 'object' || typeof gigmaApplyChildrenOrderFromPreset !== 'function') return false;
+        return !!document.getElementById('gigma-ordering-list');
+    }catch(_){
+        return false;
+    }
+}
+function gigmaSyncOrderingModalUndoFolderDom(nextLayout){
+    try{
+        const rootList = document.getElementById('gigma-ordering-list');
+        if (!rootList) return false;
+        const desiredById = Object.create(null);
+        const desiredFolders = Array.isArray(nextLayout && nextLayout.folders) ? nextLayout.folders : [];
+        for (const folder of desiredFolders){
+            try{
+                if (!folder || folder.id == null) continue;
+                const fid = String(folder.id || '').trim();
+                if (!fid) continue;
+                desiredById[fid] = folder;
+            }catch(_eDesired){ }
+        }
+        const getFolderList = (folderEl) => {
+            try{
+                if (typeof gigmaGetFolderContentList === 'function') {
+                    const list = gigmaGetFolderContentList(folderEl);
+                    if (list) return list;
+                } else if (typeof window !== 'undefined' && typeof window.gigmaGetFolderContentList === 'function') {
+                    const list = window.gigmaGetFolderContentList(folderEl);
+                    if (list) return list;
+                }
+            }catch(_eList){ }
+            try{ return folderEl.querySelector(':scope > .gigma-folder-list') || folderEl.querySelector('.gigma-folder-list'); }catch(_eQuery){ return null; }
+        };
+        const isItemEl = (node) => !!(node && node.nodeType === 1 && node.classList && (node.classList.contains('gigma-row') || node.classList.contains('gigma-folder')));
+        let changed = false;
+        let needsRebind = false;
+        const liveFolders = Array.from(document.querySelectorAll('.gigma-folder[data-folder-id]') || []);
+        const extras = liveFolders.filter((folderEl) => {
+            try{
+                const fid = folderEl && folderEl.dataset ? String(folderEl.dataset.folderId || '').trim() : '';
+                return !!(fid && !desiredById[fid]);
+            }catch(_eExtra){
+                return false;
+            }
+        });
+        extras.sort((a, b) => {
+            try{
+                return (b.querySelectorAll('.gigma-folder[data-folder-id]').length || 0) - (a.querySelectorAll('.gigma-folder[data-folder-id]').length || 0);
+            }catch(_eSort){
+                return 0;
+            }
+        });
+        for (const folderEl of extras){
+            try{
+                const list = getFolderList(folderEl);
+                if (list) {
+                    const children = Array.from(list.children || []);
+                    for (const child of children){
+                        if (!isItemEl(child)) continue;
+                        rootList.appendChild(child);
+                    }
+                }
+                if (folderEl.parentNode) folderEl.parentNode.removeChild(folderEl);
+                changed = true;
+            }catch(_eRemove){ }
+        }
+        const liveById = Object.create(null);
+        const remainingFolders = Array.from(document.querySelectorAll('.gigma-folder[data-folder-id]') || []);
+        for (const folderEl of remainingFolders){
+            try{
+                const fid = folderEl && folderEl.dataset ? String(folderEl.dataset.folderId || '').trim() : '';
+                if (fid && !liveById[fid]) liveById[fid] = folderEl;
+            }catch(_eLive){ }
+        }
+        for (const folder of desiredFolders){
+            try{
+                const fid = folder && folder.id != null ? String(folder.id || '').trim() : '';
+                if (!fid || liveById[fid]) continue;
+                if (typeof window.gigmaBuildFolder !== 'function') return false;
+                const folderEl = window.gigmaBuildFolder(folder);
+                if (!folderEl) return false;
+                rootList.appendChild(folderEl);
+                liveById[fid] = folderEl;
+                changed = true;
+                needsRebind = true;
+                try{ if (typeof gigmaEnsureEmptyDrop === 'function') gigmaEnsureEmptyDrop(folderEl); }catch(_eEnsure){ }
+            }catch(_eCreate){
+                return false;
+            }
+        }
+        if (changed && needsRebind && typeof gigmaInitSortable === 'function') {
+            try{ gigmaInitSortable(); }catch(_eBind){ }
+        }
+        return true;
+    }catch(_){
+        return false;
+    }
+}
+function gigmaApplyOrderingModalUndoLayoutFast(layout, currentLayout = null){
+    try{
+        if (!gigmaCanFastApplyOrderingModalUndoLayout(layout)) return false;
+        const nextLayout = gigmaCloneOrderingModalUndoLayoutState(layout);
+        if (!nextLayout) return false;
+        const scrollState = gigmaCaptureOrderingModalUndoQuickScrollState();
+        if (currentLayout && gigmaCanInstantApplyOrderingModalUndoLayout(currentLayout, nextLayout)) {
+            const rootList = document.getElementById('gigma-ordering-list');
+            if (!rootList) return false;
+            const rowByWorldId = Object.create(null);
+            const rowByWorldName = Object.create(null);
+            const folderById = Object.create(null);
+            const allRows = Array.from(document.querySelectorAll('.gigma-row[data-world]:not(.gigma-parent-unchained-placeholder)') || []);
+            for (const el of allRows) {
+                const world = el.dataset ? el.dataset.world : null;
+                const worldId = el.dataset ? el.dataset.worldId : null;
+                if (worldId && !rowByWorldId[worldId]) rowByWorldId[worldId] = el;
+                if (world && !rowByWorldName[world]) rowByWorldName[world] = el;
+            }
+            const allFolders = Array.from(document.querySelectorAll('.gigma-folder[data-folder-id]') || []);
+            for (const el of allFolders) {
+                const fid = el.dataset ? el.dataset.folderId : null;
+                if (fid && !folderById[fid]) folderById[fid] = el;
+            }
+            const getListForParent = (parentId) => {
+                if (!parentId || parentId === 'ROOT') return rootList;
+                const folderEl = folderById[parentId];
+                if (!folderEl) return null;
+                try {
+                    if (typeof gigmaGetFolderContentList === 'function') {
+                        const list = gigmaGetFolderContentList(folderEl);
+                        if (list) return list;
+                    } else if (typeof window !== 'undefined' && typeof window.gigmaGetFolderContentList === 'function') {
+                        const list = window.gigmaGetFolderContentList(folderEl);
+                        if (list) return list;
+                    }
+                } catch (_eList) { }
+                try { return folderEl.querySelector('.gigma-folder-list'); } catch (_eQuery) { return null; }
+            };
+            const resolveToken = (token) => {
+                if (typeof token !== 'string') return null;
+                if (token.indexOf('rowId:') === 0) return rowByWorldId[token.slice(6)] || null;
+                if (token.indexOf('row:') === 0) {
+                    const world = token.slice(4);
+                    return rowByWorldId[world] || rowByWorldName[world] || null;
+                }
+                if (token.indexOf('folder:') === 0) return folderById[token.slice(7)] || null;
+                if (token.indexOf('urowid:') === 0) {
+                    try {
+                        const rest = token.slice(7);
+                        const sep = rest.indexOf(':');
+                        if (sep > -1) {
+                            const encChild = rest.slice(0, sep);
+                            const worldId = rest.slice(sep + 1);
+                            const childName = decodeURIComponent(encChild || '') || '';
+                            if (childName && worldId && typeof gigmaGetOrCreateParentUnchainedPlaceholderRow === 'function') {
+                                return gigmaGetOrCreateParentUnchainedPlaceholderRow(worldId, childName);
+                            }
+                        }
+                    } catch (_eUrow) { }
+                }
+                return null;
+            };
+            const currentOrders = (currentLayout && currentLayout.childrenOrder && typeof currentLayout.childrenOrder === 'object') ? currentLayout.childrenOrder : {};
+            const nextOrders = (nextLayout.childrenOrder && typeof nextLayout.childrenOrder === 'object') ? nextLayout.childrenOrder : {};
+            const parentKeys = new Set(Object.keys(currentOrders).concat(Object.keys(nextOrders)));
+            let changed = false;
+            for (const parentKey of parentKeys) {
+                const currentSeq = Array.isArray(currentOrders[parentKey]) ? currentOrders[parentKey] : [];
+                const nextSeq = Array.isArray(nextOrders[parentKey]) ? nextOrders[parentKey] : [];
+                if (currentSeq.length === nextSeq.length && currentSeq.every((value, index) => value === nextSeq[index])) continue;
+                const list = getListForParent(parentKey);
+                if (!list) continue;
+                for (const token of nextSeq) {
+                    const node = resolveToken(token);
+                    if (node && node.nodeType === 1) {
+                        list.appendChild(node);
+                        changed = true;
+                    }
+                }
+            }
+            window.gigmaFolders = nextLayout.folders;
+            window.gigmaFolderParent = nextLayout.folderParent;
+            window.gigmaRowFolder = nextLayout.rowFolder;
+            gigmaRestoreOrderingModalUndoQuickScrollState(scrollState);
+            requestAnimationFrame(() => {
+                gigmaRestoreOrderingModalUndoQuickScrollState(scrollState);
+            });
+            if (changed) gigmaScheduleOrderingModalUndoDeferredLayoutRefresh();
+            return true;
+        }
+        window.gigmaFolders = nextLayout.folders;
+        window.gigmaFolderParent = nextLayout.folderParent;
+        window.gigmaRowFolder = nextLayout.rowFolder;
+        if (!gigmaSyncOrderingModalUndoFolderDom(nextLayout)) return false;
+        gigmaApplyChildrenOrderFromPreset(nextLayout.childrenOrder || {});
+        try {
+            if (typeof gigmaCollectPresetRowKeys === 'function' && typeof gigmaInsertNewLorebooksIntoUnsorted === 'function') {
+                const presetRowKeys = gigmaCollectPresetRowKeys(nextLayout.childrenOrder || {});
+                gigmaInsertNewLorebooksIntoUnsorted(presetRowKeys);
+            }
+        } catch (_eExtras) { }
+        gigmaRestoreOrderingModalUndoQuickScrollState(scrollState);
+        requestAnimationFrame(() => {
+            gigmaRestoreOrderingModalUndoQuickScrollState(scrollState);
+        });
+        gigmaScheduleOrderingModalUndoDeferredLayoutRefresh();
+        return true;
+    }catch(_){
+        return false;
+    }
+}
+async function gigmaApplyOrderingModalUndoState(state, currentState = null){
+    try{
+        if (!state || typeof state !== 'object' || !state.layout) return false;
+        const store = gigmaGetOrderingModalUndoStore();
+        if (!store || store.applyBusy) return false;
+        const hasCurrentState = !!(currentState && typeof currentState === 'object' && currentState.layout);
+        const renameOnly = !!(hasCurrentState && gigmaIsOrderingModalUndoFolderRenameOnly(currentState, state));
+        const layoutChanged = !hasCurrentState || currentState.__layoutSerial !== state.__layoutSerial;
+        const budgetsChanged = !hasCurrentState || currentState.__budgetSerial !== state.__budgetSerial;
+        const locksChanged = !hasCurrentState || currentState.__lockSerial !== state.__lockSerial;
+        store.applyBusy = true;
+        store.suspendDepth = (store.suspendDepth || 0) + 1;
+        if (renameOnly) {
+            if (!gigmaApplyOrderingModalUndoFolderNamesOnly(state.layout)) return false;
+            return true;
+        }
+        if (layoutChanged && !gigmaApplyOrderingModalUndoLayoutFast(state.layout, hasCurrentState ? currentState.layout : null)) return false;
+
+        if (locksChanged) {
+            const cache = (typeof gigmaEnsurePerModeRetroLockCache === 'function') ? gigmaEnsurePerModeRetroLockCache() : null;
+            if (cache) {
+                cache.order = new Set((Array.isArray(state.retroLocksOrder) ? state.retroLocksOrder : []).map(String).filter(Boolean));
+                cache.budget = new Set((Array.isArray(state.retroLocksBudget) ? state.retroLocksBudget : []).map(String).filter(Boolean));
+                try { if (typeof cache.__gigmaPatchLockSet === 'function') cache.__gigmaPatchLockSet(cache.order); } catch (_ePatchOrder) { }
+                try { if (typeof cache.__gigmaPatchLockSet === 'function') cache.__gigmaPatchLockSet(cache.budget); } catch (_ePatchBudget) { }
+            }
+        }
+
+        const changedRows = [];
+        let drawerNeedsRefresh = false;
+        if (budgetsChanged) {
+            const changedIds = gigmaGetOrderingModalUndoChangedBudgetIds(currentState, state);
+            const drawerLorebookId = (typeof gigmaGetDrawerSelectedLorebookId === 'function') ? String(gigmaGetDrawerSelectedLorebookId() || '').trim() : '';
+            if (drawerLorebookId && changedIds.includes(drawerLorebookId)) drawerNeedsRefresh = true;
+            const container = document.getElementById('gigma-ordering-container') || document.getElementById('gigma-ordering-list');
+            const rows = container && container.querySelectorAll
+                ? container.querySelectorAll('.gigma-row[data-world], .gigma-row[data-world-id]')
+                : [];
+            if (rows && rows.length) {
+                const wanted = Object.create(null);
+                for (const id of changedIds) wanted[String(id)] = true;
+                for (const row of rows){
+                    try{
+                        if (!row || !row.dataset) continue;
+                        const lorebookId = String(row.dataset.worldId || row.dataset.world || '').trim();
+                        if (!lorebookId || !wanted[lorebookId]) continue;
+                        const entry = (state.budgets && Object.prototype.hasOwnProperty.call(state.budgets, lorebookId)) ? state.budgets[lorebookId] : ['default', 0, 0];
+                        if (gigmaApplyOrderingModalUndoBudgetEntryToRow(row, entry, { deferPreview: true })) changedRows.push(row);
+                    }catch(_eRow){ }
+                }
+            }
+        }
+
+        if (locksChanged) {
+            try {
+                const root = document.documentElement;
+                const currentMode = (root && root.classList && root.classList.contains('gigma-budget-mode-active')) ? 'budget' : 'order';
+                if (typeof gigmaApplyPerModeRetroLocksToDom === 'function') gigmaApplyPerModeRetroLocksToDom(currentMode);
+            } catch (_eApplyLocks) { }
+        }
+        if (drawerNeedsRefresh) {
+            try { gigmaRefreshOrderingModalUndoDrawerFromRows(); } catch (_eDrawer) { }
+        }
+        if (budgetsChanged || (layoutChanged && changedRows.length)) {
+            gigmaScheduleOrderingModalUndoDeferredRefresh({ rows: changedRows, refreshDistribution: !!budgetsChanged, refreshStats: !!budgetsChanged });
+        }
+        return true;
+    }catch(e){
+        console.warn('GIGMA: failed to apply modal undo/redo state:', e);
+        return false;
+    }finally{
+        const store = gigmaGetOrderingModalUndoStore();
+        if (store) {
+            requestAnimationFrame(() => {
+                try {
+                    store.suspendDepth = Math.max(0, (store.suspendDepth || 1) - 1);
+                    if (!store.suspendDepth) store.applyBusy = false;
+                } catch (_eRelease) { }
+            });
+        }
+    }
+}
+async function gigmaUndoOrderingModalChange(){
+    try{
+        gigmaFlushOrderingModalUndoSnapshot();
+        const key = gigmaGetOrderingModalUndoPresetKey();
+        if (!key) return false;
+        const stack = gigmaGetOrderingModalUndoStack(key);
+        if (!stack) return false;
+        if (!stack.undo.length) gigmaEnsureOrderingModalUndoBaseline();
+        if (stack.undo.length < 2) return false;
+        const current = stack.undo.pop();
+        const target = stack.undo[stack.undo.length - 1] || null;
+        if (!target) {
+            stack.undo.push(current);
+            return false;
+        }
+        stack.redo.push(current);
+        gigmaTrimOrderingModalUndoHistoryStack(stack);
+        const ok = await gigmaApplyOrderingModalUndoState(target, current);
+        if (!ok) {
+            stack.redo.pop();
+            stack.undo.push(current);
+            return false;
+        }
+        try { gigmaSyncOrderingModalUndoTopWithLiveState(key); } catch (_eSync) { }
+        return true;
+    }catch(_){
+        return false;
+    }
+}
+async function gigmaRedoOrderingModalChange(){
+    try{
+        const key = gigmaGetOrderingModalUndoPresetKey();
+        if (!key) return false;
+        const stack = gigmaGetOrderingModalUndoStack(key);
+        if (!stack || !stack.redo.length) return false;
+        const current = stack.undo.length ? stack.undo[stack.undo.length - 1] : null;
+        const target = stack.redo.pop();
+        if (!target) return false;
+        stack.undo.push(target);
+        gigmaTrimOrderingModalUndoHistoryStack(stack);
+        const ok = await gigmaApplyOrderingModalUndoState(target, current);
+        if (!ok) {
+            stack.undo.pop();
+            stack.redo.push(target);
+            return false;
+        }
+        try { gigmaSyncOrderingModalUndoTopWithLiveState(key); } catch (_eSync) { }
+        return true;
+    }catch(_){
+        return false;
+    }
+}
+function gigmaIsOrderingModalUndoMutationRelevant(mutation){
+    try{
+        if (!mutation) return false;
+        if (typeof gigmaIsOrderingModalActive === 'function' && !gigmaIsOrderingModalActive()) return false;
+        const isInOrderingArea = (node) => {
+            try {
+                return !!(node && node.nodeType === 1 && node.closest && node.closest('#gigma-ordering-container, #gigma-ordering-list'));
+            } catch (_eNode) {
+                return false;
+            }
+        };
+        if (mutation.type === 'attributes') {
+            const target = mutation.target;
+            if (!isInOrderingArea(target)) return false;
+            return !!(target && target.classList && target.classList.contains('gigma-row'));
+        }
+        if (mutation.type === 'childList') {
+            if (!isInOrderingArea(mutation.target)) return false;
+            const hasRelevantNode = (nodes) => {
+                for (const node of Array.from(nodes || [])) {
+                    try {
+                        if (!node || node.nodeType !== 1) continue;
+                        if (node.classList && (node.classList.contains('gigma-row') || node.classList.contains('gigma-folder'))) return true;
+                        if (node.querySelector && node.querySelector('.gigma-row, .gigma-folder')) return true;
+                    } catch (_eEach) { }
+                }
+                return false;
+            };
+            if (hasRelevantNode(mutation.addedNodes) || hasRelevantNode(mutation.removedNodes)) return true;
+            const target = mutation.target;
+            return !!(target && target.classList && (
+                target.classList.contains('gigma-folder-list') ||
+                target.classList.contains('gigma-focus-pane-list') ||
+                target.classList.contains('gigma-unsorted-content') ||
+                target.id === 'gigma-ordering-list' ||
+                target.id === 'gigma-ordering-container'
+            ));
+        }
+        return false;
+    }catch(_){
+        return false;
+    }
+}
+(function gigmaInstallOrderingModalUndoRedoOnce(){
+    try{
+        if (typeof window === 'undefined' || window.__gigmaOrderingModalUndoRedoInstalled) return;
+        window.__gigmaOrderingModalUndoRedoInstalled = true;
+        const store = gigmaGetOrderingModalUndoStore();
+        if (!store) return;
+
+        document.addEventListener('pointerdown', (ev) => {
+            try {
+                if (typeof gigmaIsOrderingModalActive === 'function' && !gigmaIsOrderingModalActive()) return;
+                const target = ev && ev.target;
+                if (!target || !target.closest || !target.closest('#gigma-modal-root')) return;
+                gigmaEnsureOrderingModalUndoBaseline();
+            } catch (_e) { }
+        }, true);
+        document.addEventListener('focusin', (ev) => {
+            try {
+                if (typeof gigmaIsOrderingModalActive === 'function' && !gigmaIsOrderingModalActive()) return;
+                const target = ev && ev.target;
+                if (!target || !target.closest || !target.closest('#gigma-modal-root')) return;
+                gigmaEnsureOrderingModalUndoBaseline();
+            } catch (_e) { }
+        }, true);
+        document.addEventListener('click', (ev) => {
+            try {
+                const target = ev && ev.target && ev.target.closest ? ev.target.closest('#gigma-layout-preset-kind-toggle') : null;
+                if (!target) return;
+                setTimeout(() => {
+                    try { gigmaEnsureOrderingModalUndoBaseline(); } catch (_eInner) { }
+                    try { gigmaFlushOrderingModalUndoSnapshot(); } catch (_eFlush) { }
+                }, 0);
+            } catch (_e) { }
+        }, true);
+        document.addEventListener('change', (ev) => {
+            try {
+                const target = ev && ev.target;
+                if (!target || !(target instanceof HTMLElement)) return;
+                if (target.id !== 'gigma-parent-preset-select' && target.id !== 'gigma-child-preset-select') return;
+                setTimeout(() => {
+                    try { gigmaEnsureOrderingModalUndoBaseline(); } catch (_eInner) { }
+                    try { gigmaFlushOrderingModalUndoSnapshot(); } catch (_eFlush) { }
+                }, 0);
+            } catch (_e) { }
+        }, true);
+        document.addEventListener('keydown', (ev) => {
+            try {
+                if (!ev || !(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
+                if (typeof gigmaIsOrderingModalActive === 'function' && !gigmaIsOrderingModalActive()) return;
+                const target = ev.target;
+                if (target && target.id === 'gigma-modal-settings-undo-limit-input') return;
+                if (target && target.closest && target.closest('textarea.gigma-rename-input')) return;
+                const key = String(ev.key || '').toLowerCase();
+                const wantsUndo = (key === 'z' && !ev.shiftKey);
+                const wantsRedo = ((key === 'z' && ev.shiftKey) || (key === 'y' && !ev.shiftKey));
+                if (!wantsUndo && !wantsRedo) return;
+                try { ev.preventDefault(); } catch (_ePrevent) { }
+                try { ev.stopPropagation(); } catch (_eStop) { }
+                try { if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); } catch (_eStopImmediate) { }
+                if (wantsUndo) void gigmaUndoOrderingModalChange();
+                else void gigmaRedoOrderingModalChange();
+            } catch (_e) { }
+        }, true);
+        const obs = new MutationObserver((mutations) => {
+            try {
+                if (gigmaIsOrderingModalUndoSuspended()) return;
+                for (const mutation of mutations || []) {
+                    if (!gigmaIsOrderingModalUndoMutationRelevant(mutation)) continue;
+                    gigmaScheduleOrderingModalUndoSnapshot();
+                    break;
+                }
+            } catch (_e) { }
+        });
+        obs.observe(document.documentElement, {
+            subtree: true,
+            childList: true,
+            attributes: true,
+            attributeFilter: ['data-gigma-budget-mode', 'data-gigma-budget-value', 'data-gigma-random-trim'],
+        });
+        store.observer = obs;
+    }catch(_){ }
+})();
 
 function gigmaParseCsvToList(csv, fallbackCsv) {
     const out = [];
@@ -14325,6 +15595,11 @@ function gigmaInstallModalSettingsPopupStylesOnce() {
 #gigma-modal-root #gigma-modal-settings-popup #gigma-modal-settings-erase-all-btn i{
   font-size:0.92em;
 }
+#gigma-modal-root #gigma-modal-settings-popup .gigma-settings-slot .gigma-modal-settings-number{
+  width:4.8em;
+  min-width:4.8em;
+  text-align:center;
+}
 dialog:has(#gigma-erase-settings-confirm-root){
   width:34em !important;
 }
@@ -14963,6 +16238,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Only bypass entries needed to fill post-trim gaps', 'gigma-modal-settings-slot-ignore-budget-bypass-selective');
             addRow('Debug logs', 'gigma-modal-settings-slot-budget-debug-logs');
             addRow('Auto-update entry order in WI UI', 'gigma-modal-settings-slot-auto-wi-order');
+            addRow('Undo history steps', 'gigma-modal-settings-slot-undo-history');
             addRow('Erase all GIGMA extension settings', 'gigma-modal-settings-slot-erase-all');
 
             popup.appendChild(table);
@@ -15185,6 +16461,31 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
                 slotAutoWiOrder.appendChild(b.closest('label'));
             }
             gigmaUpdateAutoUpdateWiOrderButtonUi(b);
+        }
+
+        const slotUndoHistory = popup.querySelector('#gigma-modal-settings-slot-undo-history');
+        if (slotUndoHistory) {
+            let input = popup.querySelector('#gigma-modal-settings-undo-limit-input');
+            if (!input) {
+                input = document.createElement('input');
+                input.id = 'gigma-modal-settings-undo-limit-input';
+                input.type = 'number';
+                input.className = 'text_pole textarea_compact gigma-modal-settings-number';
+                input.min = '1';
+                input.max = '99';
+                input.step = '1';
+                input.inputMode = 'numeric';
+                const commit = () => {
+                    try {
+                        const next = gigmaSetModalUndoHistoryStepsPref(input.value);
+                        input.value = String(next);
+                    } catch (_eCommit) { }
+                };
+                input.addEventListener('change', commit);
+                input.addEventListener('blur', commit);
+            }
+            input.value = String(gigmaGetModalUndoHistoryStepsPref());
+            slotUndoHistory.replaceChildren(input);
         }
 
         const slotEraseAll = popup.querySelector('#gigma-modal-settings-slot-erase-all');
@@ -21840,11 +23141,15 @@ async function populateOrderingList(opts = {}) {
             };
             const commit = (keepOldIfEmpty = true) => {
                 if (committed) return;
+                const v = textarea.value.trim();
+                const finalName = (v || (keepOldIfEmpty ? old : 'Untitled Folder'));
+                const didChange = finalName !== old;
+                if (didChange) {
+                    try { gigmaEnsureOrderingModalUndoBaseline(); } catch (_eUndoBaseline) { }
+                }
                 committed = true;
                 cleanup();
-                const v = textarea.value.trim();
                 // ⬇️ Save the new folder name but DO NOT re-render the whole list
-                const finalName = (v || (keepOldIfEmpty ? old : 'Untitled Folder'));
                 folder.name = finalName;
                 const label = (folder && folder.unsorted) ? "Unsorted Folder" : finalName;
                 // Update just the title text in place (left pane)
@@ -21866,6 +23171,9 @@ async function populateOrderingList(opts = {}) {
                         }
                     }
                 } catch (_e) {}
+                if (didChange) {
+                    try { gigmaRecordOrderingModalUndoRenameCommit(); } catch (_eUndoRecord) { }
+                }
             };
             const cancel = () => {
                 if (committed) return;
