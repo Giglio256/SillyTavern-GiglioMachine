@@ -5658,7 +5658,7 @@ const GIGMA_MODAL_STATS_NON_RAW_HIDDEN_KEYS = new Set();
 
 
 // === GIGMA: Global WI statistics (total across the active layout preset) ===
-const GIGMA_ARROW_UP_TO_LINE_ICON_HTML = '<svg viewBox="4 0 18 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 18V6"></path><path d="M7.5 10.5 12 6l4.5 4.5"></path><path d="M5 3.5h14"></path></svg>';
+const GIGMA_ARROW_UP_TO_LINE_ICON_HTML = '<svg viewBox="4 0 18 24" class="gigma-row-stat-chip-icon gigma-row-stat-chip-svg-icon gigma-global-wi-cap-icon" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 18V6"></path><path d="M7.5 10.5 12 6l4.5 4.5"></path><path d="M5 3.5h14"></path></svg>';
 const GIGMA_GLOBAL_WI_STATS_CONTEXT_OPTIONS = [
     { key: 'fullContext', label: 'Context', menuHtml: '<i class="fa-solid fa-book-open"></i> Context' },
     { key: 'usableContext', label: 'Usable', menuHtml: '<i class="fa-solid fa-clipboard-check"></i> Usable' },
@@ -12332,6 +12332,52 @@ dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-preview-gwi-host > but
         font-size: 0.82em;
         opacity: 0.78;
         letter-spacing: 0.02em;
+      }
+
+      .gigma-modal-stats-panel.gigma-global-wi-stats-panel{
+        min-width:17em;
+      }
+      .gigma-modal-stats-panel.gigma-global-wi-stats-panel .gigma-modal-stats-panel-item{
+        display:grid;
+        grid-template-columns:auto minmax(0, 1fr);
+        align-items:center;
+        column-gap:0.5em;
+        min-height:1.4em;
+      }
+      .gigma-modal-stats-panel.gigma-global-wi-stats-panel .gigma-modal-stats-panel-item input{
+        margin:0;
+        align-self:center;
+      }
+      .gigma-modal-stats-panel.gigma-global-wi-stats-panel .gigma-modal-stats-panel-item > span{
+        display:inline-flex;
+        align-items:center;
+        min-width:0;
+        white-space:nowrap;
+        line-height:1.15;
+      }
+      .gigma-modal-stats-panel.gigma-global-wi-stats-panel .gigma-modal-stats-panel-item > span > i,
+      .gigma-modal-stats-panel.gigma-global-wi-stats-panel .gigma-modal-stats-panel-item > span > svg{
+        flex:0 0 auto;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        width:1.15em;
+        height:1.15em;
+        margin-right:0.24em !important;
+        line-height:1;
+      }
+      .gigma-modal-stats-panel.gigma-global-wi-stats-panel .gigma-modal-stats-panel-item > span > i.gigma-active-world-globe{
+        margin-left:0 !important;
+      }
+      .gigma-modal-stats-panel.gigma-global-wi-stats-panel .gigma-modal-stats-panel-item > span > .gigma-row-stat-chip-text-icon,
+      .gigma-modal-stats-panel.gigma-global-wi-stats-panel .gigma-modal-stats-panel-item > span > b:first-child{
+        flex:0 0 auto;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        min-width:0.72em;
+        margin-right:0.18em;
+        line-height:1;
       }
 
       /* Global WI statistics display area */
