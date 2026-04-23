@@ -1,7 +1,7 @@
 import { event_types, eventSource } from '../../../events.js';
 import { getTextTokens, getFriendlyTokenizerName, tokenizers } from '../../../tokenizers.js';
 import { getContext, extension_settings } from '../../../extensions.js';
-import { characters, stopGeneration, getMaxContextSize, getMaxContextTokens, getMaxResponseTokens, saveSettings, saveSettingsDebounced, getCurrentChatDetails, this_chid, chat_metadata, extension_prompt_roles } from '../../../../script.js';
+import { characters, stopGeneration, getMaxContextSize, getMaxContextTokens, getMaxResponseTokens, saveSettings, saveSettingsDebounced, getCurrentChatDetails, this_chid, chat_metadata, extension_prompt_roles, getRequestHeaders } from '../../../../script.js';
 import { selected_group, getGroupMembers } from '../../../group-chats.js';
 import { loadWorldInfo, saveWorldInfo, worldInfoCache, world_info_character_strategy, world_info_insertion_strategy, world_info_budget, world_info_budget_cap, world_names, selected_world_info, METADATA_KEY, world_info, checkWorldInfo, getWorldInfoPrompt } from '../../../world-info.js';
 import { prepareOpenAIMessages, setOpenAIMessages, setOpenAIMessageExamples, promptManager as stPromptManager } from '../../../openai.js';
@@ -4279,6 +4279,17 @@ function gigmaSetBudgetDebugLogsPref(enabled){
         if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
     }catch(_){ }
 }
+function gigmaGetShowLorebookIdProcessDialogPref(){
+    try{
+        return gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.showLorebookIdProcessDialog, false);
+    }catch(_){ return false; }
+}
+function gigmaSetShowLorebookIdProcessDialogPref(enabled){
+    try{
+        gigmaPersistBinaryExtensionSetting('showLorebookIdProcessDialog', !!enabled, 0);
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+    }catch(_){ }
+}
 
 function gigmaClampModalUndoHistorySteps(value){
     try{
@@ -4332,7 +4343,7 @@ function gigmaInstallEraseSettingsConfirmStylesOnce(){
         s.id = 'gigma-erase-settings-confirm-style';
         s.textContent = `
 dialog:has(#gigma-erase-settings-confirm-root){
-  width:34em !important;
+  width:40em !important;
 }
 #gigma-erase-settings-confirm-root{
   width:100%;
@@ -4400,6 +4411,19 @@ dialog:has(#gigma-erase-settings-confirm-root){
   text-align:center;
   font-size:1.05em;
 }
+#gigma-erase-settings-confirm-root .gigma-erase-settings-extra-option{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:0.55em;
+  text-align:center;
+  font-size:0.92em;
+  line-height:1.35;
+}
+#gigma-erase-settings-confirm-root .gigma-erase-settings-extra-option input{
+  margin:0;
+  flex:0 0 auto;
+}
 #gigma-erase-settings-confirm-root .gigma-erase-settings-status{
   min-height:1.2em;
   font-size:0.85em;
@@ -4461,6 +4485,630 @@ function gigmaEraseOwnLocalStorageSettings(){
     }catch(_){ }
 }
 
+function gigmaGetWorldJsonFileNames(){
+    try{
+        if (Array.isArray(world_names)) {
+            return world_names.map((name) => String(name || '').trim()).filter(Boolean);
+        }
+    }catch(_){ }
+    try{
+        if (worldInfoCache && typeof worldInfoCache.keys === 'function') {
+            return Array.from(worldInfoCache.keys()).map((name) => String(name || '').trim()).filter(Boolean);
+        }
+    }catch(_){ }
+    return [];
+}
+
+function gigmaGetWorldJsonFileCount(){
+    return gigmaGetWorldJsonFileNames().length;
+}
+
+function gigmaGetLayoutPresetCount(kind){
+    try{
+        return Object.keys(gigmaGetLayoutPresetStore(kind) || {}).length;
+    }catch(_){ }
+    return 0;
+}
+
+function gigmaGetAssignmentPresetCount(){
+    try{
+        return Object.keys(gigmaGetAssignmentPresetStore() || {}).length;
+    }catch(_){ }
+    return 0;
+}
+
+function gigmaBuildEraseAllGigmaSettingsTitle(includeLorebookIds){
+    const parentCount = gigmaGetLayoutPresetCount('parent');
+    const childCount = gigmaGetLayoutPresetCount('child');
+    const assignmentCount = gigmaGetAssignmentPresetCount();
+    const worldFileCount = gigmaGetWorldJsonFileCount();
+    if (includeLorebookIds) {
+        return `Are you sure that you want to erase ALL GIGMA extension settings, including ALL ${parentCount} parent and ${childCount} child layout presets, ALL ${assignmentCount} assignment presets and ALL lorebook ID from ALL ${worldFileCount} world json files? This can not be undone!`;
+    }
+    return `Are you sure that you want to erase ALL GIGMA extension settings, including ALL ${parentCount} parent and ${childCount} child layout presets and ALL ${assignmentCount} assignment presets? This can not be undone!`;
+}
+
+function gigmaBuildEraseAllGigmaSettingsCopy(includeLorebookIds){
+    const worldFileCount = gigmaGetWorldJsonFileCount();
+    if (includeLorebookIds) {
+        return `Solve this math equation to confirm that you really want to erase ALL GIGMA extension settings and ALL lorebook IDs from ALL ${worldFileCount} world json files.`;
+    }
+    return 'Solve this math equation to confirm that you really want to erase ALL GIGMA extension settings.';
+}
+
+function gigmaBuildEraseAllLorebookIdsTitle(){
+    const worldFileCount = gigmaGetWorldJsonFileCount();
+    return `Are you sure that you want to erase ALL lorebook IDs from ALL ${worldFileCount} world json files? This can not be undone!`;
+}
+
+function gigmaBuildEraseAllLorebookIdsCopy(){
+    const worldFileCount = gigmaGetWorldJsonFileCount();
+    return `Solve this math equation to confirm that you really want to erase ALL lorebook IDs from ALL ${worldFileCount} world json files.`;
+}
+
+function gigmaBuildWorldJsonDisplayPath(worldName){
+    const name = String(worldName || '').trim();
+    return name ? `worlds/${name}.json` : '';
+}
+
+async function gigmaFetchWorldJsonFileList(){
+    try{
+        const response = await fetch('/api/worldinfo/list', {
+            method: 'POST',
+            headers: getRequestHeaders(),
+            body: JSON.stringify({}),
+            cache: 'no-cache',
+        });
+        if (!response.ok) return [];
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+    }catch(_){ }
+    return [];
+}
+
+function gigmaGetWorldJsonFileDisplayPath(fileInfo, worldName){
+    const rawFileId = fileInfo && typeof fileInfo.file_id === 'string' ? fileInfo.file_id.trim() : '';
+    const rawWorldName = typeof worldName === 'string' ? worldName.trim() : '';
+    const fileBase = rawFileId || rawWorldName;
+    return fileBase ? `worlds/${fileBase}.json` : 'worlds/*.json';
+}
+
+async function gigmaLoadWorldInfoFast(name){
+    if (!name) return null;
+    try{
+        if (worldInfoCache && typeof worldInfoCache.get === 'function' && worldInfoCache.has(name)) {
+            return worldInfoCache.get(name);
+        }
+    }catch(_){ }
+    try{
+        const response = await fetch('/api/worldinfo/get', {
+            method: 'POST',
+            headers: getRequestHeaders(),
+            body: JSON.stringify({ name }),
+            cache: 'no-cache',
+        });
+        if (!response.ok) return null;
+        const data = await response.json();
+        try{
+            if (worldInfoCache && typeof worldInfoCache.set === 'function') {
+                worldInfoCache.set(name, data);
+            }
+        }catch(_){ }
+        return data;
+    }catch(_){ }
+    return null;
+}
+
+async function gigmaSaveWorldInfoFast(name, data){
+    if (!name || !data) return;
+    try{
+        if (worldInfoCache && typeof worldInfoCache.set === 'function') {
+            worldInfoCache.set(name, data);
+        }
+    }catch(_){ }
+    const response = await fetch('/api/worldinfo/edit', {
+        method: 'POST',
+        headers: getRequestHeaders(),
+        body: JSON.stringify({ name, data }),
+    });
+    if (!response.ok) {
+        throw new Error(`Lorebook save failed for ${name} with status ${response.status}`);
+    }
+}
+
+function gigmaMarkWorldInfoExtensionRemoved(worldData){
+    if (!worldData || typeof worldData !== 'object') return false;
+    if (!Object.prototype.hasOwnProperty.call(worldData, EXTENSION_NAME)) return false;
+    worldData[EXTENSION_NAME] = undefined;
+    return true;
+}
+
+async function gigmaEmitCurrentLorebookWorldInfoUpdatedIfTouched(touchedNames){
+    try{
+        const currentName = (typeof getCurrentLorebookName === 'function') ? String(getCurrentLorebookName() || '').trim() : '';
+        if (!currentName || !touchedNames || !touchedNames.has(currentName)) return;
+        const data = (worldInfoCache && typeof worldInfoCache.get === 'function' && worldInfoCache.has(currentName))
+            ? worldInfoCache.get(currentName)
+            : null;
+        await eventSource.emit(event_types.WORLDINFO_UPDATED, currentName, data);
+    }catch(_){ }
+}
+
+function gigmaHasLorebookIdInWorldFileInfo(fileInfo){
+    try{
+        const ext = fileInfo && fileInfo.extensions && typeof fileInfo.extensions === 'object' ? fileInfo.extensions[EXTENSION_NAME] : null;
+        return !!(ext && typeof ext.id === 'string' && ext.id.trim());
+    }catch(_){ }
+    return false;
+}
+
+function gigmaHasExtensionResidueInWorldFileInfo(fileInfo){
+    try{
+        const ext = fileInfo && fileInfo.extensions && typeof fileInfo.extensions === 'object' ? fileInfo.extensions[EXTENSION_NAME] : null;
+        return !!(ext && typeof ext === 'object');
+    }catch(_){ }
+    return false;
+}
+
+function gigmaBuildWorldJsonFileInfoByName(fileList){
+    const map = new Map();
+    for (const item of (fileList || [])) {
+        const name = item && typeof item.name === 'string' ? item.name.trim() : '';
+        if (!name) continue;
+        map.set(name, item);
+    }
+    return map;
+}
+
+function gigmaGetLorebookIdBatchSize(){
+    return 256;
+}
+
+function gigmaGetLorebookIdRequestChunkSize(){
+    return 512;
+}
+
+function gigmaGenerateUniqueLorebookIdFromSet(usedIds){
+    let id = '';
+    do {
+        id = gigmaGenerateLorebookId();
+    } while (usedIds.has(id));
+    usedIds.add(id);
+    return id;
+}
+
+async function gigmaRunLorebookIdBatchProcessing(targets, progress, worker){
+    const batchSize = gigmaGetLorebookIdBatchSize();
+    let processed = 0;
+    let aborted = false;
+    for (let index = 0; index < targets.length; index += batchSize) {
+        if (progress && progress.isAborted()) {
+            aborted = true;
+            break;
+        }
+        const batch = targets.slice(index, index + batchSize);
+        let lastTarget = null;
+        await Promise.all(batch.map(async (target) => {
+            await worker(target);
+            processed += 1;
+            lastTarget = target;
+        }));
+        if (progress && lastTarget) {
+            progress.setCurrentPath(lastTarget.displayPath);
+            progress.setProcessed(processed);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+    }
+    return { aborted, processed };
+}
+
+async function gigmaScanWorldJsonLorebookIdState(){
+    const worldFileNames = gigmaGetWorldJsonFileNames();
+    try{
+        const fileList = await gigmaFetchWorldJsonFileList();
+        if (Array.isArray(fileList) && fileList.length) {
+            const fileInfoByName = gigmaBuildWorldJsonFileInfoByName(fileList);
+            return worldFileNames.map((worldName) => {
+                const fileInfo = fileInfoByName.get(worldName) || null;
+                const ext = fileInfo && fileInfo.extensions && typeof fileInfo.extensions === 'object' ? fileInfo.extensions[EXTENSION_NAME] : null;
+                const hasExtensionResidue = !!(ext && typeof ext === 'object');
+                const hasLorebookId = !!(ext && typeof ext.id === 'string' && ext.id.trim());
+                return {
+                    name: worldName,
+                    displayPath: gigmaGetWorldJsonFileDisplayPath(fileInfo, worldName),
+                    data: null,
+                    fileInfo,
+                    hasExtensionResidue,
+                    hasLorebookId,
+                };
+            });
+        }
+    }catch(_){ }
+
+    const scan = [];
+    for (const worldName of worldFileNames) {
+        let worldData = null;
+        try{
+            if (worldInfoCache && typeof worldInfoCache.get === 'function' && worldInfoCache.has(worldName)) {
+                worldData = worldInfoCache.get(worldName);
+            }
+        }catch(_){ }
+        if (!worldData) {
+            try{
+                worldData = await loadWorldInfo(worldName);
+            }catch(_){
+                worldData = null;
+            }
+        }
+        const ext = (worldData && typeof worldData === 'object' && worldData[EXTENSION_NAME] && typeof worldData[EXTENSION_NAME] === 'object')
+            ? worldData[EXTENSION_NAME]
+            : null;
+        const hasExtensionResidue = !!(worldData && typeof worldData === 'object' && Object.prototype.hasOwnProperty.call(worldData, EXTENSION_NAME));
+        const hasLorebookId = !!(ext && typeof ext.id === 'string' && ext.id.trim());
+        scan.push({
+            name: worldName,
+            displayPath: gigmaBuildWorldJsonDisplayPath(worldName),
+            data: worldData,
+            fileInfo: null,
+            hasExtensionResidue,
+            hasLorebookId,
+        });
+    }
+    return scan;
+}
+
+function gigmaInstallLorebookIdProcessPopupStylesOnce(){
+    try{
+        if (document.getElementById('gigma-lorebook-id-process-style')) return;
+        const s = document.createElement('style');
+        s.id = 'gigma-lorebook-id-process-style';
+        s.textContent = `
+dialog:has(#gigma-lorebook-id-process-root){
+  width:46em !important;
+}
+#gigma-lorebook-id-process-root{
+  width:100%;
+  box-sizing:border-box;
+  padding:1em;
+  display:flex;
+  flex-direction:column;
+  gap:0.85em;
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-title{
+  font-size:1.02em;
+  font-weight:700;
+  line-height:1.35;
+  color:var(--white100);
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-current-label{
+  font-size:0.88em;
+  opacity:0.78;
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-current-path{
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:0.92em;
+  line-height:1.35;
+  padding:0.75em;
+  border-radius:0.65em;
+  background:rgba(0,0,0,0.22);
+  border:0.0625em solid rgba(255,255,255,0.12);
+  overflow-wrap:anywhere;
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-progress-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:0.55em;
+  width:100%;
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-bar{
+  position:relative;
+  width:100%;
+  height:1.1em;
+  border-radius:999em;
+  overflow:hidden;
+  background:rgba(180,40,40,0.88);
+  box-shadow:inset 0 0 0 0.0625em rgba(255,255,255,0.14);
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-bar-fill{
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:0%;
+  background:rgba(68,176,92,0.95);
+  transition:width 0.12s linear;
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-counts{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:1em;
+  width:100%;
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-count-left,
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-count-right{
+  font-size:0.88em;
+  line-height:1.3;
+  font-weight:700;
+  max-width:48%;
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-count-left{
+  text-align:left;
+  color:rgba(220,86,86,0.98);
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-count-right{
+  text-align:right;
+  color:rgba(68,176,92,0.98);
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-note{
+  font-size:0.88em;
+  line-height:1.35;
+  opacity:0.88;
+}
+#gigma-lorebook-id-process-root .gigma-lorebook-id-process-status{
+  min-height:1.2em;
+  font-size:0.86em;
+  line-height:1.2;
+  opacity:0.82;
+}
+`;
+        document.head.appendChild(s);
+    }catch(_){ }
+}
+
+function gigmaBuildLorebookIdProcessTexts(mode, processedCount, totalUnits){
+    const total = Math.max(0, Number(totalUnits) || 0);
+    const done = Math.min(total, Math.max(0, Number(processedCount) || 0));
+    const remaining = Math.max(0, total - done);
+    if (mode === 'remove') {
+        return {
+            title: 'Removing lorebook IDs from world json files...',
+            left: `${remaining} world json files still with lorebook IDs`,
+            right: `${done} world json files now without lorebook IDs`,
+            note: 'Note: This process removes lorebook IDs from world json files.',
+            done: 'Finished.',
+            aborting: 'Aborting after the current batch finishes.',
+        };
+    }
+    return {
+        title: 'Adding lorebook IDs to world json files for better file management...',
+        left: `${remaining} world json files without lorebook IDs`,
+        right: `${done} world json files with lorebook IDs`,
+        note: 'Note: There is an option to "erase all LB IDs from the world json files" in the settings.',
+        done: 'Finished.',
+        aborting: 'Aborting after the current batch finishes.',
+    };
+}
+
+
+function gigmaApplySettingsTrashButtonIcon(button){
+    try{
+        if (!button) return;
+        button.innerHTML = '<i class="fa-solid fa-trash-can" aria-hidden="true"></i>';
+    }catch(_){ }
+}
+
+function gigmaRemoveTextInputsFromLorebookIdProcessDialog(dialog){
+    try{
+        if (!dialog || typeof dialog.querySelectorAll !== 'function') return;
+        const selector = [
+            'textarea',
+            'input:not([type])',
+            'input[type="text"]',
+            'input[type="search"]',
+            'input[type="number"]',
+            'input[type="email"]',
+            'input[type="url"]',
+            'input[type="password"]',
+        ].join(', ');
+        dialog.querySelectorAll(selector).forEach((el) => {
+            try{ el.remove(); }catch(_){ }
+        });
+    }catch(_){ }
+}
+
+function gigmaCreateLorebookIdProcessPopupController(mode, totalUnits){
+    gigmaInstallLorebookIdProcessPopupStylesOnce();
+
+    const texts = gigmaBuildLorebookIdProcessTexts(mode, 0, totalUnits);
+    const html = `
+        <div id="gigma-lorebook-id-process-root">
+            <div class="gigma-lorebook-id-process-title">${texts.title}</div>
+            <div class="gigma-lorebook-id-process-current-label">World file:</div>
+            <div id="gigma-lorebook-id-process-current-path" class="gigma-lorebook-id-process-current-path">—</div>
+            <div class="gigma-lorebook-id-process-progress-wrap">
+                <div class="gigma-lorebook-id-process-bar">
+                    <div id="gigma-lorebook-id-process-bar-fill" class="gigma-lorebook-id-process-bar-fill"></div>
+                </div>
+                <div class="gigma-lorebook-id-process-counts">
+                    <div id="gigma-lorebook-id-process-left-text" class="gigma-lorebook-id-process-count-left"></div>
+                    <div id="gigma-lorebook-id-process-right-text" class="gigma-lorebook-id-process-count-right"></div>
+                </div>
+            </div>
+            <div class="gigma-lorebook-id-process-note">${texts.note}</div>
+            <div id="gigma-lorebook-id-process-status" class="gigma-lorebook-id-process-status"></div>
+        </div>
+    `;
+
+    const state = {
+        finished: false,
+        aborted: false,
+        popup: null,
+        dialog: null,
+        okBtn: null,
+        cancelBtn: null,
+        pathEl: null,
+        leftTextEl: null,
+        rightTextEl: null,
+        fillEl: null,
+        statusEl: null,
+        currentPath: '—',
+        processedCount: 0,
+    };
+
+    const popup = new Popup(html, POPUP_TYPE.CONFIRM, '', {
+        okButton: 'OK',
+        cancelButton: 'Abort',
+        wide: false,
+        large: false,
+        allowVerticalScrolling: false,
+        onClosing: (p) => {
+            const wantsOk = !!(p && p.result === 1);
+            if (!state.finished && wantsOk) return false;
+            if (!state.finished && !wantsOk) {
+                state.aborted = true;
+                applyStateToDom();
+            }
+            return true;
+        },
+    });
+    popup.show();
+    state.popup = popup;
+
+    const applyStateToDom = () => {
+        try{ gigmaRemoveTextInputsFromLorebookIdProcessDialog(state.dialog); }catch(_){ }
+        const safeTotal = Math.max(0, Number(totalUnits) || 0);
+        const done = Math.min(safeTotal, Math.max(0, Number(state.processedCount) || 0));
+        const percent = safeTotal > 0 ? (done / safeTotal) * 100 : 100;
+        const nextTexts = gigmaBuildLorebookIdProcessTexts(mode, done, safeTotal);
+        if (state.pathEl) state.pathEl.textContent = String(state.currentPath || '—');
+        if (state.leftTextEl) state.leftTextEl.textContent = nextTexts.left;
+        if (state.rightTextEl) state.rightTextEl.textContent = nextTexts.right;
+        if (state.fillEl) state.fillEl.style.width = `${percent}%`;
+        if (state.statusEl) {
+            state.statusEl.textContent = state.finished
+                ? nextTexts.done
+                : state.aborted
+                    ? nextTexts.aborting
+                    : `${done} / ${safeTotal} processed.`;
+        }
+        if (state.okBtn) state.okBtn.style.display = state.finished ? '' : 'none';
+        if (state.cancelBtn) {
+            state.cancelBtn.textContent = 'Abort';
+            state.cancelBtn.style.display = state.finished ? 'none' : '';
+        }
+    };
+
+    setTimeout(() => {
+        try{
+            state.dialog = document.querySelector('dialog.popup:last-of-type, dialog.gigma-narrow:last-of-type, dialog.gigma-wide:last-of-type');
+            if (!state.dialog) return;
+            state.okBtn = state.dialog.querySelector('.popup-button-ok, [data-result="1"]');
+            state.cancelBtn = state.dialog.querySelector('.popup-button-cancel, [data-result="0"]');
+            state.pathEl = state.dialog.querySelector('#gigma-lorebook-id-process-current-path');
+            state.leftTextEl = state.dialog.querySelector('#gigma-lorebook-id-process-left-text');
+            state.rightTextEl = state.dialog.querySelector('#gigma-lorebook-id-process-right-text');
+            state.fillEl = state.dialog.querySelector('#gigma-lorebook-id-process-bar-fill');
+            state.statusEl = state.dialog.querySelector('#gigma-lorebook-id-process-status');
+            try{ gigmaRemoveTextInputsFromLorebookIdProcessDialog(state.dialog); }catch(_){ }
+            applyStateToDom();
+        }catch(_){ }
+    }, 0);
+
+    applyStateToDom();
+
+    return {
+        isAborted(){
+            return !!state.aborted;
+        },
+        setCurrentPath(pathText){
+            state.currentPath = String(pathText || '—');
+            applyStateToDom();
+        },
+        setProcessed(doneCount){
+            state.processedCount = Math.max(0, Number(doneCount) || 0);
+            applyStateToDom();
+        },
+        finish(pathText){
+            state.finished = true;
+            state.processedCount = Math.max(0, Number(totalUnits) || 0);
+            if (pathText) state.currentPath = String(pathText);
+            applyStateToDom();
+        },
+    };
+}
+
+async function gigmaEraseAllLorebookIdsFromWorldJsonFiles(){
+    const worldFileNames = gigmaGetWorldJsonFileNames();
+    try{
+        const currentWorldNames = new Set(worldFileNames);
+        const storedNameToId = gigmaGetWorldIdMap();
+        if (!window.gigmaWorldIdByName || typeof window.gigmaWorldIdByName !== 'object') {
+            window.gigmaWorldIdByName = { ...storedNameToId };
+        }
+        if (!window.gigmaNameByWorldId || typeof window.gigmaNameByWorldId !== 'object') {
+            window.gigmaNameByWorldId = {};
+        }
+        const mappedWorldNames = Object.keys(window.gigmaWorldIdByName || {}).filter((worldName) => currentWorldNames.has(worldName));
+        const targetWorldNames = mappedWorldNames.length ? mappedWorldNames : worldFileNames;
+        const showDialog = gigmaGetShowLorebookIdProcessDialogPref();
+        const progress = showDialog && targetWorldNames.length > 0 ? gigmaCreateLorebookIdProcessPopupController('remove', targetWorldNames.length) : null;
+        const requestChunkSize = gigmaGetLorebookIdRequestChunkSize();
+        const nameToId = { ...storedNameToId, ...(window.gigmaWorldIdByName || {}) };
+        const touchedNames = new Set();
+        let processed = 0;
+        let aborted = false;
+        let lastName = '';
+
+        for (let index = 0; index < targetWorldNames.length; index += requestChunkSize) {
+            if (progress && progress.isAborted()) {
+                aborted = true;
+                break;
+            }
+            const batchNames = targetWorldNames.slice(index, index + requestChunkSize);
+            const result = await gigmaRemoveLorebookIdsServerBulk(batchNames);
+            for (const name of batchNames) {
+                const prevId = window.gigmaWorldIdByName[name];
+                if (prevId && window.gigmaNameByWorldId[prevId] === name) {
+                    delete window.gigmaNameByWorldId[prevId];
+                }
+                delete window.gigmaWorldIdByName[name];
+                delete nameToId[name];
+                lastName = name;
+            }
+            for (const name of (result && Array.isArray(result.touchedNames) ? result.touchedNames : [])) {
+                touchedNames.add(String(name));
+            }
+            processed += batchNames.length;
+            if (progress) {
+                progress.setCurrentPath(lastName ? gigmaBuildWorldJsonDisplayPath(lastName) : gigmaBuildWorldJsonDisplayPath(batchNames[batchNames.length - 1]));
+                progress.setProcessed(processed);
+            }
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+
+        gigmaSetWorldIdMap(nameToId);
+
+        if (aborted) {
+            try{
+                if (typeof toastr !== 'undefined' && toastr && typeof toastr.warning === 'function') {
+                    toastr.warning('Erasing lorebook IDs from world json files was aborted.');
+                }
+            }catch(_){ }
+            return false;
+        }
+
+        await gigmaEmitCurrentLorebookWorldInfoUpdatedIfTouched(touchedNames);
+        if (progress) {
+            progress.finish();
+        }
+        try{
+            if (typeof toastr !== 'undefined' && toastr && typeof toastr.success === 'function') {
+                toastr.success(`All lorebook IDs were erased from ${targetWorldNames.length} world json files.`);
+            }
+        }catch(_){ }
+        return true;
+    }catch(error){
+        console.error('GIGMA: Failed to erase all lorebook IDs from world json files.', error);
+        try{
+            if (typeof toastr !== 'undefined' && toastr && typeof toastr.error === 'function') {
+                toastr.error('Failed to erase all lorebook IDs from world json files. See console for details.');
+            }
+        }catch(_){ }
+        return false;
+    }
+}
+
 async function gigmaEraseAllGigmaExtensionSettings(){
     try{
         gigmaEraseOwnLocalStorageSettings();
@@ -4490,15 +5138,25 @@ async function gigmaEraseAllGigmaExtensionSettings(){
     }
 }
 
-async function gigmaShowEraseAllGigmaExtensionSettingsConfirmPopup(){
+async function gigmaShowEraseSettingsMathConfirmPopup(mode){
     return await new Promise((resolve) => {
         try{
             gigmaInstallEraseSettingsConfirmStylesOnce();
             const challenge = gigmaCreateEraseSettingsMathChallenge();
+            const isSettingsMode = mode === 'settings';
+            const state = { correct: false, resolved: false, includeLorebookIds: true };
+            const extraOptionHtml = isSettingsMode
+                ? `
+                    <label class="gigma-erase-settings-extra-option" for="gigma-erase-settings-remove-world-ids">
+                        <input id="gigma-erase-settings-remove-world-ids" type="checkbox" checked />
+                        <span>Also remove all Lorebook IDs from ${gigmaGetWorldJsonFileCount()} world json files.</span>
+                    </label>
+                `
+                : '';
             const html = `
                 <div id="gigma-erase-settings-confirm-root">
-                    <div class="gigma-erase-settings-confirm-title">Are you sure that you want to erase ALL GIGMA extension settings, including ALL layout and assignment presets? This can NOT be undone!</div>
-                    <div class="gigma-erase-settings-confirm-copy">Solve this math equation to confirm that you really want to erase ALL GIGMA extension settings.</div>
+                    <div id="gigma-erase-settings-confirm-title" class="gigma-erase-settings-confirm-title">${isSettingsMode ? gigmaBuildEraseAllGigmaSettingsTitle(true) : gigmaBuildEraseAllLorebookIdsTitle()}</div>
+                    <div id="gigma-erase-settings-confirm-copy" class="gigma-erase-settings-confirm-copy">${isSettingsMode ? gigmaBuildEraseAllGigmaSettingsCopy(true) : gigmaBuildEraseAllLorebookIdsCopy()}</div>
                     <div class="gigma-erase-settings-confirm-panel">
                         <label class="gigma-erase-settings-equation-label" for="gigma-erase-settings-answer-input">Enter the result:</label>
                         <div class="gigma-erase-settings-equation-row">
@@ -4506,12 +5164,12 @@ async function gigmaShowEraseAllGigmaExtensionSettingsConfirmPopup(){
                             <input id="gigma-erase-settings-answer-input" class="text_pole textarea_compact gigma-erase-settings-answer" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" />
                         </div>
                     </div>
+                    ${extraOptionHtml}
                     <div id="gigma-erase-settings-status" class="gigma-erase-settings-status">Enter the correct result to enable erasing.</div>
                 </div>
             `;
-            const state = { correct: false, resolved: false };
             const popup = new Popup(html, POPUP_TYPE.CONFIRM, '', {
-                okButton: 'Erase all GIGMA settings',
+                okButton: isSettingsMode ? 'Erase all GIGMA settings' : 'Erase all lorebook IDs',
                 cancelButton: 'Cancel',
                 wide: false,
                 large: false,
@@ -4521,7 +5179,7 @@ async function gigmaShowEraseAllGigmaExtensionSettingsConfirmPopup(){
                     if (wantsConfirm && !state.correct) return false;
                     if (!state.resolved) {
                         state.resolved = true;
-                        resolve(wantsConfirm && state.correct);
+                        resolve({ confirmed: wantsConfirm && state.correct, includeLorebookIds: !!state.includeLorebookIds });
                     }
                     return true;
                 },
@@ -4534,7 +5192,16 @@ async function gigmaShowEraseAllGigmaExtensionSettingsConfirmPopup(){
                     const okBtn = dialog.querySelector('.popup-button-ok, [data-result="1"]');
                     const answerInput = dialog.querySelector('#gigma-erase-settings-answer-input');
                     const statusEl = dialog.querySelector('#gigma-erase-settings-status');
+                    const titleEl = dialog.querySelector('#gigma-erase-settings-confirm-title');
+                    const copyEl = dialog.querySelector('#gigma-erase-settings-confirm-copy');
+                    const worldIdsCheckbox = dialog.querySelector('#gigma-erase-settings-remove-world-ids');
                     gigmaSetPopupActionDisabled(okBtn, true);
+                    const updateModeCopy = () => {
+                        if (!isSettingsMode) return;
+                        state.includeLorebookIds = !worldIdsCheckbox || !!worldIdsCheckbox.checked;
+                        if (titleEl) titleEl.textContent = gigmaBuildEraseAllGigmaSettingsTitle(state.includeLorebookIds);
+                        if (copyEl) copyEl.textContent = gigmaBuildEraseAllGigmaSettingsCopy(state.includeLorebookIds);
+                    };
                     const update = () => {
                         const raw = answerInput && typeof answerInput.value === 'string' ? answerInput.value.trim() : '';
                         const isWholeNumber = /^-?\d+$/.test(raw);
@@ -4548,6 +5215,9 @@ async function gigmaShowEraseAllGigmaExtensionSettingsConfirmPopup(){
                             statusEl.classList.toggle('is-ready', isCorrect);
                         }
                     };
+                    if (worldIdsCheckbox) {
+                        worldIdsCheckbox.addEventListener('change', updateModeCopy);
+                    }
                     if (answerInput) {
                         answerInput.addEventListener('input', update);
                         answerInput.addEventListener('keydown', (ev) => {
@@ -4566,13 +5236,22 @@ async function gigmaShowEraseAllGigmaExtensionSettingsConfirmPopup(){
                             if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation();
                         }, true);
                     }
+                    updateModeCopy();
                     update();
                 }catch(_){ }
             }, 0);
         }catch(_){
-            resolve(false);
+            resolve({ confirmed: false, includeLorebookIds: false });
         }
     });
+}
+
+async function gigmaShowEraseAllGigmaExtensionSettingsConfirmPopup(){
+    return await gigmaShowEraseSettingsMathConfirmPopup('settings');
+}
+
+async function gigmaShowEraseAllLorebookIdsConfirmPopup(){
+    return await gigmaShowEraseSettingsMathConfirmPopup('lorebook-ids');
 }
 function gigmaUpdateViewLockButton(btn, locked){
     try{
@@ -4877,6 +5556,120 @@ function gigmaGeneratePresetId() {
     const rand = (BigInt(buf[0] >>> 0) << 32n) | BigInt(buf[1] >>> 0);
     const idBig = (ts << 64n) | rand;
     return 'gigmap-' + idBig.toString(36);
+}
+
+async function gigmaAssignLorebookIdsServerBulk(worldNames){
+    const names = Array.from(new Set((worldNames || []).map((name) => String(name || '').trim()).filter(Boolean)));
+    if (!names.length) return { processed: 0, changed: 0, idsByName: {}, touchedNames: [] };
+    const usedIds = new Set(
+        Object.values({ ...(gigmaGetWorldIdMap() || {}), ...((window.gigmaWorldIdByName && typeof window.gigmaWorldIdByName === 'object') ? window.gigmaWorldIdByName : {}) })
+            .map((id) => String(id || '').trim())
+            .filter(Boolean),
+    );
+    const idsByName = {};
+    const touchedNames = [];
+    const targets = names.map((name) => ({ name, displayPath: gigmaBuildWorldJsonDisplayPath(name) }));
+    await gigmaRunLorebookIdBatchProcessing(targets, null, async (target) => {
+        const data = await gigmaLoadWorldInfoFast(target.name);
+        if (!data || typeof data !== 'object') return;
+        let ext = data[EXTENSION_NAME];
+        if (!ext || typeof ext !== 'object') {
+            ext = {};
+            data[EXTENSION_NAME] = ext;
+        }
+        let id = typeof ext.id === 'string' ? ext.id.trim() : '';
+        if (!id) {
+            id = gigmaGenerateUniqueLorebookIdFromSet(usedIds);
+            ext.id = id;
+            await gigmaSaveWorldInfoFast(target.name, data);
+            touchedNames.push(target.name);
+        }
+        idsByName[target.name] = id;
+    });
+    return { processed: names.length, changed: touchedNames.length, idsByName, touchedNames };
+}
+
+async function gigmaRemoveLorebookIdsServerBulk(worldNames){
+    const names = Array.from(new Set((worldNames || []).map((name) => String(name || '').trim()).filter(Boolean)));
+    if (!names.length) return { processed: 0, changed: 0, touchedNames: [] };
+    const touchedNames = [];
+    const targets = names.map((name) => ({ name, displayPath: gigmaBuildWorldJsonDisplayPath(name) }));
+    await gigmaRunLorebookIdBatchProcessing(targets, null, async (target) => {
+        const worldData = await gigmaLoadWorldInfoFast(target.name);
+        if (!worldData || typeof worldData !== 'object') return;
+        if (!gigmaMarkWorldInfoExtensionRemoved(worldData)) return;
+        await gigmaSaveWorldInfoFast(target.name, worldData);
+        touchedNames.push(target.name);
+    });
+    return { processed: names.length, changed: touchedNames.length, touchedNames };
+}
+
+async function gigmaEnsureLorebookIdsForNamesBatched(worldNames, options = {}){
+    const names = Array.from(new Set((worldNames || []).map((name) => String(name || '').trim()).filter(Boolean)));
+    if (!names.length) return { aborted: false, processed: 0, total: 0, missingCount: 0 };
+
+    const storedNameToId = gigmaGetWorldIdMap();
+    if (!window.gigmaWorldIdByName || typeof window.gigmaWorldIdByName !== 'object') {
+        window.gigmaWorldIdByName = { ...storedNameToId };
+    }
+    if (!window.gigmaNameByWorldId || typeof window.gigmaNameByWorldId !== 'object') {
+        window.gigmaNameByWorldId = {};
+        for (const [name, id] of Object.entries(window.gigmaWorldIdByName || {})) {
+            if (!id) continue;
+            window.gigmaNameByWorldId[String(id)] = String(name);
+        }
+    }
+
+    const targets = names.filter((name) => !window.gigmaWorldIdByName[name]);
+    const total = targets.length;
+    if (!total) return { aborted: false, processed: 0, total: 0, missingCount: 0 };
+
+    const threshold = Number(options.popupThreshold);
+    const showDialog = gigmaGetShowLorebookIdProcessDialogPref();
+    const usePopup = showDialog && (Number.isFinite(threshold) ? total > threshold : total > 10);
+    const progress = usePopup ? gigmaCreateLorebookIdProcessPopupController('add', total) : null;
+    const requestChunkSize = gigmaGetLorebookIdRequestChunkSize();
+    const nameToId = { ...storedNameToId, ...(window.gigmaWorldIdByName || {}) };
+    const touchedNames = new Set();
+    let processed = 0;
+    let aborted = false;
+    let lastName = '';
+
+    for (let index = 0; index < targets.length; index += requestChunkSize) {
+        if (progress && progress.isAborted()) {
+            aborted = true;
+            break;
+        }
+        const batchNames = targets.slice(index, index + requestChunkSize);
+        const result = await gigmaAssignLorebookIdsServerBulk(batchNames);
+        const idsByName = result && result.idsByName && typeof result.idsByName === 'object' ? result.idsByName : {};
+        for (const [name, idValue] of Object.entries(idsByName)) {
+            const id = String(idValue || '').trim();
+            if (!id) continue;
+            nameToId[name] = id;
+            window.gigmaWorldIdByName[name] = id;
+            window.gigmaNameByWorldId[id] = name;
+            lastName = name;
+        }
+        for (const name of (result && Array.isArray(result.touchedNames) ? result.touchedNames : [])) {
+            touchedNames.add(String(name));
+        }
+        processed += batchNames.length;
+        if (progress) {
+            progress.setCurrentPath(lastName ? gigmaBuildWorldJsonDisplayPath(lastName) : gigmaBuildWorldJsonDisplayPath(batchNames[batchNames.length - 1]));
+            progress.setProcessed(processed);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    gigmaSetWorldIdMap(nameToId);
+    await gigmaEmitCurrentLorebookWorldInfoUpdatedIfTouched(touchedNames);
+
+    if (!aborted && progress) {
+        progress.finish('Finished.');
+    }
+
+    return { aborted, processed, total, missingCount: total };
 }
 
 /**
@@ -6681,6 +7474,16 @@ async function gigmaSyncAllLorebookIdsAndStatsIndex() {
             const names = Array.isArray(world_names) ? world_names.filter(n => typeof n === 'string' && n.trim()) : [];
             const currentNames = new Set(names);
             const currentIds = new Set();
+            const ensureResult = await gigmaEnsureLorebookIdsForNamesBatched(names, { popupThreshold: 10 });
+
+            if (ensureResult.aborted) {
+                try {
+                    if (typeof toastr !== 'undefined' && toastr && typeof toastr.warning === 'function') {
+                        toastr.warning('Adding lorebook IDs to world json files was aborted.');
+                    }
+                } catch (_){ }
+                return;
+            }
 
             for (const name of names) {
                 let id = window.gigmaWorldIdByName[name];
@@ -15686,9 +16489,10 @@ function gigmaInstallModalSettingsPopupStylesOnce() {
 #gigma-modal-root #gigma-modal-settings-popup #gigma-clear-folders-right{
   display:inline-flex !important;
 }
-#gigma-modal-root #gigma-modal-settings-popup :is(#gigma-clear-folders, #gigma-clear-folders-right) svg{
+#gigma-modal-root #gigma-modal-settings-popup :is(#gigma-clear-folders, #gigma-clear-folders-right) :is(svg, i){
   width:0.9em;
   height:0.9em;
+  font-size:0.92em;
 }
 #gigma-modal-root #gigma-modal-settings-popup :is(#gigma-modal-settings-multi-delete-btn, #gigma-modal-settings-assignment-delete-btn){
   display:inline-flex !important;
@@ -15697,19 +16501,20 @@ function gigmaInstallModalSettingsPopupStylesOnce() {
   width:0.9em;
   height:0.9em;
 }
-#gigma-modal-root #gigma-modal-settings-popup #gigma-modal-settings-erase-all-btn{
+#gigma-modal-root #gigma-modal-settings-popup .gigma-modal-settings-trash-btn{
   display:inline-flex !important;
-  color:#ffd7d7;
-  border-color:rgba(255,90,90,0.34) !important;
-  background:linear-gradient(180deg, rgba(120,10,10,0.82), rgba(70,0,0,0.96)) !important;
 }
-#gigma-modal-root #gigma-modal-settings-popup #gigma-modal-settings-erase-all-btn:hover,
-#gigma-modal-root #gigma-modal-settings-popup #gigma-modal-settings-erase-all-btn:focus-visible{
+#gigma-modal-root #gigma-modal-settings-popup .gigma-modal-settings-trash-btn:hover,
+#gigma-modal-root #gigma-modal-settings-popup .gigma-modal-settings-trash-btn:focus-visible{
   background:linear-gradient(180deg, rgba(160,16,16,0.9), rgba(100,0,0,1)) !important;
   border-color:rgba(255,120,120,0.62) !important;
 }
-#gigma-modal-root #gigma-modal-settings-popup #gigma-modal-settings-erase-all-btn i{
+#gigma-modal-root #gigma-modal-settings-popup .gigma-modal-settings-trash-btn i{
   font-size:0.92em;
+}
+#gigma-modal-root #gigma-modal-settings-popup .gigma-modal-settings-trash-btn svg{
+  width:0.9em;
+  height:0.9em;
 }
 #gigma-modal-root #gigma-modal-settings-popup .gigma-settings-slot .gigma-modal-settings-number{
   width:4.8em;
@@ -16355,6 +17160,8 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Debug logs', 'gigma-modal-settings-slot-budget-debug-logs');
             addRow('Auto-update entry order in WI UI', 'gigma-modal-settings-slot-auto-wi-order');
             addRow('Undo history steps', 'gigma-modal-settings-slot-undo-history');
+            addRow('LB ID assignment & removal popup', 'gigma-modal-settings-slot-show-lorebook-id-dialog');
+            addRow('Erase all LB IDs from world json files', 'gigma-modal-settings-slot-erase-lorebook-ids');
             addRow('Erase all GIGMA extension settings', 'gigma-modal-settings-slot-erase-all');
 
             popup.appendChild(table);
@@ -16378,11 +17185,13 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
                 b = document.createElement('button');
                 b.id = 'gigma-modal-settings-multi-delete-btn';
                 b.type = 'button';
-                b.className = 'menu_button gigma-icon-btn';
+                b.className = 'menu_button gigma-icon-btn gigma-modal-settings-trash-btn';
                 b.title = 'Delete multiple layout presets';
                 b.setAttribute('aria-label', 'Delete multiple layout presets');
-                b.innerHTML = gigmaGetMultiPresetDeleteIconSvg();
+                gigmaApplySettingsTrashButtonIcon(b);
             }
+            try { if (b) b.classList.add('gigma-modal-settings-trash-btn'); } catch (_e) { }
+            try { gigmaApplySettingsTrashButtonIcon(b); } catch (_e) { }
             slotMultiDelete.replaceChildren(b);
             try { gigmaSquareButtonToHeight(b); } catch (_e) { }
         }
@@ -16394,11 +17203,13 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
                 b = document.createElement('button');
                 b.id = 'gigma-modal-settings-assignment-delete-btn';
                 b.type = 'button';
-                b.className = 'menu_button gigma-icon-btn';
+                b.className = 'menu_button gigma-icon-btn gigma-modal-settings-trash-btn';
                 b.title = 'Delete multiple assignment presets';
                 b.setAttribute('aria-label', 'Delete multiple assignment presets');
-                b.innerHTML = gigmaGetMultiPresetDeleteIconSvg();
+                gigmaApplySettingsTrashButtonIcon(b);
             }
+            try { if (b) b.classList.add('gigma-modal-settings-trash-btn'); } catch (_e) { }
+            try { gigmaApplySettingsTrashButtonIcon(b); } catch (_e) { }
             slotAssignmentDelete.replaceChildren(b);
             try { gigmaSquareButtonToHeight(b); } catch (_e) { }
         }
@@ -16406,6 +17217,8 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
         const slotLeft = popup.querySelector('#gigma-modal-settings-slot-clear-left');
         if (slotLeft) {
             const b = document.getElementById('gigma-clear-folders');
+            try { if (b) b.classList.add('gigma-modal-settings-trash-btn'); } catch (_e) { }
+            try { gigmaApplySettingsTrashButtonIcon(b); } catch (_e) { }
             if (b) slotLeft.replaceChildren(b);
             try { if (b) gigmaSquareButtonToHeight(b); } catch (_e) { }
         }
@@ -16413,6 +17226,8 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
         const slotRight = popup.querySelector('#gigma-modal-settings-slot-clear-right');
         if (slotRight) {
             const b = document.getElementById('gigma-clear-folders-right');
+            try { if (b) b.classList.add('gigma-modal-settings-trash-btn'); } catch (_e) { }
+            try { gigmaApplySettingsTrashButtonIcon(b); } catch (_e) { }
             if (b) slotRight.replaceChildren(b);
             try { if (b) gigmaSquareButtonToHeight(b); } catch (_e) { }
         }
@@ -16604,6 +17419,28 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             slotUndoHistory.replaceChildren(input);
         }
 
+        const slotShowLorebookIdDialog = popup.querySelector('#gigma-modal-settings-slot-show-lorebook-id-dialog');
+        if (slotShowLorebookIdDialog) {
+            let b = popup.querySelector('#gigma-modal-settings-show-lorebook-id-dialog-btn');
+            if (!b) {
+                const control = gigmaCreatePrettySwitch(
+                    gigmaGetShowLorebookIdProcessDialogPref(),
+                    'LB ID assignment & removal popup',
+                    'LB ID assignment & removal popup',
+                    (ev) => {
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
+                        gigmaSetShowLorebookIdProcessDialogPref(ev.currentTarget.checked);
+                    },
+                );
+                b = control.input;
+                b.id = 'gigma-modal-settings-show-lorebook-id-dialog-btn';
+                slotShowLorebookIdDialog.appendChild(control.switchLabel);
+            } else if (b.closest('label')?.parentElement !== slotShowLorebookIdDialog) {
+                slotShowLorebookIdDialog.appendChild(b.closest('label'));
+            }
+            b.checked = !!gigmaGetShowLorebookIdProcessDialogPref();
+        }
+
         const slotEraseAll = popup.querySelector('#gigma-modal-settings-slot-erase-all');
         if (slotEraseAll) {
             let b = popup.querySelector('#gigma-modal-settings-erase-all-btn');
@@ -16611,18 +17448,48 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
                 b = document.createElement('button');
                 b.id = 'gigma-modal-settings-erase-all-btn';
                 b.type = 'button';
-                b.className = 'menu_button gigma-icon-btn';
+                b.className = 'menu_button gigma-icon-btn gigma-modal-settings-trash-btn';
                 b.title = 'Erase all GIGMA extension settings';
                 b.setAttribute('aria-label', 'Erase all GIGMA extension settings');
                 b.innerHTML = '<i class="fa-solid fa-trash-can" aria-hidden="true"></i>';
                 b.addEventListener('click', async (ev) => {
                     try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
-                    const confirmed = await gigmaShowEraseAllGigmaExtensionSettingsConfirmPopup();
-                    if (!confirmed) return;
+                    const result = await gigmaShowEraseAllGigmaExtensionSettingsConfirmPopup();
+                    if (!result || !result.confirmed) return;
+                    if (result.includeLorebookIds) {
+                        const removed = await gigmaEraseAllLorebookIdsFromWorldJsonFiles();
+                        if (!removed) return;
+                    }
                     await gigmaEraseAllGigmaExtensionSettings();
                 });
             }
+            try { if (b) b.classList.add('gigma-modal-settings-trash-btn'); } catch (_e) { }
+            try { gigmaApplySettingsTrashButtonIcon(b); } catch (_e) { }
             slotEraseAll.replaceChildren(b);
+            try { gigmaSquareButtonToHeight(b); } catch (_e) { }
+        }
+
+        const slotEraseLorebookIds = popup.querySelector('#gigma-modal-settings-slot-erase-lorebook-ids');
+        if (slotEraseLorebookIds) {
+            let b = popup.querySelector('#gigma-modal-settings-erase-lorebook-ids-btn');
+            if (!b) {
+                b = document.createElement('button');
+                b.id = 'gigma-modal-settings-erase-lorebook-ids-btn';
+                b.type = 'button';
+                b.className = 'menu_button gigma-icon-btn gigma-modal-settings-trash-btn';
+                b.title = 'Erase all LB IDs from world json files';
+                b.setAttribute('aria-label', 'Erase all LB IDs from world json files');
+                b.innerHTML = '<i class="fa-solid fa-trash-can" aria-hidden="true"></i>';
+                b.addEventListener('click', async (ev) => {
+                    try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
+                    const result = await gigmaShowEraseAllLorebookIdsConfirmPopup();
+                    if (!result || !result.confirmed) return;
+                    await gigmaEraseAllLorebookIdsFromWorldJsonFiles();
+                });
+            }
+            try { if (b) b.classList.add('gigma-modal-settings-trash-btn'); } catch (_e) { }
+            try { gigmaApplySettingsTrashButtonIcon(b); } catch (_e) { }
+            slotEraseLorebookIds.replaceChildren(b);
             try { gigmaSquareButtonToHeight(b); } catch (_e) { }
         }
 
@@ -31808,12 +32675,7 @@ if (changed) {
 // === GIGMA: Toolbar icon buttons (clear empty / expand all / collapse all) ===
 (function gigmaInitPaneIconToolbars(){
     try{
-        const SVG_CLEAR_EMPTY = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <!-- Simple, wide bin -->
-  <path d="M6 7h12"></path>
-  <path d="M9 7V5h6v2"></path>
-  <path d="M6 7l1 14h10l1-14"></path>
-</svg>`;
+        const SVG_CLEAR_EMPTY = `<i class="fa-solid fa-trash-can" aria-hidden="true"></i>`;
         const SVG_EXPAND_ALL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   <!-- Simple down chevron (two lines) -->
   <path d="M7 10l5 5"></path>
@@ -31832,7 +32694,7 @@ if (changed) {
             if (!btn) return;
             try{
                 // Only stamp the SVG if it's not already present (prevents flicker and preserves focus).
-                if (btn.querySelector && btn.querySelector('svg')) return;
+                if (btn.querySelector && btn.querySelector('svg, .fa-solid')) return;
                 btn.innerHTML = svg;
                 // Ensure it is treated as an icon button even if upstream markup changes.
                 try{ btn.classList.add('gigma-icon-btn'); }catch(_){}
