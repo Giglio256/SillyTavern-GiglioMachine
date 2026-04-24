@@ -7,6 +7,7 @@ import { loadWorldInfo, saveWorldInfo, worldInfoCache, world_info_character_stra
 import { prepareOpenAIMessages, setOpenAIMessages, setOpenAIMessageExamples, promptManager as stPromptManager } from '../../../openai.js';
 
 import { power_user } from '../../../power-user.js';
+import { isMobile } from '../../../RossAscends-mods.js';
 import { getCharaFilename } from '../../../utils.js';
 import { POPUP_TYPE, Popup } from '../../../popup.js';
 import { SlashCommand } from '../../../slash-commands/SlashCommand.js';
@@ -15,6 +16,21 @@ import { ARGUMENT_TYPE, SlashCommandArgument } from '../../../slash-commands/Sla
 
 // --- GIGMA: Giglio icon ---
 const GIGLIO_ICON_SRC = new URL('./Giglio 2 transparent.png', import.meta.url).href;
+
+// --- GIGMA: Mobile fullscreen detection for extension dialogs ---
+const GIGMA_MOBILE_FULLSCREEN_CLASS = 'gigma-mobile-fullscreen';
+
+const gigmaIsMobileFullscreenActive = () => isMobile();
+
+const gigmaSyncMobileFullscreenClass = () => {
+  document.documentElement.classList.toggle(GIGMA_MOBILE_FULLSCREEN_CLASS, gigmaIsMobileFullscreenActive());
+};
+
+(function gigmaMobileFullscreenClassOnce(){
+  gigmaSyncMobileFullscreenClass();
+  window.addEventListener('resize', gigmaSyncMobileFullscreenClass, { passive: true });
+  window.addEventListener('orientationchange', gigmaSyncMobileFullscreenClass, { passive: true });
+})();
 
 
 // --- GIGMA: Lorebook usage icons (persona/chat/character) ---
@@ -252,6 +268,31 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
     css.id = 'gigma-no-text-select-style';
     css.textContent = `
       :root{ --gigma-modal-dialog-height: 95vh; }
+      html.gigma-mobile-fullscreen{ --gigma-modal-dialog-height: 100dvh; }
+      html.gigma-mobile-fullscreen dialog:has([id^="gigma-"]){
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        width: 100dvw !important;
+        max-width: 100vw !important;
+        max-width: 100dvw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: 100vh !important;
+        max-height: 100dvh !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-sizing: border-box !important;
+      }
+      html.gigma-mobile-fullscreen dialog:has([id^="gigma-"]) :is(.popup-body, .popup-content, .popup-content-wrapper){
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        min-height: 0 !important;
+        box-sizing: border-box !important;
+      }
       dialog:has(#gigma-modal-root){
         height: var(--gigma-modal-dialog-height) !important;
       }
@@ -879,6 +920,13 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   }
 }
   function setPref(v){ try { localStorage.setItem(KEY, String(gigmaWriteBinaryToggle(v))); } catch(e){} }
+  function getMobileAutoWide(){
+    return gigmaIsMobileFullscreenActive() ? window.matchMedia('(orientation: landscape)').matches : null;
+  }
+  function getEffectiveWide(wide){
+    const mobileWide = getMobileAutoWide();
+    return mobileWide === null ? !!wide : mobileWide;
+  }
   function findDialogFrom(el){
     let n = el;
     while(n){
@@ -898,9 +946,12 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         dlg.classList.contains('gigma-narrow')
       );
       if (!isGigmaDialog) return;
-      const wide = !!getPref();
+      const mobileFullscreen = gigmaIsMobileFullscreenActive();
+      const wide = getEffectiveWide(getPref());
       const NARROW_PX = '44.6875rem';
       const WIDE_WIDTH = 'min(137.5rem, 94.5vw)';
+      const MOBILE_WIDTH = '100dvw';
+      const MOBILE_HEIGHT = '100dvh';
       if (wide){
         dlg.classList.add('gigma-wide');
         dlg.classList.remove('gigma-narrow');
@@ -908,8 +959,10 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         dlg.classList.add('gigma-narrow');
         dlg.classList.remove('gigma-wide');
       }
-      dlg.style.maxWidth = wide ? WIDE_WIDTH : NARROW_PX;
-      dlg.style.width = wide ? WIDE_WIDTH : NARROW_PX;
+      dlg.style.maxWidth = mobileFullscreen ? MOBILE_WIDTH : (wide ? WIDE_WIDTH : NARROW_PX);
+      dlg.style.width = mobileFullscreen ? MOBILE_WIDTH : (wide ? WIDE_WIDTH : NARROW_PX);
+      dlg.style.height = mobileFullscreen ? MOBILE_HEIGHT : '';
+      dlg.style.maxHeight = mobileFullscreen ? MOBILE_HEIGHT : '';
       try{
         if (typeof window.gigmaSkinPreviewAndFolderButtons === 'function') window.gigmaSkinPreviewAndFolderButtons(dlg);
       }catch(_){}
@@ -1065,6 +1118,10 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       // Wide mode: keep roughly 10% margins on each side while respecting
       // the previous 137.5rem cap.
       const WIDE_WIDTH = 'min(137.5rem, 94.5vw)';
+      const MOBILE_WIDTH = '100dvw';
+      const MOBILE_HEIGHT = '100dvh';
+      const mobileFullscreen = gigmaIsMobileFullscreenActive();
+      wide = getEffectiveWide(wide);
       // State classes
       try{
         if (dlg && dlg.classList){
@@ -1078,8 +1135,10 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         }
       }catch(_){}
       // Apply widths
-      dlg.style.maxWidth = wide ? WIDE_WIDTH : NARROW_PX;
-      dlg.style.width = wide ? WIDE_WIDTH : NARROW_PX;
+      dlg.style.maxWidth = mobileFullscreen ? MOBILE_WIDTH : (wide ? WIDE_WIDTH : NARROW_PX);
+      dlg.style.width = mobileFullscreen ? MOBILE_WIDTH : (wide ? WIDE_WIDTH : NARROW_PX);
+      dlg.style.height = mobileFullscreen ? MOBILE_HEIGHT : '';
+      dlg.style.maxHeight = mobileFullscreen ? MOBILE_HEIGHT : '';
       try{ gigmaSyncFixedHeaderButtons(dlg); }catch(_){ }
       // GIGMA FIX (Nov 2025):
       // When switching layouts we need two behaviors:
@@ -1175,23 +1234,49 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   window.gigmaWireWidthButtons = function(){
     const buttons = document.querySelectorAll('.gigmaWidthBtn');
     const pref = getPref();
+    const effectivePref = getEffectiveWide(pref);
     for (const btn of buttons){
       if (btn.dataset.gigmaWired === '1') continue;
       btn.dataset.gigmaWired = '1';
       const dlg = findDialogFrom(btn);
-      setBtnLabel(btn, pref);
+      setBtnLabel(btn, effectivePref);
       applyWidthToDialog(dlg, pref);
       btn.addEventListener('click', (ev)=>{
         ev.preventDefault();
         ev.stopPropagation();
+        const d = findDialogFrom(btn);
+        const mobileWide = getMobileAutoWide();
+        if (mobileWide !== null){
+          setBtnLabel(btn, mobileWide);
+          applyWidthToDialog(d, mobileWide);
+          return;
+        }
         const next = !getPref();
         setPref(next);
-        const d = findDialogFrom(btn);
         setBtnLabel(btn, next);
         applyWidthToDialog(d, next);
       }, { passive: true });
     }
   };
+  function syncMobileAutoWidthMode(){
+    try{
+      const mobileWide = getMobileAutoWide();
+      if (mobileWide === null) return;
+      const dlgs = document.querySelectorAll('dialog.gigma-wide, dialog.gigma-narrow, dialog.popup');
+      for (const dlg of dlgs){
+        if (!dlg.querySelector?.('#gigma-modal-root, #gigma-global-settings, .gigmaWidthBtn')) continue;
+        applyWidthToDialog(dlg, mobileWide);
+        const btn = dlg.querySelector('.gigmaWidthBtn');
+        if (btn) setBtnLabel(btn, mobileWide);
+      }
+    }catch(_){ }
+  }
+  if (!window.__gigmaMobileAutoWidthListener){
+    window.__gigmaMobileAutoWidthListener = true;
+    window.addEventListener('resize', syncMobileAutoWidthMode, { passive: true });
+    window.addEventListener('orientationchange', syncMobileAutoWidthMode, { passive: true });
+  }
+
   // public getter for Popup option usage
   window.getModalWide = window.getModalWide || getPref;
   // Styles: toolbar row + button
