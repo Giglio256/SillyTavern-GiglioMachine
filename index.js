@@ -7961,11 +7961,10 @@ function gigmaStoreModalLorebookStatsToLocalStorage(worldName, stats) {
 
 async function gigmaPrecomputeAllModalLorebookStats() {
     try {
-        const names = Array.isArray(world_names) ? world_names.slice() : [];
-        for (const n of names) {
+        const rows = (typeof gigmaGetVisibleModalLorebookStatsRows === 'function') ? gigmaGetVisibleModalLorebookStatsRows(true) : [];
+        const names = rows.map(row => String(row?.dataset?.world || '').trim()).filter(Boolean);
+        for (const key of names) {
             if (!EXTENSION_STATE.modalLorebookStatsSessionActive) return;
-            const key = String(n || '').trim();
-            if (!key) continue;
             await gigmaGetLorebookStats(key);
             await new Promise(r => setTimeout(r, 0));
         }
@@ -7985,7 +7984,6 @@ function gigmaBeginModalLorebookStatsSession() {
         try { window.__gigmaModalLorebookStatsBuildActive = false; } catch (_e) { }
         try { window.__gigmaModalLorebookStatsRefreshRaf = 0; } catch (_e) { }
         try { window.__gigmaModalLorebookStatsTargetCountCache = null; } catch (_e) { }
-        scheduleBackground(() => gigmaPrecomputeAllModalLorebookStats());
     } catch (_e) {}
 }
 
@@ -11877,6 +11875,34 @@ function gigmaGetModalLorebookStatsRows(forceRefresh = false) {
     return [];
 }
 
+
+function gigmaIsModalLorebookStatsRowVisible(row) {
+    try {
+        if (!row || !row.isConnected || typeof row.getBoundingClientRect !== 'function') return false;
+        const rect = row.getBoundingClientRect();
+        const margin = 220;
+        const viewHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const viewWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+        if (!(viewHeight > 0) || !(viewWidth > 0)) return false;
+        return rect.bottom >= -margin && rect.top <= (viewHeight + margin) && rect.right >= -margin && rect.left <= (viewWidth + margin);
+    } catch (_e) { }
+    return false;
+}
+
+function gigmaGetVisibleModalLorebookStatsRows(forceRefresh = false) {
+    try {
+        const rows = gigmaGetModalLorebookStatsRows(!!forceRefresh);
+        if (!rows.length) return [];
+        const visibleRows = window.__gigmaVisibleModalLorebookStatsRows;
+        if (visibleRows && typeof visibleRows.has === 'function') {
+            const filtered = rows.filter(row => row && row.isConnected && visibleRows.has(row));
+            if (filtered.length) return filtered;
+        }
+        return rows.filter(row => gigmaIsModalLorebookStatsRowVisible(row));
+    } catch (_e) { }
+    return [];
+}
+
 function gigmaObserveModalLorebookStatsRow(row) {
     try {
         if (!row || !row.isConnected || !row.dataset || !row.dataset.world) return;
@@ -12035,7 +12061,8 @@ function gigmaRefreshVisibleModalLorebookStats() {
             return;
         }
 
-        const rows = gigmaGetModalLorebookStatsRows(false);
+        try { gigmaObserveModalLorebookStatsRows(false); } catch (_eObserve) { }
+        const rows = gigmaGetVisibleModalLorebookStatsRows(false);
         for (const row of rows) {
             try {
                 if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
@@ -12076,8 +12103,9 @@ function gigmaUpdateModalLorebookStatsColumnCountsAllRows() {
     try {
         if (!gigmaIsOrderingModalActive()) return;
         const root = gigmaGetOrderingModalStatsRoot() || document;
-        const hosts = root.querySelectorAll ? root.querySelectorAll('.gigma-row[data-world] > .gigma-row-header-grid > .gigma-row-stats') : [];
-        const firstHost = (hosts && hosts.length) ? hosts[0] : root;
+        const rows = (typeof gigmaGetVisibleModalLorebookStatsRows === 'function') ? gigmaGetVisibleModalLorebookStatsRows(false) : [];
+        const hosts = rows.map(row => row && row.querySelector ? row.querySelector(':scope > .gigma-row-header-grid > .gigma-row-stats') : null).filter(Boolean);
+        const firstHost = hosts.length ? hosts[0] : root;
         gigmaRecomputeModalLorebookStatsTargetCountCache(firstHost);
         hosts.forEach((el) => gigmaApplyModalLorebookStatsColumnCount(el));
     } catch (_e) { }
@@ -12236,16 +12264,12 @@ function gigmaUpdateModalLorebookRowStats(row) {
 function gigmaUpdateModalLorebookStatsAllRows() {
     try {
         if (!gigmaIsOrderingModalActive()) return;
-        const rows = gigmaGetModalLorebookStatsRows(true);
+        try { gigmaObserveModalLorebookStatsRows(true); } catch (_eObserve) { }
+        const rows = gigmaGetVisibleModalLorebookStatsRows(false);
         for (const row of rows) {
             try {
                 if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
                 gigmaEnsureModalRowStatsHost(row);
-            } catch (_eHost) { }
-        }
-        for (const row of rows) {
-            try {
-                if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
                 gigmaUpdateModalLorebookRowStats(row);
             } catch (_eRow) { }
         }
@@ -12261,8 +12285,11 @@ function gigmaMaybeAttachModalLorebookStats(labelEl, worldName) {
         if (!root) return;
         const row = labelEl.closest && labelEl.closest('.gigma-row');
         if (!row) return;
-        gigmaEnsureModalRowStatsHost(row);
-        gigmaUpdateModalLorebookRowStats(row);
+        gigmaObserveModalLorebookStatsRow(row);
+        if (!window.IntersectionObserver || gigmaIsModalLorebookStatsRowVisible(row)) {
+            gigmaEnsureModalRowStatsHost(row);
+            gigmaUpdateModalLorebookRowStats(row);
+        }
     } catch (_e) { }
 }
 
@@ -23924,14 +23951,8 @@ async function populateOrderingList(opts = {}) {
     if (Array.isArray(world_names)) {
         for (const name of world_names) {
             if (!name || typeof name !== 'string') continue;
-            let id = nameToId[name];
-            if (!id) {
-                id = await gigmaEnsureLorebookId(name);
-                if (id) {
-                    didUpdateMap = true;
-                }
-                nameToId[name] = id;
-            }
+            const id = nameToId[name];
+            if (!id) continue;
             if (!idToName[id]) {
                 idToName[id] = name;
             }
@@ -49686,7 +49707,7 @@ async function init() {
             gigmaInstallWorldInfoLorebookStatsIndexHooksOnce();
             gigmaInstallWorldInfoIdMutationHooksOnce();
             gigmaInstallTokenizerChangeHooksOnce();
-            scheduleBackground(() => gigmaSyncAllLorebookIdsAndStatsIndex());
+            // Keep startup light on large lorebook libraries; stats/IDs are indexed on demand.
 
         } catch (error) {
             console.error('Failed to load GIGMA extension:', error);
