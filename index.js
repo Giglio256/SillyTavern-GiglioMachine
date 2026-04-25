@@ -1805,11 +1805,11 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
     s.textContent = `      dialog:has(#gigma-modal-root),
         dialog:has(#gigma-layout-preset-tree-preview-root){
         --gigma-hdr-btn: 2em;
-        --gigma-hdr-gap: calc(var(--gigma-hdr-btn) * 0.16);
+        --gigma-hdr-gap: 0.2em;
         --gigma-hdr-pad-x: calc(var(--gigma-hdr-btn) * 0.19);
-        --gigma-hdr-pad-b: calc(var(--gigma-hdr-btn) * 0.27);
-        --gigma-hdr-margin-b: calc(var(--gigma-hdr-btn) * 0.59);
-        --gigma-hdr-center-gap: calc(var(--gigma-hdr-btn) * 0.18);
+        --gigma-hdr-pad-b: calc(var(--gigma-hdr-btn) * 0.06);
+        --gigma-hdr-margin-b: 0em;
+        --gigma-hdr-center-gap: 0.2em;
         --gigma-hdr-border: calc(var(--gigma-hdr-btn) * 0.045);
         --gigma-hdr-layout-w: 44.6875rem;
         --gigma-hdr-layout-q: calc(var(--gigma-hdr-layout-w) / 4);
@@ -1818,6 +1818,11 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         --gigma-hdr-scroll-step-x: calc(var(--gigma-hdr-btn) + var(--gigma-hdr-center-gap));
         --gigma-hdr-accept-x: calc(50% - (var(--gigma-hdr-layout-w) / 2) + var(--gigma-hdr-pad-x) + var(--gigma-hdr-edge-inset) + (var(--gigma-hdr-btn) / 2));
         --gigma-hdr-cancel-x: calc(50% + (var(--gigma-hdr-layout-w) / 2) - var(--gigma-hdr-pad-x) - var(--gigma-hdr-edge-inset) - (var(--gigma-hdr-btn) / 2));
+      }
+      html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root){
+        --gigma-hdr-layout-w: 100dvw;
+        --gigma-hdr-edge-inset: calc(var(--gigma-hdr-btn) * 0.18);
+        --gigma-hdr-pad-x: max(0.75em, env(safe-area-inset-left), env(safe-area-inset-right));
       }
       /* Make the global header a real, non-overlapping header */
       #gigma-global-settings{
@@ -1832,6 +1837,32 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         background: transparent;
         backdrop-filter: none;
         min-height: calc(var(--gigma-hdr-btn) + var(--gigma-hdr-pad-b));
+      }
+      html.gigma-mobile-fullscreen #gigma-global-settings{
+        width: 100dvw;
+        max-width: 100dvw;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        flex-wrap: wrap;
+        column-gap: var(--gigma-hdr-gap);
+        row-gap: var(--gigma-hdr-gap);
+        min-height: auto;
+      }
+      html.gigma-mobile-fullscreen #gigma-global-settings #gigma-global-accept-slot,
+      html.gigma-mobile-fullscreen #gigma-global-settings #gigma-global-cancel-slot,
+      html.gigma-mobile-fullscreen #gigma-global-settings #gigma-global-width-slot,
+      html.gigma-mobile-fullscreen #gigma-global-settings #gigma-global-bughelp,
+      html.gigma-mobile-fullscreen #gigma-global-settings .gigma-global-center,
+      html.gigma-mobile-fullscreen #gigma-global-settings .gigma-global-scroll-controls{
+        position: static !important;
+        inset: auto !important;
+        transform: none !important;
+        width: auto !important;
+        height: var(--gigma-hdr-btn) !important;
+        display: contents !important;
       }
       #gigma-global-settings #gigma-global-accept-slot{
         position: absolute;
@@ -2145,7 +2176,59 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         display: flex !important;
         flex-direction: column !important;
         height: 100% !important;
-      }`;
+      }
+      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-ordering-container{
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        grid-template-rows: auto auto minmax(0, 1fr) !important;
+        column-gap: 0.5em !important;
+        height: calc(100dvh - var(--gigma-hdr-btn) - var(--gigma-hdr-pad-b) - var(--gigma-hdr-margin-b) - 1em - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+        max-height: calc(100dvh - var(--gigma-hdr-btn) - var(--gigma-hdr-pad-b) - var(--gigma-hdr-margin-b) - 1em - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+        min-height: 0 !important;
+        padding: 0.375em !important;
+        overflow: hidden !important;
+      }
+      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-ordering-container::after{
+        display: none !important;
+      }
+      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-ordering-title{
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+      }
+      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-toolbar{
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+        min-width: 0 !important;
+      }
+      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-ordering-list{
+        grid-column: 1 !important;
+        grid-row: 3 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch;
+      }
+      html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
+        position: static !important;
+        grid-column: 2 !important;
+        grid-row: 1 / 4 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 0 0.5em 0 !important;
+        box-sizing: border-box !important;
+        border-left: 0.0625em dashed rgba(255,255,255,0.15);
+        overflow: hidden !important;
+      }
+`;
     document.head.appendChild(s);
   }catch(_){
   }
@@ -2433,6 +2516,113 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   }catch(_){}
 })();
 // --- end: GIGMA layout layout preset tree styling ---
+// --- GIGMA: mobile layout preset tree preview viewport ---
+(function gigmaMobileLayoutPresetTreePreviewViewportStyleOnce(){
+  try{
+    if (document.getElementById('gigma-mobile-layout-preset-tree-preview-viewport-style')) return;
+    const s = document.createElement('style');
+    s.id = 'gigma-mobile-layout-preset-tree-preview-viewport-style';
+    s.textContent = `
+      html.gigma-mobile-fullscreen dialog:has(#gigma-layout-preset-tree-preview-root){
+        width:100dvw !important;
+        max-width:100dvw !important;
+        height:100dvh !important;
+        max-height:100dvh !important;
+        padding:0 !important;
+        overflow:hidden !important;
+      }
+      html.gigma-mobile-fullscreen dialog:has(#gigma-layout-preset-tree-preview-root) :is(.popup-body,.popup-content,.popup-content-wrapper){
+        display:block !important;
+        width:100% !important;
+        height:100% !important;
+        max-height:100% !important;
+        min-height:0 !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        -webkit-overflow-scrolling:touch;
+      }
+      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root{
+        display:block !important;
+        width:100% !important;
+        max-width:none !important;
+        min-width:0 !important;
+        min-height:100% !important;
+        height:auto !important;
+        box-sizing:border-box !important;
+        padding:max(0.5em, env(safe-area-inset-top)) max(0.5em, env(safe-area-inset-right)) max(0.5em, env(safe-area-inset-bottom)) max(0.5em, env(safe-area-inset-left)) !important;
+        overflow:visible !important;
+      }
+      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-header{
+        flex:0 0 auto !important;
+        width:100% !important;
+        min-width:0 !important;
+        box-sizing:border-box !important;
+        padding-right:calc(var(--gigma-hdr-btn) + 0.75em) !important;
+        overflow:visible !important;
+      }
+      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-first-screen{
+        display:grid !important;
+        grid-template-rows:auto minmax(0, 1fr) !important;
+        width:100% !important;
+        min-width:0 !important;
+        height:calc(100dvh - 2em - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+        max-height:calc(100dvh - 2em - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+        min-height:0 !important;
+        overflow:hidden !important;
+        box-sizing:border-box !important;
+      }
+      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-first-screen > .gigma-layout-preset-tree-display-wrap{
+        height:100% !important;
+        max-height:100% !important;
+        min-height:0 !important;
+      }
+      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-display-wrap{
+        display:block !important;
+        flex:0 0 auto !important;
+        width:100% !important;
+        min-width:0 !important;
+        min-height:0 !important;
+        height:100% !important;
+        max-height:100% !important;
+        overflow:hidden !important;
+        position:relative !important;
+        box-sizing:border-box !important;
+      }
+      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-display-wrap > .gigma-layout-preset-tree{
+        display:block !important;
+        width:100% !important;
+        max-width:100% !important;
+        height:100% !important;
+        max-height:100% !important;
+        min-height:0 !important;
+        box-sizing:border-box !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        -webkit-overflow-scrolling:touch;
+      }
+      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-preview-gwi-host{
+        position:static !important;
+        inset:auto !important;
+        display:inline-flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        flex:0 0 auto !important;
+      }
+      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display{
+        flex:0 0 auto !important;
+        order:100 !important;
+        width:100% !important;
+        max-width:100% !important;
+        max-height:none !important;
+        margin-top:0.5em !important;
+        overflow:visible !important;
+        box-sizing:border-box !important;
+      }
+    `;
+    document.head.appendChild(s);
+  }catch(_){ }
+})();
+// --- end: mobile layout preset tree preview viewport ---
 // --- GIGMA: duplicate sentence custom layout-preset-tree selection styling ---
 (function gigmaDuplicateSentenceLayoutPresetTreeSelectionStyleOnce(){
   try{
@@ -12576,8 +12766,9 @@ const ensure = (toolbarSelector, suffix) => {
             } catch (_e) { }
         });
 
-        // Keep the global WI panel checkboxes/buttons synced immediately on build.
+        // Keep the global WI panel and display synced immediately on build.
         gigmaUpdateGlobalWiStatsControlsUi('modal');
+        gigmaQueueGlobalWiStatsUpdate('modal');
     } catch (_e) { }
 };
 
@@ -14336,6 +14527,54 @@ function gigmaEnsureLayoutPresetTreePreviewGlobalWiStatsOverlay(rootOverride){
     }catch(_e){}
 }
 
+
+function gigmaSyncMobileLayoutPresetTreePreviewViewport(rootOverride, finalPass){
+    try{
+        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
+        if (!root || !document.documentElement.classList.contains('gigma-mobile-fullscreen')) return;
+        const wrap = root.querySelector('.gigma-layout-preset-tree-display-wrap');
+        const tree = wrap ? wrap.querySelector('.gigma-layout-preset-tree') : null;
+        if (!wrap || !tree) return;
+        const vv = window.visualViewport;
+        const viewportHeight = Math.floor((vv && vv.height) || window.innerHeight || document.documentElement.clientHeight || 0);
+        if (!viewportHeight) return;
+        const viewportTop = Math.floor((vv && vv.offsetTop) || 0);
+        const viewportBottom = viewportTop + viewportHeight;
+        const rect = wrap.getBoundingClientRect();
+        const wrapTop = Math.max(viewportTop, Math.ceil(rect.top || 0));
+        const available = Math.max(240, viewportBottom - wrapTop - 8);
+        root.style.setProperty('--gigma-preview-tree-height', available + 'px');
+        wrap.style.setProperty('height', available + 'px', 'important');
+        wrap.style.setProperty('max-height', available + 'px', 'important');
+        wrap.style.setProperty('overflow', 'hidden', 'important');
+        tree.style.setProperty('height', '100%', 'important');
+        tree.style.setProperty('max-height', '100%', 'important');
+        tree.style.setProperty('overflow-y', 'auto', 'important');
+        tree.style.setProperty('overflow-x', 'hidden', 'important');
+        if (!finalPass && !root.__gigmaPreviewViewportRaf) {
+            root.__gigmaPreviewViewportRaf = requestAnimationFrame(() => {
+                root.__gigmaPreviewViewportRaf = 0;
+                gigmaSyncMobileLayoutPresetTreePreviewViewport(root, true);
+            });
+        }
+    }catch(_e){}
+}
+
+(function gigmaBindMobileLayoutPresetTreePreviewViewportSyncOnce(){
+    try{
+        if (window.__gigmaMobileLayoutPresetTreePreviewViewportSyncBound) return;
+        window.__gigmaMobileLayoutPresetTreePreviewViewportSyncBound = true;
+        const sync = () => {
+            try{
+                const roots = document.querySelectorAll('#gigma-layout-preset-tree-preview-root');
+                for (const root of roots) gigmaSyncMobileLayoutPresetTreePreviewViewport(root);
+            }catch(_e){}
+        };
+        window.addEventListener('resize', sync, { passive:true });
+        window.addEventListener('orientationchange', sync, { passive:true });
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', sync, { passive:true });
+    }catch(_e){}
+})();
 
 function gigmaEnsureLayoutPresetTreePreviewGlobalWiStatsRightAligned(rootOverride){
     try{
@@ -20175,7 +20414,7 @@ try {
                     </button>
                 </div>
                 <div id="gigma-modal-scroll" class="gigma-modal-scroll">
-                <h3 class="marginBot10" style="padding-bottom:0.375em;"><span aria-hidden="true" style="display:inline-block; width:1.4em; height:1.4em; background-color:currentColor; -webkit-mask-image:url(${GIGLIO_ICON_SRC}); mask-image:url(${GIGLIO_ICON_SRC}); -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:center; mask-position:center; -webkit-mask-size:contain; mask-size:contain; vertical-align:-0.2em; margin-right:0.525em;"></span>Giglio Machine</h3>
+                <h3 class="marginBot10" style="margin-top:0.625em; padding-bottom:0.375em;"><span aria-hidden="true" style="display:inline-block; width:1.4em; height:1.4em; background-color:currentColor; -webkit-mask-image:url(${GIGLIO_ICON_SRC}); mask-image:url(${GIGLIO_ICON_SRC}); -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:center; mask-position:center; -webkit-mask-size:contain; mask-size:contain; vertical-align:-0.2em; margin-right:0.525em;"></span>Giglio Machine</h3>
                 <div class="wide100p world_entry_form_control MarginTop5 MarginBot10">
                     <div class="world_entry_form_control">
                         <div class="gigma-widthbtn-stash" style="height:0; overflow:hidden;">
@@ -20276,9 +20515,9 @@ try {
                         <div id="gigma-ordering-count-wrap" style="position:relative; height:0; width:100%;">
                             <small id="gigma-ordering-count" style="position:absolute; left:0.375em; top:0.125em; color:#aaa; text-align:left; font-size:80%; line-height:1.2; white-space:nowrap;">Lorebooks: 0</small>
                         </div>
-                        <div class="MarginTop10" style="display:flex; align-items:center; justify-content:center; flex-wrap:nowrap; gap: var(--gigma-hdr-gap);">
-                            <button id="gigma-ordering-load" class="menu_button" type="button" style="white-space:nowrap;">Reset List</button>
-                            <button id="gigma-ordering-preview" class="menu_button" type="button" style="white-space:nowrap;">Preview</button>
+                        <div class="MarginTop10 gigma-below-pane-actions" style="display:flex; align-items:center; justify-content:center; flex-wrap:wrap; column-gap:var(--gigma-hdr-gap); row-gap:0.12em; width:100%; max-width:100%; box-sizing:border-box; overflow:visible;">
+                            <button id="gigma-ordering-load" class="menu_button" type="button" style="white-space:nowrap; flex:0 1 auto;">Reset List</button>
+                            <button id="gigma-ordering-preview" class="menu_button" type="button" style="white-space:nowrap; flex:0 1 auto;">Preview</button>
                         </div>
                         <div id="gigma-global-wi-stats-display-modal" class="gigma-global-wi-stats-display world_entry_form_control MarginTop10" style="width:100%; max-width:var(--gigma-ordering-list-width,40.5rem); margin:0 auto; box-sizing:border-box;"></div>
                         <div class="world_entry_form_control MarginTop10" style="width:100%; max-width:var(--gigma-ordering-list-width,40.5rem); margin:0 auto; text-align:left; box-sizing:border-box;">
@@ -28745,6 +28984,36 @@ margin-bottom: 0; /* keep it snug; container below adds its own margin */
         console.warn('GIGMA: failed to add toolbar style:', e);
     }
 })();
+
+(function gigmaMobilePortraitToolbarFitOnce(){
+  try{
+    if (document.getElementById('gigma-mobile-portrait-toolbar-fit-style')) return;
+    const s = document.createElement('style');
+    s.id = 'gigma-mobile-portrait-toolbar-fit-style';
+    s.textContent = `
+      html.gigma-mobile-fullscreen #gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right) .gigma-toolbar-group{
+        gap:0.4em !important;
+        flex-wrap:wrap !important;
+      }
+      html.gigma-mobile-fullscreen #gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right) .gigma-modal-stats-controls{
+        gap:0.4em !important;
+        margin-left:0 !important;
+      }
+      html.gigma-mobile-fullscreen #gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right) .gigma-toolbar-group > button.menu_button,
+      html.gigma-mobile-fullscreen #gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right) .gigma-toolbar-group > .gigma-modal-stats-controls > button.menu_button{
+        width:var(--gigma-toolbar-btn-h) !important;
+        min-width:var(--gigma-toolbar-btn-h) !important;
+        max-width:var(--gigma-toolbar-btn-h) !important;
+        height:var(--gigma-toolbar-btn-h) !important;
+        min-height:var(--gigma-toolbar-btn-h) !important;
+        padding:0 !important;
+        justify-content:center !important;
+        flex:0 0 var(--gigma-toolbar-btn-h) !important;
+      }
+    `;
+    document.head.appendChild(s);
+  }catch(_){ }
+})();
 (function gigmaNormalizeButtonRowHeightsOnce(){
   try{
     if (document.getElementById('gigma-button-row-height-style')) return;
@@ -28801,6 +29070,65 @@ margin-bottom: 0; /* keep it snug; container below adds its own margin */
 #gigma-world-info-budgetsection #gigma-worldinfo-gwi-host .gigma-global-wi-stats-btn{
   height:2.25em !important;
   min-height:2.25em !important;
+}
+/* Wrapped button rows use flex gap for both axes; native menu buttons add vertical margins. */
+#gigma-modal-root :is(
+  .gigma-modal-toolbar,
+  .gigma-layout-or-assignment-preset-controls,
+  .gigma-below-pane-actions,
+  .gigma-toolbar-group,
+  .gigma-modal-stats-controls
+) > button.menu_button,
+#gigma-modal-root :is(
+  .gigma-toolbar-group,
+  .gigma-below-pane-actions
+) > .gigma-modal-stats-controls > button.menu_button,
+#gigma-modal-root .gigma-ordering-gwi-host > button.menu_button,
+dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-layout-preset-tree-header-right > button.menu_button,
+dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-preview-gwi-host > button.menu_button,
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-stats-controls > button.menu_button,
+#gigma-world-info-budgetsection button.menu_button{
+  margin:0 !important;
+}
+#gigma-modal-root .gigma-layout-or-assignment-preset-controls{
+  row-gap:0.375em !important;
+}
+#gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right){
+  padding-top:0.25em !important;
+  padding-bottom:0.375em !important;
+}
+#gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right) .gigma-toolbar-group{
+  row-gap:0.5em !important;
+}
+#gigma-modal-root .gigma-below-pane-actions{
+  row-gap:var(--gigma-hdr-gap) !important;
+  margin-top:0.625em !important;
+  margin-bottom:0.625em !important;
+}
+dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-layout-preset-tree-header-right{
+  row-gap:0.375em !important;
+  padding-top:0.25em !important;
+  padding-bottom:0.25em !important;
+}
+#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-stats-controls{
+  row-gap:0.375em !important;
+}
+`;
+    document.head.appendChild(css);
+  }catch(_e){}
+})();
+(function gigmaWorldInfoStatsButtonWrapStyleOnce(){
+  try{
+    if (document.getElementById('gigma-worldinfo-stats-button-wrap-style')) return;
+    const css = document.createElement('style');
+    css.id = 'gigma-worldinfo-stats-button-wrap-style';
+    css.textContent = `
+#world_popup .flex-container:has(> #world_info_search){
+  flex-wrap:wrap !important;
+}
+#world_popup .flex-container:has(> #world_info_search) > #gigma-worldinfo-gwi-host,
+#world_popup .flex-container:has(> #world_info_search) > #gigma-worldinfo-gwi-host > .gigma-worldinfo-wi-stats-wrap{
+  display:contents !important;
 }
 `;
     document.head.appendChild(css);
@@ -38620,6 +38948,7 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
         const initialUnchainedStateEmpty = (resolved.kind === 'parent') ? 'selected' : 'show';
         html =
             '<div id="gigma-layout-preset-tree-preview-root" data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
+            '<div class="gigma-layout-preset-tree-first-screen">' +
             '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
             '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.kindLabel) + '</div>' +
             '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;"></div>' +
@@ -38643,7 +38972,7 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
             '</div>' +
             '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
             '</div>' +
-            body +
+            '<div class="gigma-layout-preset-tree-display-wrap" style="display:block;width:100%;min-width:0;min-height:0;height:100%;max-height:100%;overflow:hidden;position:relative;box-sizing:border-box;">' + body + '</div></div>' +
             '<div id="gigma-global-wi-stats-display-preview" class="gigma-global-wi-stats-display"></div>' +
             '</div>';
     }
@@ -42201,7 +42530,7 @@ return '<li class="' + rowCls + '"' + dataAttrs + '>' +
         bodyHtml = '<div class="gigma-layout-preset-tree-empty">This preset does not contain any lorebooks yet.</div>';
     }
     return '' +
-        '<div class="gigma-layout-preset-tree">' +
+        '<div class="gigma-layout-preset-tree" style="display:block;width:100%;max-width:100%;height:100%;max-height:100%;min-height:0;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;">' +
         bodyHtml +
         '</div>';
 }
@@ -43438,7 +43767,8 @@ async function gigmaShowLastLayoutPresetTreePopup() {
             }
             html =
                 '<div id="gigma-layout-preset-tree-preview-root"' + (desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained2 + '" data-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" data-default-viewmode="' + gigmaEscapeHtml(desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="' + __gigmaPreviewDimChained2 + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-                '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
+                    '<div class="gigma-layout-preset-tree-first-screen">' +
+                    '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
                 '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(headerLabel) + '</div>' +
                 '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
                 '<button id="gigma-layout-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-layout-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-layout-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-layout-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-layout-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
@@ -43449,8 +43779,8 @@ async function gigmaShowLastLayoutPresetTreePopup() {
                 '</div>' +
                 '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
                 '</div>' +
-                body +
-                '<div id="gigma-global-wi-stats-display-preview" class="gigma-global-wi-stats-display"></div>' +
+                '<div class="gigma-layout-preset-tree-display-wrap" style="display:block;width:100%;min-width:0;min-height:0;height:100%;max-height:100%;overflow:hidden;position:relative;box-sizing:border-box;">' + body + '</div></div>' +
+                    '<div id="gigma-global-wi-stats-display-preview" class="gigma-global-wi-stats-display"></div>' +
                 '</div>';
         }
         // Prefer SillyTavern\'s Popup helper when available so the styling matches other ST popups.
