@@ -345,15 +345,19 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       /* Preview header close (X) button: scale with the preview font size */
       #gigma-layout-preset-tree-close{
         width: var(--gigma-hdr-btn) !important;
+        min-width: var(--gigma-hdr-btn) !important;
         height: var(--gigma-hdr-btn) !important;
         max-width: var(--gigma-hdr-btn) !important;
         line-height: 1 !important;
         font-size: 0.92em !important;
         padding: 0 !important;
-        margin-left: 0 !important;
-        position: absolute !important;
-        top: 0 !important;
-        right: 0 !important;
+        margin-left: 0.35em !important;
+        margin-bottom: 0.35em !important;
+        position: static !important;
+        grid-column: 3 !important;
+        grid-row: 1 / 3 !important;
+        justify-self: end !important;
+        align-self: start !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -2498,6 +2502,12 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         height:100%;
         min-height:0;
       }
+      #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-first-screen{
+        display:flex;
+        flex-direction:column;
+        flex:1 1 auto;
+        min-height:0;
+      }
       #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree{
         background:rgba(0,0,0,0.16);
       }
@@ -2667,10 +2677,13 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       }
       html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-header{
         flex:0 0 auto !important;
+        display:grid !important;
+        grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em) !important;
+        grid-template-rows:auto auto !important;
         width:100% !important;
         min-width:0 !important;
         box-sizing:border-box !important;
-        padding-right:calc(var(--gigma-hdr-btn) + 0.75em) !important;
+        padding-right:0 !important;
         overflow:visible !important;
       }
       html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-first-screen{
@@ -2747,7 +2760,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         position:relative;
       }
       #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-header{
-        padding-left:3.25em;
+        padding-left:0;
       }
       #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-row.gigma-selected,
       #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-folder.gigma-selected{
@@ -32812,6 +32825,42 @@ inside.parentElement.removeChild(inside);
                     document.addEventListener('pointerdown', onDropPointerDown, true);
                 }
             };
+            if (scope === 'row' && ev.pointerType === 'touch' && ev.button === 0) {
+                let pressed = true;
+                let moved = false;
+                const startX = ev.clientX || 0;
+                const startY = ev.clientY || 0;
+                const dragThreshold = 10; // Finger movement above this is scrolling, not dragging.
+                let timer = null;
+                const cleanupTouchRowDragGate = () => {
+                    pressed = false;
+                    document.removeEventListener('pointermove', onTouchRowMove, true);
+                    document.removeEventListener('pointerup', cleanupTouchRowDragGate, true);
+                    document.removeEventListener('pointercancel', cleanupTouchRowDragGate, true);
+                    if (timer !== null) clearTimeout(timer);
+                };
+                const startTouchRowDrag = () => {
+                    if (!pressed || moved) return;
+                    cleanupTouchRowDragGate();
+                    startDrag();
+                };
+                const onTouchRowMove = (eMove) => {
+                    if (!pressed) return;
+                    const mx = (typeof eMove.clientX === 'number') ? eMove.clientX : startX;
+                    const my = (typeof eMove.clientY === 'number') ? eMove.clientY : startY;
+                    const dx = mx - startX;
+                    const dy = my - startY;
+                    if ((dx * dx + dy * dy) >= (dragThreshold * dragThreshold)) {
+                        moved = true;
+                        cleanupTouchRowDragGate();
+                    }
+                };
+                timer = setTimeout(startTouchRowDrag, 250);
+                document.addEventListener('pointermove', onTouchRowMove, true);
+                document.addEventListener('pointerup', cleanupTouchRowDragGate, true);
+                document.addEventListener('pointercancel', cleanupTouchRowDragGate, true);
+                return;
+            }
             if (fromTitle && ev.button === 0) {
                 // For presses that originate on the folder title we want two behaviours:
                 //  - simple click (no/very small movement) => inline rename
@@ -39468,9 +39517,9 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
         html =
             '<div id="gigma-layout-preset-tree-preview-root" data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
             '<div class="gigma-layout-preset-tree-first-screen">' +
-            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.kindLabel) + '</div>' +
-            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;"></div>' +
+            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
+            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(resolved.kindLabel) + '</div>' +
+            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;"></div>' +
             '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
             '</div>' +
             '<div style="opacity:0.85; padding:0.5em;"><p style="margin:0;">No layout data available for custom selection.</p></div>' +
@@ -39480,9 +39529,9 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
         const body = gigmaBuildLayoutPresetTreeHtml(resolved.snapshot, { kind: resolved.kind, viewMode: resolved.desiredViewMode, parentPresetId: (resolved.kind === 'parent' ? resolved.presetNameForHeader : null) });
         html =
             '<div id="gigma-layout-preset-tree-preview-root"' + (resolved.desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="' + gigmaEscapeHtml(resolved.desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.headerLabel) + '</div>' +
-            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
+            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
+            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(resolved.headerLabel) + '</div>' +
+            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;">' +
             '<button id="gigma-layout-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-layout-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-layout-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-layout-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-layout-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
             '<button id="gigma-layout-preset-tree-expand-all" class="menu_button gigma-icon-btn" type="button" title="Expand all folders" aria-label="Expand all folders">▼</button>' +
             '<button id="gigma-layout-preset-tree-collapse-all" class="menu_button gigma-icon-btn" type="button" title="Collapse all folders" aria-label="Collapse all folders">▲</button>' +
@@ -44277,9 +44326,9 @@ async function gigmaShowLastLayoutPresetTreePopup() {
             var __gigmaPreviewDimUnchained = (__gigmaPreviewModalDim && (__gigmaPreviewModalDim.dimUnchained === '1' || __gigmaPreviewModalDim.dimUnchained === '0')) ? __gigmaPreviewModalDim.dimUnchained : ((kind === 'parent') ? '1' : '0');
             html =
                 '<div id="gigma-layout-preset-tree-preview-root" data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained + '" data-dim-unchained="' + __gigmaPreviewDimUnchained + '" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="' + __gigmaPreviewDimChained + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-                '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(kindLabel) + '</div>' +
-                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
+                '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
+                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(kindLabel) + '</div>' +
+                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;">' +
                 '</div>' +
                 '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
                 '</div>' +
@@ -44373,9 +44422,9 @@ async function gigmaShowLastLayoutPresetTreePopup() {
             html =
                 '<div id="gigma-layout-preset-tree-preview-root"' + (desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained2 + '" data-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" data-default-viewmode="' + gigmaEscapeHtml(desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="' + __gigmaPreviewDimChained2 + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
                     '<div class="gigma-layout-preset-tree-first-screen">' +
-                    '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(headerLabel) + '</div>' +
-                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
+                    '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
+                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(headerLabel) + '</div>' +
+                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;">' +
                 '<button id="gigma-layout-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-layout-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-layout-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-layout-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-layout-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
                 '<button id="gigma-layout-preset-tree-expand-all" class="menu_button gigma-icon-btn" type="button" title="Expand all folders" aria-label="Expand all folders">▼</button>' +
                 '<button id="gigma-layout-preset-tree-collapse-all" class="menu_button gigma-icon-btn" type="button" title="Collapse all folders" aria-label="Collapse all folders">▲</button>' +
