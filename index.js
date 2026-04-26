@@ -2328,7 +2328,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        -webkit-overflow-scrolling: auto;
+        -webkit-overflow-scrolling: touch;
       }
       html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
         position: static !important;
@@ -32825,6 +32825,42 @@ inside.parentElement.removeChild(inside);
                     document.addEventListener('pointerdown', onDropPointerDown, true);
                 }
             };
+            if (scope === 'row' && ev.pointerType === 'touch' && ev.button === 0) {
+                let pressed = true;
+                let moved = false;
+                const startX = ev.clientX || 0;
+                const startY = ev.clientY || 0;
+                const dragThreshold = 10; // Finger movement above this is scrolling, not dragging.
+                let timer = null;
+                const cleanupTouchRowDragGate = () => {
+                    pressed = false;
+                    document.removeEventListener('pointermove', onTouchRowMove, true);
+                    document.removeEventListener('pointerup', cleanupTouchRowDragGate, true);
+                    document.removeEventListener('pointercancel', cleanupTouchRowDragGate, true);
+                    if (timer !== null) clearTimeout(timer);
+                };
+                const startTouchRowDrag = () => {
+                    if (!pressed || moved) return;
+                    cleanupTouchRowDragGate();
+                    startDrag();
+                };
+                const onTouchRowMove = (eMove) => {
+                    if (!pressed) return;
+                    const mx = (typeof eMove.clientX === 'number') ? eMove.clientX : startX;
+                    const my = (typeof eMove.clientY === 'number') ? eMove.clientY : startY;
+                    const dx = mx - startX;
+                    const dy = my - startY;
+                    if ((dx * dx + dy * dy) >= (dragThreshold * dragThreshold)) {
+                        moved = true;
+                        cleanupTouchRowDragGate();
+                    }
+                };
+                timer = setTimeout(startTouchRowDrag, 250);
+                document.addEventListener('pointermove', onTouchRowMove, true);
+                document.addEventListener('pointerup', cleanupTouchRowDragGate, true);
+                document.addEventListener('pointercancel', cleanupTouchRowDragGate, true);
+                return;
+            }
             if (fromTitle && ev.button === 0) {
                 // For presses that originate on the folder title we want two behaviours:
                 //  - simple click (no/very small movement) => inline rename
@@ -55559,7 +55595,7 @@ dialog.gigma-wide .gigma-unsorted-pane .gigma-focus-pane-list > .gigma-folder-li
         max-height: 46.875em;
         overflow-y: auto !important;
         overflow-x: hidden;
-        -webkit-overflow-scrolling: auto;
+        -webkit-overflow-scrolling: touch;
       }
       /* In wide view, give the LEFT column an explicit width so items aren't squashed */
       dialog.gigma-wide #gigma-ordering-list{
