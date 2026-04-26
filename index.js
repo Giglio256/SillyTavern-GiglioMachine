@@ -2328,8 +2328,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        overscroll-behavior-y: contain;
-        touch-action: pan-y;
+        -webkit-overflow-scrolling: auto;
       }
       html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
         position: static !important;
@@ -55560,7 +55559,7 @@ dialog.gigma-wide .gigma-unsorted-pane .gigma-focus-pane-list > .gigma-folder-li
         max-height: 46.875em;
         overflow-y: auto !important;
         overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
+        -webkit-overflow-scrolling: auto;
       }
       /* In wide view, give the LEFT column an explicit width so items aren't squashed */
       dialog.gigma-wide #gigma-ordering-list{
