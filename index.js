@@ -38009,7 +38009,18 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 line-height:1.35;
             }
             #gigma-dedupe-root .gigma-dedupe-close{
+                display:inline-flex !important;
+                align-items:center !important;
+                justify-content:center !important;
+                width:var(--gigma-hdr-btn, 2em) !important;
+                min-width:var(--gigma-hdr-btn, 2em) !important;
+                max-width:var(--gigma-hdr-btn, 2em) !important;
+                height:var(--gigma-hdr-btn, 2em) !important;
+                min-height:var(--gigma-hdr-btn, 2em) !important;
+                max-height:var(--gigma-hdr-btn, 2em) !important;
                 margin:0 !important;
+                padding:0 !important;
+                line-height:1 !important;
                 flex:0 0 var(--gigma-hdr-btn, 2em) !important;
             }
             #gigma-dedupe-root .gigma-dedupe-controls{
