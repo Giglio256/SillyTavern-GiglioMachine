@@ -2328,7 +2328,8 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: auto !important;
       }
       html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
         position: static !important;
@@ -2344,6 +2345,10 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         box-sizing: border-box !important;
         border-left: 0.0625em dashed rgba(255,255,255,0.15);
         overflow: hidden !important;
+      }
+      html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane > :is(.gigma-unsorted-content, .gigma-focus-pane-list){
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: auto !important;
       }
 `;
     document.head.appendChild(s);
