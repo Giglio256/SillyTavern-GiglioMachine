@@ -2328,9 +2328,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        overscroll-behavior: contain;
-        touch-action: pan-y;
-        -webkit-overflow-scrolling: auto;
+        -webkit-overflow-scrolling: touch;
       }
       html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
         position: static !important;
@@ -20708,7 +20706,7 @@ try {
                                 <button id="gigma-child-preset-delete" class="menu_button gigma-icon-btn" type="button" title="Delete" aria-label="Delete"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-trash-can"></i></span></button>
                         </div>
                         <!-- Lorebook grouping toolbar + list --><!-- Root list and folders live in this container (immediately follows toolbar) -->
-                        <div id="gigma-ordering-container" class="MarginTop10" style="border:0.0625em solid #444; padding:0.375em; border-radius:0.375em; display:flex; flex-direction:column; height:calc(100vh - 16.25rem); overflow:hidden; position:relative; scrollbar-gutter:stable;"><div id="gigma-ordering-title" class="gigma-ordering-title">Sorted Lorebooks</div>
+                        <div id="gigma-ordering-container" class="MarginTop10" style="border:0.0625em solid #444; padding:0.375em; border-radius:0.375em; display:flex; flex-direction:column; height:calc(100vh - 16.25rem); overflow-y:auto; overflow-x:visible; position:relative; scrollbar-gutter:stable;"><div id="gigma-ordering-title" class="gigma-ordering-title">Sorted Lorebooks</div>
                         <div id="gigma-toolbar" class="MarginTop10">
                             <div class="gigma-toolbar-group">
                                 <button id="gigma-new-folder" class="menu_button" title="Create folder" aria-label="New Folder"><i class="fa-solid fa-folder" aria-hidden="true"></i></button>
@@ -20716,7 +20714,7 @@ try {
                             </div>
                         </div>
                         
-                            <div id="gigma-ordering-list" style="flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; touch-action:pan-y; -webkit-overflow-scrolling:auto; scrollbar-gutter:stable;"></div>
+                            <div id="gigma-ordering-list" style="flex:1 1 auto; min-height:0; overflow:auto; scrollbar-gutter:stable;"></div>
                         </div>
                         <div id="gigma-ordering-count-wrap" style="position:relative; height:0; width:100%;">
                             <small id="gigma-ordering-count" style="position:absolute; left:0.375em; top:0.125em; color:#aaa; text-align:left; font-size:80%; line-height:1.2; white-space:nowrap;">Lorebooks: 0</small>
@@ -32827,6 +32825,39 @@ inside.parentElement.removeChild(inside);
                     document.addEventListener('pointerdown', onDropPointerDown, true);
                 }
             };
+            if (ev.pointerType === 'touch' && ev.button === 0) {
+                // Touch scrolling must stay native; only a stationary long-press starts dragging.
+                let pressed = true;
+                let timer = null;
+                const startX = ev.clientX || 0;
+                const startY = ev.clientY || 0;
+                const cleanup = () => {
+                    document.removeEventListener('pointermove', onTouchMove, true);
+                    document.removeEventListener('pointerup', onTouchEnd, true);
+                    document.removeEventListener('pointercancel', onTouchEnd, true);
+                    clearTimeout(timer);
+                };
+                const cancelTouchDrag = () => {
+                    pressed = false;
+                    cleanup();
+                };
+                const onTouchMove = (eMove) => {
+                    if (!pressed) return;
+                    const dx = ((typeof eMove.clientX === 'number') ? eMove.clientX : startX) - startX;
+                    const dy = ((typeof eMove.clientY === 'number') ? eMove.clientY : startY) - startY;
+                    if ((dx * dx + dy * dy) >= 36) cancelTouchDrag();
+                };
+                const onTouchEnd = cancelTouchDrag;
+                timer = setTimeout(() => {
+                    if (!pressed) return;
+                    cancelTouchDrag();
+                    startDrag();
+                }, 220);
+                document.addEventListener('pointermove', onTouchMove, true);
+                document.addEventListener('pointerup', onTouchEnd, true);
+                document.addEventListener('pointercancel', onTouchEnd, true);
+                return;
+            }
             if (fromTitle && ev.button === 0) {
                 // For presses that originate on the folder title we want two behaviours:
                 //  - simple click (no/very small movement) => inline rename
@@ -55474,10 +55505,10 @@ dialog.gigma-wide .gigma-unsorted-pane .gigma-focus-pane-list > .gigma-folder-li
     const css = document.createElement('style');
     css.id = 'gigma-unsorted-pane-style-fix';
     css.textContent = `
-      /* Keep the ordering container as the fixed shell; the inner list and right pane own scrolling. */
+      /* Ensure the ordering container never clips absolutely positioned right pane */
       #gigma-ordering-container{
-        overflow: hidden !important;
-        overscroll-behavior: contain;
+        overflow-x: visible !important;
+        overflow-y: auto !important;
       }
       /* In wide dialogs, completely hide the Unsorted folder's header block in the left column */
       dialog.gigma-wide .gigma-folder.gigma-unsorted .gigma-folder-header{ display:flex !important; }
@@ -55556,11 +55587,12 @@ dialog.gigma-wide .gigma-unsorted-pane .gigma-focus-pane-list > .gigma-folder-li
     const css = document.createElement('style');
     css.id = 'gigma-scrollbars-restore';
     css.textContent = `
-      /* Keep the main container stable; scrolling belongs to the lorebook list. */
+      /* Always allow the main container to scroll vertically */
       #gigma-ordering-container{
         max-height: 46.875em;
-        overflow: hidden !important;
-        overscroll-behavior: contain;
+        overflow-y: auto !important;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
       }
       /* In wide view, give the LEFT column an explicit width so items aren't squashed */
       dialog.gigma-wide #gigma-ordering-list{
@@ -55772,11 +55804,11 @@ dialog.gigma-wide .gigma-folder.gigma-unsorted > .gigma-folder-list .gigma-folde
     const css = document.createElement('style');
     css.id = 'gigma-wide-height-lock';
     css.textContent = `
-      /* In wide view, keep a stable viewport-tied shell so only the panes scroll. */
+      /* In wide view, keep a stable viewport-tied height so the right pane has a proper containing block. */
       dialog.gigma-wide #gigma-ordering-container{
         height: calc(100vh - 16.25rem) !important;
-        overflow: hidden !important;
-        overscroll-behavior: contain;
+        overflow-y: auto !important;
+        overflow-x: visible !important;
       }
       /* Ensure the left list still stretches to fill the height even when empty */
       dialog.gigma-wide #gigma-ordering-list{
