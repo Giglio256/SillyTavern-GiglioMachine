@@ -2280,6 +2280,9 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         overflow-x: visible;
         scrollbar-gutter: stable;
       }
+      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-modal-scroll{
+        overflow: hidden !important;
+      }
       dialog:has(#gigma-modal-root) .popup-body,
       dialog:has(#gigma-modal-root) .popup-content,
       dialog:has(#gigma-modal-root) .popup-content-wrapper,
@@ -2328,6 +2331,8 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
+        overscroll-behavior: contain;
+        touch-action: pan-y;
         -webkit-overflow-scrolling: auto;
       }
       html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
@@ -55559,7 +55564,7 @@ dialog.gigma-wide .gigma-unsorted-pane .gigma-focus-pane-list > .gigma-folder-li
         max-height: 46.875em;
         overflow-y: auto !important;
         overflow-x: hidden;
-        -webkit-overflow-scrolling: auto;
+        -webkit-overflow-scrolling: touch;
       }
       /* In wide view, give the LEFT column an explicit width so items aren't squashed */
       dialog.gigma-wide #gigma-ordering-list{
