@@ -37893,9 +37893,13 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 inset:0;
                 z-index:100000;
                 display:flex;
-                align-items:center;
+                align-items:flex-start;
                 justify-content:center;
+                width:100vw;
+                height:100vh;
+                height:100dvh;
                 padding:1em;
+                overflow:auto;
                 background:rgba(0,0,0,0.8);
                 backdrop-filter:none;
                 -webkit-backdrop-filter:none;
@@ -38194,6 +38198,10 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 line-height:1.35;
                 opacity:0.76;
                 white-space:normal;
+            }
+            #gigma-dedupe-root .gigma-dedupe-list.is-empty,
+            #gigma-dedupe-root .gigma-dedupe-detail.is-empty{
+                overscroll-behavior:auto;
             }
             #gigma-dedupe-root .gigma-dedupe-row{
                 display:grid;
@@ -38667,6 +38675,11 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 overflow:auto !important;
                 overscroll-behavior:contain;
                 -webkit-overflow-scrolling:touch;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-list.is-empty,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail.is-empty{
+                overscroll-behavior:auto !important;
+                touch-action:pan-y;
             }
             html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-list{
                 padding:0.58em !important;
@@ -39588,7 +39601,7 @@ function gigmaBuildDuplicateSentencePopupHtml() {
                 </div>
             </div>
             <div class="gigma-dedupe-summarybar">
-                <div id="gigma-dedupe-summary" class="gigma-dedupe-summary">Scanning…</div>
+                <div id="gigma-dedupe-summary" class="gigma-dedupe-summary">Scan the current lorebook, a custom lorebook selection, or all lorebooks for duplicate sentences.</div>
             </div>
             <div class="gigma-dedupe-main">
                 <div class="gigma-dedupe-pane">
@@ -39776,6 +39789,12 @@ function gigmaDuplicateSentenceRenderSummary(state) {
     return `${summary.findings} duplicate sentences found across ${summary.booksScanned} lorebooks, ${summary.entriesScanned} entries, and ${summary.sentencesScanned} scanned sentences. ${selectedCount} finding${selectedCount === 1 ? '' : 's'} selected, ${selectedRemovals} earlier cop${selectedRemovals === 1 ? 'y' : 'ies'} marked for removal.`;
 }
 
+function gigmaDuplicateSentenceSetEmptyPaneState(element, empty) {
+    if (!element) return;
+    element.classList.toggle('is-empty', !!empty);
+    element.setAttribute('data-gigma-dedupe-empty', empty ? '1' : '0');
+}
+
 function gigmaDuplicateSentenceRenderList(root) {
     const state = gigmaEnsureDuplicateSentenceState(root);
     const list = root?.querySelector?.('#gigma-dedupe-list');
@@ -39783,14 +39802,17 @@ function gigmaDuplicateSentenceRenderList(root) {
 
     if (state.busy && !state.results.length) {
         list.innerHTML = '<div class="gigma-dedupe-empty">Scanning lorebooks…</div>';
+        gigmaDuplicateSentenceSetEmptyPaneState(list, true);
         return;
     }
 
     if (!state.results.length) {
         list.innerHTML = '<div class="gigma-dedupe-empty">No duplicate sentences to show.</div>';
+        gigmaDuplicateSentenceSetEmptyPaneState(list, true);
         return;
     }
 
+    gigmaDuplicateSentenceSetEmptyPaneState(list, false);
     list.innerHTML = state.results.map((result, index) => {
         const selected = state.selectedKeys.has(result.key);
         const active = state.activeKey === result.key;
@@ -39998,18 +40020,21 @@ function gigmaDuplicateSentenceRenderDetail(root) {
 
     if (state.busy && !state.results.length) {
         detail.innerHTML = '<div class="gigma-dedupe-empty">Preparing details…</div>';
+        gigmaDuplicateSentenceSetEmptyPaneState(detail, true);
         return;
     }
 
     const result = gigmaDuplicateSentenceGetResultByKey(state, state.activeKey) || state.results[0];
     if (!result) {
         detail.innerHTML = '<div class="gigma-dedupe-empty">Select a finding to inspect the affected lorebooks and entries.</div>';
+        gigmaDuplicateSentenceSetEmptyPaneState(detail, true);
         return;
     }
 
     state.activeKey = result.key;
     if (toolbarHost) toolbarHost.innerHTML = gigmaBuildDuplicateSentenceDetailToolbarHtml(state.detailViewMode);
     detail.innerHTML = gigmaBuildDuplicateSentenceDetailHtml(state, result, state.detailViewMode);
+    gigmaDuplicateSentenceSetEmptyPaneState(detail, false);
 }
 
 function gigmaUpdateDuplicateSentencePopupChrome(root) {
@@ -40324,8 +40349,9 @@ function gigmaEnsureDuplicateSentencePopupShell(root) {
         const shell = root.closest('.gigma-dedupe-shell');
         if (overlay) {
             overlay.style.display = 'flex';
-            overlay.style.alignItems = 'center';
+            overlay.style.alignItems = 'flex-start';
             overlay.style.justifyContent = 'center';
+            overlay.style.inset = '0';
             overlay.style.opacity = '1';
         }
         if (shell) {
@@ -40342,7 +40368,6 @@ function gigmaMountDuplicateSentencePopup() {
         gigmaEnsureDuplicateSentencePopupShell(root);
         gigmaEnsureDuplicateSentenceState(root);
         gigmaRenderDuplicateSentencePopup(root);
-        gigmaRunDuplicateSentenceScan(root);
     };
 
     try {
@@ -40383,6 +40408,20 @@ async function gigmaShowDuplicateSentencePopup() {
     document.addEventListener('keydown', handleKeydown, true);
 
     gigmaMountDuplicateSentencePopup();
+}
+
+function gigmaDuplicateSentenceGetEmptyScrollPane(target) {
+    if (!(target instanceof Element)) return null;
+    const pane = target.closest('#gigma-dedupe-root .gigma-dedupe-list.is-empty, #gigma-dedupe-root .gigma-dedupe-detail.is-empty');
+    return pane instanceof HTMLElement ? pane : null;
+}
+
+function gigmaDuplicateSentenceGetPopupScroller(pane) {
+    const overlay = pane?.closest?.('#gigma-duplicate-sentences-overlay');
+    if (overlay && overlay.scrollHeight > overlay.clientHeight) return overlay;
+    const shell = pane?.closest?.('.gigma-dedupe-shell');
+    if (shell && shell.scrollHeight > shell.clientHeight) return shell;
+    return null;
 }
 
 (function gigmaDuplicateSentencePopupEventsOnce() {
@@ -40570,6 +40609,41 @@ async function gigmaShowDuplicateSentencePopup() {
                 }
             } catch (_eDuplicateSentencePopupClick) { }
         }, true);
+
+        let gigmaDuplicateSentenceEmptyPaneLastTouchY = 0;
+        document.addEventListener('wheel', (event) => {
+            try {
+                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+                if (!pane) return;
+                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
+                if (!scroller) return;
+                scroller.scrollTop += event.deltaY;
+                event.preventDefault();
+            } catch (_eDuplicateSentenceEmptyWheel) { }
+        }, { capture: true, passive: false });
+
+        document.addEventListener('touchstart', (event) => {
+            try {
+                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+                if (!pane) return;
+                const touch = event.touches && event.touches[0];
+                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch ? touch.clientY : 0;
+            } catch (_eDuplicateSentenceEmptyTouchStart) { }
+        }, { capture: true, passive: true });
+
+        document.addEventListener('touchmove', (event) => {
+            try {
+                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+                if (!pane) return;
+                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
+                if (!scroller) return;
+                const touch = event.touches && event.touches[0];
+                if (!touch || !gigmaDuplicateSentenceEmptyPaneLastTouchY) return;
+                scroller.scrollTop += gigmaDuplicateSentenceEmptyPaneLastTouchY - touch.clientY;
+                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch.clientY;
+                event.preventDefault();
+            } catch (_eDuplicateSentenceEmptyTouchMove) { }
+        }, { capture: true, passive: false });
     } catch (_eDuplicateSentencePopupEventsOnce) { }
 })();
 
