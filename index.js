@@ -2328,7 +2328,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        -webkit-overflow-scrolling: touch;
+        -webkit-overflow-scrolling: auto;
       }
       html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
         position: static !important;
@@ -2344,13 +2344,6 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         box-sizing: border-box !important;
         border-left: 0.0625em dashed rgba(255,255,255,0.15);
         overflow: hidden !important;
-      }
-      html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root) #gigma-ordering-container,
-      html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root) #gigma-ordering-list,
-      html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root) .gigma-unsorted-content,
-      html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root) .gigma-focus-pane-list{
-        overscroll-behavior-y: contain !important;
-        -webkit-overflow-scrolling: auto !important;
       }
 `;
     document.head.appendChild(s);
@@ -55566,7 +55559,7 @@ dialog.gigma-wide .gigma-unsorted-pane .gigma-focus-pane-list > .gigma-folder-li
         max-height: 46.875em;
         overflow-y: auto !important;
         overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
+        -webkit-overflow-scrolling: auto;
       }
       /* In wide view, give the LEFT column an explicit width so items aren't squashed */
       dialog.gigma-wide #gigma-ordering-list{
