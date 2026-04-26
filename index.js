@@ -2280,9 +2280,6 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         overflow-x: visible;
         scrollbar-gutter: stable;
       }
-      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-modal-scroll{
-        overflow: hidden !important;
-      }
       dialog:has(#gigma-modal-root) .popup-body,
       dialog:has(#gigma-modal-root) .popup-content,
       dialog:has(#gigma-modal-root) .popup-content-wrapper,
@@ -32830,6 +32827,44 @@ inside.parentElement.removeChild(inside);
                     document.addEventListener('pointerdown', onDropPointerDown, true);
                 }
             };
+            if (ev.pointerType === 'touch' && ev.button === 0) {
+                // Mobile scroll must win over row dragging; a real touch drag now requires a stationary long press.
+                let pressed = true;
+                const startX = ev.clientX || 0;
+                const startY = ev.clientY || 0;
+                const dragThreshold = 10; // px
+                let timer = null;
+                const cleanupTouchDragGate = () => {
+                    try { document.removeEventListener('pointermove', onTouchMove, true); } catch (_) {}
+                    try { document.removeEventListener('pointerup', cancelTouchDragGate, true); } catch (_) {}
+                    try { document.removeEventListener('pointercancel', cancelTouchDragGate, true); } catch (_) {}
+                    if (timer !== null) clearTimeout(timer);
+                    timer = null;
+                };
+                const cancelTouchDragGate = () => {
+                    pressed = false;
+                    cleanupTouchDragGate();
+                };
+                const startTouchDragOnce = () => {
+                    if (!pressed) return;
+                    pressed = false;
+                    cleanupTouchDragGate();
+                    startDrag();
+                };
+                const onTouchMove = (eMove) => {
+                    if (!pressed) return;
+                    const mx = (typeof eMove.clientX === 'number') ? eMove.clientX : startX;
+                    const my = (typeof eMove.clientY === 'number') ? eMove.clientY : startY;
+                    const dx = mx - startX;
+                    const dy = my - startY;
+                    if ((dx * dx + dy * dy) >= (dragThreshold * dragThreshold)) cancelTouchDragGate();
+                };
+                timer = setTimeout(startTouchDragOnce, 260);
+                document.addEventListener('pointermove', onTouchMove, true);
+                document.addEventListener('pointerup', cancelTouchDragGate, true);
+                document.addEventListener('pointercancel', cancelTouchDragGate, true);
+                return;
+            }
             if (fromTitle && ev.button === 0) {
                 // For presses that originate on the folder title we want two behaviours:
                 //  - simple click (no/very small movement) => inline rename
