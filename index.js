@@ -34,92 +34,84 @@ const gigmaSyncMobileFullscreenClass = () => {
 
 
 // --- GIGMA: Lorebook usage icons (persona/chat/character) ---
-let __gigmaWorldUsageFlagsSnapshot = null;
-
-const __gigmaResetWorldUsageFlagsCache = () => {
-  __gigmaWorldUsageFlagsSnapshot = null;
-};
-
-const __gigmaBuildWorldUsageFlagsSnapshot = () => {
-  const activeWorlds = new Set(Array.isArray(selected_world_info) ? selected_world_info : []);
-  const personaWorld = power_user?.persona_description_lorebook || '';
-  const chatWorld = chat_metadata?.[METADATA_KEY] || '';
+const __gigmaGetWorldUsageFlags = (worldName) => {
+  const personaWorld = power_user?.persona_description_lorebook;
+  const chatWorld = chat_metadata?.[METADATA_KEY];
+  const baseWorld = characters?.[this_chid]?.data?.extensions?.world;
   const isGroupChat = !!selected_group;
-  let chatBoundName = '';
-  const characterWorlds = new Set();
-  const characterBoundNames = new Map();
 
-  if (chatWorld) {
-    try {
+  const isActiveWorld = Array.isArray(selected_world_info) && selected_world_info.includes(worldName);
+  const isPersonaWorld = !!worldName && !!personaWorld && personaWorld === worldName;
+  const isChatWorld = !!worldName && !!chatWorld && chatWorld === worldName;
+
+  let chatBoundName = '';
+  let characterBoundName = '';
+
+  if (isChatWorld) {
+    try{
       if (isGroupChat) {
         const ctx = (typeof getContext === 'function') ? (getContext() || {}) : {};
         const gid = (ctx && (ctx.groupId ?? selected_group)) ?? selected_group;
         if (gid != null && Array.isArray(ctx.groups)) {
-          const group = ctx.groups.find(x => x && String(x.id) === String(gid));
-          if (group && typeof group.name === 'string') chatBoundName = group.name.trim();
+          const g = ctx.groups.find(x => x && String(x.id) === String(gid));
+          if (g && typeof g.name === 'string' && g.name.trim()) chatBoundName = g.name.trim();
         }
         if (!chatBoundName && typeof getCurrentChatDetails === 'function') {
-          const details = getCurrentChatDetails() || {};
-          const group = details && details.group;
-          if (group && typeof group.name === 'string') chatBoundName = group.name.trim();
+          const cd = getCurrentChatDetails() || {};
+          const gg = cd && cd.group;
+          if (gg && typeof gg.name === 'string' && gg.name.trim()) chatBoundName = gg.name.trim();
         }
       } else if (this_chid !== null && this_chid !== undefined) {
-        const character = characters?.[this_chid];
-        chatBoundName = String((character && (character.name || character.data?.name)) || '').trim();
+        const c = characters?.[this_chid];
+        chatBoundName = String((c && (c.name || c.data?.name)) || '').trim();
       }
-    } catch (_) { }
+    }catch(_){ }
   }
 
-  const rememberCharacterWorld = (worldName, boundName) => {
-    const name = String(worldName || '').trim();
-    if (!name) return;
-    characterWorlds.add(name);
-    if (!characterBoundNames.has(name)) characterBoundNames.set(name, String(boundName || '').trim());
-  };
+  let isCharacterWorld = false;
+  if (worldName) {
+    // In group chats there is no single `this_chid` until a member is opened/peeked.
+    // The old logic only checked `this_chid`, so the icon appeared only after opening a member card.
+    // Fix: consider the lorebook character-bound if it is bound to ANY current group member.
+    if (isGroupChat) {
+      const members = (typeof getGroupMembers === 'function') ? (getGroupMembers(selected_group) || []) : [];
+      for (const member of members) {
+        const chid = (member && Array.isArray(characters)) ? characters.indexOf(member) : -1;
+        if (chid < 0) continue;
 
-  const charLoreByName = new Map();
-  if (Array.isArray(world_info?.charLore)) {
-    for (const entry of world_info.charLore) {
-      if (entry && entry.name) charLoreByName.set(String(entry.name), entry);
-    }
-  }
+        const memberBaseWorld = characters?.[chid]?.data?.extensions?.world;
+        if (memberBaseWorld && memberBaseWorld === worldName) {
+          isCharacterWorld = true;
+          characterBoundName = String((characters?.[chid]?.name || characters?.[chid]?.data?.name || member?.name || member?.data?.name || '')).trim();
+          break;
+        }
 
-  if (isGroupChat) {
-    const members = (typeof getGroupMembers === 'function') ? (getGroupMembers(selected_group) || []) : [];
-    for (const member of members) {
-      const chid = (member && Array.isArray(characters)) ? characters.indexOf(member) : -1;
-      if (chid < 0) continue;
-      const boundName = String((characters?.[chid]?.name || characters?.[chid]?.data?.name || member?.name || member?.data?.name || '')).trim();
-      rememberCharacterWorld(characters?.[chid]?.data?.extensions?.world, boundName);
-      const fn = getCharaFilename(chid);
-      const extra = charLoreByName.get(String(fn));
-      if (extra?.extraBooks && Array.isArray(extra.extraBooks)) {
-        for (const worldName of extra.extraBooks) rememberCharacterWorld(worldName, boundName);
+        const fn = getCharaFilename(chid);
+        const extra = world_info?.charLore?.find((e) => e?.name === fn);
+        if (extra?.extraBooks && extra.extraBooks.includes(worldName)) {
+          isCharacterWorld = true;
+          characterBoundName = String((characters?.[chid]?.name || characters?.[chid]?.data?.name || member?.name || member?.data?.name || '')).trim();
+          break;
+        }
+      }
+    } else {
+      if (baseWorld && baseWorld === worldName) {
+        isCharacterWorld = true;
+        const c = characters?.[this_chid];
+        characterBoundName = String((c && (c.name || c.data?.name)) || '').trim();
+      } else if (this_chid !== null && this_chid !== undefined) {
+        const fn = getCharaFilename(this_chid);
+        const extra = world_info?.charLore?.find((e) => e?.name === fn);
+        isCharacterWorld = !!(extra?.extraBooks && extra.extraBooks.includes(worldName));
+        if (isCharacterWorld) {
+          const c = characters?.[this_chid];
+          characterBoundName = String((c && (c.name || c.data?.name)) || '').trim();
+        }
       }
     }
-  } else if (this_chid !== null && this_chid !== undefined) {
-    const character = characters?.[this_chid];
-    const boundName = String((character && (character.name || character.data?.name)) || '').trim();
-    rememberCharacterWorld(character?.data?.extensions?.world, boundName);
-    const fn = getCharaFilename(this_chid);
-    const extra = charLoreByName.get(String(fn));
-    if (extra?.extraBooks && Array.isArray(extra.extraBooks)) {
-      for (const worldName of extra.extraBooks) rememberCharacterWorld(worldName, boundName);
-    }
   }
 
-  return { activeWorlds, personaWorld, chatWorld, chatBoundName, characterWorlds, characterBoundNames };
-};
-
-const __gigmaGetWorldUsageFlags = (worldName) => {
-  const name = String(worldName || '');
-  const snapshot = __gigmaWorldUsageFlagsSnapshot || (__gigmaWorldUsageFlagsSnapshot = __gigmaBuildWorldUsageFlagsSnapshot());
-  const isActiveWorld = !!name && snapshot.activeWorlds.has(name);
-  const isPersonaWorld = !!name && !!snapshot.personaWorld && snapshot.personaWorld === name;
-  const isChatWorld = !!name && !!snapshot.chatWorld && snapshot.chatWorld === name;
-  const isCharacterWorld = !!name && snapshot.characterWorlds.has(name);
-  const characterBoundName = isCharacterWorld ? (snapshot.characterBoundNames.get(name) || '') : '';
-  return { isActiveWorld, isPersonaWorld, isChatWorld, isCharacterWorld, chatBoundName: isChatWorld ? snapshot.chatBoundName : '', characterBoundName };
+  return { isActiveWorld, isPersonaWorld, isChatWorld, isCharacterWorld, chatBoundName, characterBoundName };
 };
 
 const __gigmaMakeUsageIconEl = (faName, extraClass) => {
@@ -353,21 +345,25 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       /* Preview header close (X) button: scale with the preview font size */
       #gigma-layout-preset-tree-close{
         width: var(--gigma-hdr-btn) !important;
+        min-width: var(--gigma-hdr-btn) !important;
         height: var(--gigma-hdr-btn) !important;
         max-width: var(--gigma-hdr-btn) !important;
         line-height: 1 !important;
         font-size: 0.92em !important;
         padding: 0 !important;
-        margin-left: 0 !important;
-        position: absolute !important;
-        top: 0 !important;
-        right: 0 !important;
+        margin-left: 0.35em !important;
+        margin-bottom: 0.35em !important;
+        position: static !important;
+        grid-column: 3 !important;
+        grid-row: 1 / 3 !important;
+        justify-self: end !important;
+        align-self: start !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         box-sizing: border-box !important;
         background: rgba(255,255,255,0.08) !important;
-        border: var(--gigma-hdr-border) solid rgba(255,255,255,0.18) !important;
+        border: var(--gigma-hdr-border, 0.09em) solid rgba(255,255,255,0.18) !important;
         color: #ffffff !important;
         box-shadow: none !important;
         transition: background-color .12s ease-out, border-color .12s ease-out, box-shadow .12s ease-out;
@@ -590,6 +586,108 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
     s.id = 'gigma-modal-lorebook-stats-style';
     s.textContent = `
 .gigma-hidden{ display:none !important; }
+
+      .gigma-mobile-fullscreen-close{
+        display:none;
+      }
+
+      html.gigma-mobile-fullscreen body.gigma-native-wi-mobile-fullscreen-stats-open #top-settings-holder > .drawer > .drawer-toggle{
+        visibility:hidden !important;
+        pointer-events:none !important;
+      }
+
+      html.gigma-mobile-fullscreen body.gigma-native-wi-mobile-fullscreen-stats-open #WorldInfo{
+        z-index:40001 !important;
+      }
+
+      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel:not(.gigma-hidden){
+        position:fixed !important;
+        inset:0 !important;
+        left:0 !important;
+        right:auto !important;
+        top:0 !important;
+        bottom:auto !important;
+        width:100vw !important;
+        width:100dvw !important;
+        min-width:0 !important;
+        max-width:none !important;
+        height:100vh !important;
+        height:100dvh !important;
+        min-height:0 !important;
+        max-height:none !important;
+        margin:0 !important;
+        padding:calc(env(safe-area-inset-top) + 3.25em) calc(env(safe-area-inset-right) + 0.8em) calc(env(safe-area-inset-bottom) + 0.8em) calc(env(safe-area-inset-left) + 0.8em) !important;
+        border-radius:0 !important;
+        border:0 !important;
+        box-sizing:border-box !important;
+        background:rgba(0,0,0,0.96) !important;
+        box-shadow:none !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        z-index:40000 !important;
+        -webkit-overflow-scrolling:touch;
+      }
+
+      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel.gigma-hidden{
+        display:none !important;
+      }
+
+      html.gigma-mobile-fullscreen #gigma-modal-settings-popup.gigma-mobile-fullscreen-panel{
+        transform:none !important;
+      }
+
+      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close{
+        position:absolute !important;
+        top:max(0.6em, env(safe-area-inset-top)) !important;
+        right:max(0.6em, env(safe-area-inset-right)) !important;
+        width:var(--gigma-hdr-btn, 2.2em) !important;
+        min-width:var(--gigma-hdr-btn, 2.2em) !important;
+        max-width:var(--gigma-hdr-btn, 2.2em) !important;
+        height:var(--gigma-hdr-btn, 2.2em) !important;
+        padding:0 !important;
+        margin:0 !important;
+        display:inline-flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        box-sizing:border-box !important;
+        background:rgba(255,255,255,0.08) !important;
+        border:var(--gigma-hdr-border, 0.08em) solid rgba(255,255,255,0.18) !important;
+        color:#ffffff !important;
+        box-shadow:none !important;
+        z-index:1 !important;
+        transition:background-color .12s ease-out, border-color .12s ease-out, box-shadow .12s ease-out;
+      }
+
+      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close .gigma-global-icon-svg,
+      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close .gigma-global-icon-svg *{
+        stroke:rgba(220,220,220,0.84) !important;
+      }
+
+      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close:hover,
+      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close:focus-visible{
+        background:rgba(255,0,90,0.52) !important;
+        border-color:rgba(255,0,90,1) !important;
+      }
+
+      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close .gigma-global-icon-svg{
+        width:1.05em !important;
+        height:1.05em !important;
+      }
+
+      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel .gigma-modal-stats-panel-actions{
+        padding-right:calc(var(--gigma-hdr-btn, 2.2em) + 0.55em);
+      }
+
+      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel .gigma-modal-stats-panel-list,
+      html.gigma-mobile-fullscreen #gigma-modal-settings-popup.gigma-mobile-fullscreen-panel table{
+        max-width:42em;
+        margin-left:auto;
+        margin-right:auto;
+      }
+
+      html.gigma-mobile-fullscreen #gigma-modal-settings-popup.gigma-mobile-fullscreen-panel table{
+        width:min(100%, 42em);
+      }
 
       /* Allow the Cats dropdown to expand beyond the pane border (avoid clipping) */
       #gigma-modal-root #gigma-ordering-container{
@@ -1944,7 +2042,8 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         align-items: center;
         gap: var(--gigma-hdr-center-gap);
       }
-      #gigma-global-settings .gigma-global-icon-svg{
+      #gigma-global-settings .gigma-global-icon-svg,
+      #gigma-dedupe-root .gigma-global-icon-svg{
         width: 0.92em;
         height: 0.92em;
         vertical-align: -0.12em;
@@ -1974,7 +2073,8 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         font-size: 0.92em !important;
       }
       #gigma-global-settings .gigma-global-icon,
-      #gigma-fixed-header-layer .gigma-global-icon{
+      #gigma-fixed-header-layer .gigma-global-icon,
+      #gigma-dedupe-root .gigma-global-icon{
         width: var(--gigma-hdr-btn) !important;
         max-width: var(--gigma-hdr-btn) !important;
         padding: 0 !important;
@@ -2013,12 +2113,14 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         height: 1.25em;
       }
       #gigma-global-settings .gigma-global-icon-svg *,
-      #gigma-fixed-header-layer .gigma-global-icon-svg *{
+      #gigma-fixed-header-layer .gigma-global-icon-svg *,
+      #gigma-dedupe-root .gigma-global-icon-svg *{
         stroke-width: 2.6 !important;
       }
 
       #gigma-global-settings #gigma-global-accept .gigma-global-icon-svg *,
-      #gigma-global-settings #gigma-global-cancel .gigma-global-icon-svg *{
+      #gigma-global-settings #gigma-global-cancel .gigma-global-icon-svg *,
+      #gigma-dedupe-root .gigma-global-cancel .gigma-global-icon-svg *{
         stroke-width: 4.4 !important;
       }
 
@@ -2054,7 +2156,8 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       #gigma-fixed-width-host .gigmaWidthBtn,
       #gigma-fixed-help-host .gigmaHelpBtn,
       #gigma-fixed-bug-host .gigmaBugBtn,
-      #gigma-wide-close-host #gigma-global-cancel{
+      #gigma-wide-close-host #gigma-global-cancel,
+      #gigma-dedupe-root .gigma-global-cancel.gigma-global-icon{
         background: rgba(255,255,255,0.08) !important;
         border: var(--gigma-hdr-border) solid rgba(255,255,255,0.18) !important;
         color: #ffffff !important;
@@ -2077,20 +2180,24 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       #gigma-fixed-accept-host .gigma-global-icon-svg,
       #gigma-fixed-cancel-host .gigma-global-icon-svg,
       #gigma-wide-close-host .gigma-global-icon-svg,
+      #gigma-dedupe-root .gigma-global-icon-svg,
       #gigma-global-settings .gigma-global-icon i,
       #gigma-fixed-accept-host .gigma-global-icon i,
       #gigma-fixed-cancel-host .gigma-global-icon i,
-      #gigma-wide-close-host .gigma-global-icon i{
+      #gigma-wide-close-host .gigma-global-icon i,
+      #gigma-dedupe-root .gigma-global-icon i{
         color: rgba(220,220,220,0.84) !important;
       }
       #gigma-global-settings .gigma-global-icon-svg,
       #gigma-fixed-accept-host .gigma-global-icon-svg,
       #gigma-fixed-cancel-host .gigma-global-icon-svg,
       #gigma-wide-close-host .gigma-global-icon-svg,
+      #gigma-dedupe-root .gigma-global-icon-svg,
       #gigma-global-settings .gigma-global-icon-svg *,
       #gigma-fixed-accept-host .gigma-global-icon-svg *,
       #gigma-fixed-cancel-host .gigma-global-icon-svg *,
-      #gigma-wide-close-host .gigma-global-icon-svg *{
+      #gigma-wide-close-host .gigma-global-icon-svg *,
+      #gigma-dedupe-root .gigma-global-icon-svg *{
         stroke: rgba(220,220,220,0.84) !important;
       }
       #gigma-global-settings button:hover,
@@ -2151,7 +2258,9 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       #gigma-fixed-cancel-host #gigma-global-cancel:hover,
       #gigma-fixed-cancel-host #gigma-global-cancel:focus-visible,
       #gigma-wide-close-host #gigma-global-cancel:hover,
-      #gigma-wide-close-host #gigma-global-cancel:focus-visible{
+      #gigma-wide-close-host #gigma-global-cancel:focus-visible,
+      #gigma-dedupe-root .gigma-global-cancel:hover,
+      #gigma-dedupe-root .gigma-global-cancel:focus-visible{
         background: rgba(255,0,90,0.52) !important;
         border-color: rgba(255,0,90,1) !important;
 
@@ -2219,7 +2328,9 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        touch-action: pan-y;
+        -webkit-overflow-scrolling: auto;
       }
       html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
         position: static !important;
@@ -2393,6 +2504,12 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         height:100%;
         min-height:0;
       }
+      #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-first-screen{
+        display:flex;
+        flex-direction:column;
+        flex:1 1 auto;
+        min-height:0;
+      }
       #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree{
         background:rgba(0,0,0,0.16);
       }
@@ -2562,10 +2679,13 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       }
       html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-header{
         flex:0 0 auto !important;
+        display:grid !important;
+        grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em) !important;
+        grid-template-rows:auto auto !important;
         width:100% !important;
         min-width:0 !important;
         box-sizing:border-box !important;
-        padding-right:calc(var(--gigma-hdr-btn) + 0.75em) !important;
+        padding-right:0 !important;
         overflow:visible !important;
       }
       html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-first-screen{
@@ -2642,7 +2762,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         position:relative;
       }
       #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-header{
-        padding-left:3.25em;
+        padding-left:0;
       }
       #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-row.gigma-selected,
       #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-folder.gigma-selected{
@@ -7756,22 +7876,53 @@ async function gigmaSyncAllLorebookIdsAndStatsIndex() {
 
             const names = Array.isArray(world_names) ? world_names.filter(n => typeof n === 'string' && n.trim()) : [];
             const currentNames = new Set(names);
-            const cleanedNameToId = {};
-            const cleanedIdToName = {};
+            const currentIds = new Set();
+            const ensureResult = await gigmaEnsureLorebookIdsForNamesBatched(names, { popupThreshold: 10 });
 
-            for (const [nameRaw, idRaw] of Object.entries(window.gigmaWorldIdByName || {})) {
-                const name = String(nameRaw || '');
-                const id = String(idRaw || '').trim();
-                if (!name || !id || !currentNames.has(name)) continue;
-                cleanedNameToId[name] = id;
-                cleanedIdToName[id] = name;
+            if (ensureResult.aborted) {
+                try {
+                    if (typeof toastr !== 'undefined' && toastr && typeof toastr.warning === 'function') {
+                        toastr.warning('Adding lorebook IDs to world json files was aborted.');
+                    }
+                } catch (_){ }
+                return;
             }
 
-            window.gigmaWorldIdByName = cleanedNameToId;
-            window.gigmaNameByWorldId = cleanedIdToName;
+            for (const name of names) {
+                let id = window.gigmaWorldIdByName[name];
+                if (!id) id = await gigmaEnsureLorebookId(name);
+                if (!id) continue;
+                id = String(id);
+                currentIds.add(id);
+                window.gigmaWorldIdByName[name] = id;
+                window.gigmaNameByWorldId[id] = name;
+
+                const book = gigmaGetLorebookStatsIndexBookById(id);
+                if (!book || !book.stats || !book.entriesByUid) {
+                    await gigmaEnsureLorebookStatsIndexForWorld(name, { forceRebuild: true });
+                    await new Promise(r => setTimeout(r, 0));
+                } else if (book.worldName !== name) {
+                    book.worldName = name;
+                }
+            }
+
+            for (const name of Object.keys(window.gigmaWorldIdByName || {})) {
+                if (!currentNames.has(name)) delete window.gigmaWorldIdByName[name];
+            }
+            for (const id of Object.keys(window.gigmaNameByWorldId || {})) {
+                if (!currentIds.has(id)) delete window.gigmaNameByWorldId[id];
+            }
+
+            const store = gigmaGetLorebookStatsIndexStore();
+            const booksById = (store && store.booksById && typeof store.booksById === 'object') ? store.booksById : {};
+            for (const id of Object.keys(booksById)) {
+                if (!currentIds.has(id)) delete booksById[id];
+            }
+
             gigmaSetWorldIdMap(window.gigmaWorldIdByName);
+            gigmaPersigigmarebookStatsIndexStore();
         } catch (e) {
-            console.warn('[GIGMA] Failed to sync cached lorebook IDs:', e);
+            console.warn('[GIGMA] Failed to sync lorebook ID/stats index:', e);
         } finally {
             try { window.__gigmaLorebookStatsIndexSyncPromise = null; } catch (_eClear) {}
         }
@@ -10164,13 +10315,84 @@ function gigmaSetPrettySwitchDisabled(input, disabled){
     }catch(_){ }
 }
 
+function gigmaSyncNativeWiMobileFullscreenStatsLayer(){
+    const active = document.documentElement.classList.contains(GIGMA_MOBILE_FULLSCREEN_CLASS)
+        && !!(EXTENSION_STATE.globalWiStatsWiPanelOpen || EXTENSION_STATE.worldInfoLorebookStatsPanelOpen);
+    document.body.classList.toggle('gigma-native-wi-mobile-fullscreen-stats-open', active);
+}
+
+function gigmaCloseMobileFullscreenDropdown(panelEl){
+    try{
+        if (!panelEl) return;
+        const id = String(panelEl.id || '');
+        if (id === 'gigma-modal-settings-popup') {
+            panelEl.style.display = 'none';
+            return;
+        }
+        if (id === SELECTORS.WORLD_INFO_GLOBAL_WI_STATS_PANEL) {
+            EXTENSION_STATE.globalWiStatsWiPanelOpen = false;
+            gigmaUpdateGlobalWiStatsControlsUi('wi');
+            return;
+        }
+        if (id === SELECTORS.WORLD_INFO_LOREBOOK_STATS_PANEL) {
+            EXTENSION_STATE.worldInfoLorebookStatsPanelOpen = false;
+            gigmaUpdateWorldInfoLorebookStatsDropdownUi();
+            return;
+        }
+        if (id === 'gigma-layout-preset-tree-global-wi-stats-panel') {
+            EXTENSION_STATE.globalWiStatsPreviewPanelOpen = false;
+            gigmaUpdateGlobalWiStatsControlsUi('preview');
+            return;
+        }
+        if (id === 'gigma-layout-preset-tree-stats-panel') {
+            const root = panelEl.closest ? panelEl.closest('#gigma-layout-preset-tree-preview-root') : null;
+            const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
+            state.panelOpen = false;
+            gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
+            return;
+        }
+        if (id.indexOf('gigma-modal-global-wi-stats-panel') === 0) {
+            EXTENSION_STATE.globalWiStatsModalPanelOpen = false;
+            EXTENSION_STATE.globalWiStatsModalPanelSuffixOpen = '';
+            gigmaUpdateGlobalWiStatsControlsUi('modal');
+            return;
+        }
+        if (id.indexOf('gigma-modal-stats-panel') === 0) {
+            const suffix = id.endsWith('-right') ? '-right' : '';
+            panelEl.classList.add('gigma-hidden');
+            panelEl.setAttribute('aria-hidden', 'true');
+            const btn = document.getElementById('gigma-modal-stats-cats' + suffix);
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+    }catch(_){ }
+}
+
+function gigmaEnsureMobileFullscreenDropdownShell(panelEl, closeLabel){
+    try{
+        if (!panelEl) return;
+        panelEl.classList.add('gigma-mobile-fullscreen-panel');
+        if (panelEl.querySelector(':scope > .gigma-mobile-fullscreen-close')) return;
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'menu_button gigma-global-cancel gigma-global-icon gigma-mobile-fullscreen-close';
+        closeBtn.setAttribute('aria-label', closeLabel || 'Close popup');
+        closeBtn.title = closeLabel || 'Close popup';
+        closeBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>';
+        closeBtn.addEventListener('click', (ev) => {
+            try{ ev.preventDefault(); ev.stopPropagation(); }catch(_e){ }
+            gigmaCloseMobileFullscreenDropdown(panelEl);
+        });
+        panelEl.insertBefore(closeBtn, panelEl.firstChild);
+    }catch(_){ }
+}
+
 function gigmaBuildGlobalWiStatsPanel(panel, place){
     try{
         if (!panel) return;
         if (panel.getAttribute('data-gigma-built') === '1') return;
         panel.setAttribute('data-gigma-built', '1');
         panel.classList.add('gigma-global-wi-stats-panel');
-
+        gigmaEnsureMobileFullscreenDropdownShell(panel, 'Close Global WI statistics');
 
         const headRow = document.createElement('div');
         headRow.className = 'gigma-gwi-panel-headrow';
@@ -10582,6 +10804,7 @@ function gigmaUpdateGlobalWiStatsControlsUi(place){
 
             if (btn) btn.setAttribute('aria-expanded', EXTENSION_STATE.globalWiStatsWiPanelOpen ? 'true' : 'false');
             gigmaSyncStatsButtonPairUi(btn, collapseBtn, !!EXTENSION_STATE.globalWiStatsWiEnabled, !gigmaGetGlobalWiStatsDisplayCollapsed('wi'), 'Global Stats', gigmaGetStatsCollapseButtonVisible('wi', 'global'));
+            gigmaSyncNativeWiMobileFullscreenStatsLayer();
             return;
         }
 
@@ -11854,29 +12077,6 @@ function gigmaGetModalLorebookStatsRows(forceRefresh = false) {
     return [];
 }
 
-function gigmaGetVisibleModalLorebookStatsRows(forceRefresh = false) {
-    const rows = gigmaGetModalLorebookStatsRows(!!forceRefresh);
-    try {
-        const visibleRows = window.__gigmaVisibleModalLorebookStatsRows;
-        if (visibleRows && typeof visibleRows.forEach === 'function' && visibleRows.size > 0) {
-            const out = [];
-            visibleRows.forEach((row) => {
-                if (row && row.isConnected && row.dataset && row.dataset.world) out.push(row);
-            });
-            if (out.length) return out;
-        }
-
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-        const margin = 160;
-        return rows.filter((row) => {
-            if (!row || !row.isConnected || !row.dataset || !row.dataset.world || typeof row.getBoundingClientRect !== 'function') return false;
-            const rect = row.getBoundingClientRect();
-            return rect.bottom >= -margin && rect.top <= viewportHeight + margin;
-        });
-    } catch (_e) { }
-    return rows.slice(0, 60);
-}
-
 function gigmaObserveModalLorebookStatsRow(row) {
     try {
         if (!row || !row.isConnected || !row.dataset || !row.dataset.world) return;
@@ -12035,8 +12235,7 @@ function gigmaRefreshVisibleModalLorebookStats() {
             return;
         }
 
-        try { gigmaObserveModalLorebookStatsRows(false); } catch (_eObserve) { }
-        const rows = gigmaGetVisibleModalLorebookStatsRows(false);
+        const rows = gigmaGetModalLorebookStatsRows(false);
         for (const row of rows) {
             try {
                 if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
@@ -12237,22 +12436,13 @@ function gigmaUpdateModalLorebookRowStats(row) {
 function gigmaUpdateModalLorebookStatsAllRows() {
     try {
         if (!gigmaIsOrderingModalActive()) return;
-        try { window.__gigmaModalLorebookStatsRowsCache = null; } catch (_eCache) { }
-
-        if (!EXTENSION_STATE.modalLorebookStatsEnabled || gigmaGetLorebookStatsDisplayCollapsed('modal')) {
-            const root = gigmaGetOrderingModalStatsRoot() || document;
-            const hosts = root.querySelectorAll ? root.querySelectorAll('.gigma-row-header-grid > .gigma-row-stats') : [];
-            hosts.forEach((host) => {
-                try {
-                    host.classList.add('gigma-hidden');
-                    host.textContent = '';
-                } catch (_eHost) { }
-            });
-            return;
+        const rows = gigmaGetModalLorebookStatsRows(true);
+        for (const row of rows) {
+            try {
+                if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
+                gigmaEnsureModalRowStatsHost(row);
+            } catch (_eHost) { }
         }
-
-        try { gigmaObserveModalLorebookStatsRows(true); } catch (_eObserve) { }
-        const rows = gigmaGetVisibleModalLorebookStatsRows(false);
         for (const row of rows) {
             try {
                 if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
@@ -12444,6 +12634,7 @@ const ensure = (toolbarSelector, suffix) => {
         panelCats.id = 'gigma-modal-stats-panel' + suffix;
         panelCats.className = 'gigma-modal-stats-panel gigma-lorebook-stats-panel gigma-hidden';
         panelCats.setAttribute('aria-hidden', 'true');
+        gigmaEnsureMobileFullscreenDropdownShell(panelCats, 'Close Lorebook statistics');
 
         const headCats = document.createElement('div');
         headCats.className = 'gigma-gwi-panel-headrow';
@@ -14359,6 +14550,7 @@ function gigmaBuildLayoutPresetTreePreviewLorebookStatsPanel(panel) {
         if (panel.getAttribute('data-gigma-built') === '1') return;
         panel.setAttribute('data-gigma-built', '1');
         try{ panel.classList.add('gigma-lorebook-stats-panel'); }catch(_e){}
+        gigmaEnsureMobileFullscreenDropdownShell(panel, 'Close Lorebook statistics');
 
         const head = document.createElement('div');
         head.className = 'gigma-gwi-panel-headrow';
@@ -15202,6 +15394,8 @@ function gigmaUpdateWorldInfoLorebookStatsDropdownUi(){
         const collapseBtn = document.getElementById(SELECTORS.WORLD_INFO_LOREBOOK_COLLAPSE_BUTTON);
         gigmaSyncStatsButtonPairUi(btn, collapseBtn, !!EXTENSION_STATE.worldInfoLorebookStatsEnabled, !gigmaIsWorldInfoStatsSectionCollapsed('lorebook'), 'Lorebook Stats', gigmaGetStatsCollapseButtonVisible('wi', 'lorebook'));
 
+        gigmaSyncNativeWiMobileFullscreenStatsLayer();
+
         if (!panel) return;
 
         panel.classList.toggle('gigma-hidden', !open);
@@ -15275,6 +15469,7 @@ function gigmaBuildWorldInfoLorebookStatsDropdown(panel){
         panel.dataset.gigmaBuilt = '1';
         panel.classList.add('gigma-wi-lorebook-stats-panel', 'gigma-modal-stats-panel', 'gigma-hidden');
         panel.setAttribute('aria-hidden', 'true');
+        gigmaEnsureMobileFullscreenDropdownShell(panel, 'Close Lorebook statistics');
 
         const mkRow = (labelText, controlEl) => {
             const row = document.createElement('div');
@@ -17501,6 +17696,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             popup.appendChild(table);
             root.appendChild(popup);
         }
+        gigmaEnsureMobileFullscreenDropdownShell(popup, 'Close settings');
 
         const slotConvert = popup.querySelector('#gigma-modal-settings-slot-convert');
         if (slotConvert) {
@@ -20512,7 +20708,7 @@ try {
                                 <button id="gigma-child-preset-delete" class="menu_button gigma-icon-btn" type="button" title="Delete" aria-label="Delete"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-trash-can"></i></span></button>
                         </div>
                         <!-- Lorebook grouping toolbar + list --><!-- Root list and folders live in this container (immediately follows toolbar) -->
-                        <div id="gigma-ordering-container" class="MarginTop10" style="border:0.0625em solid #444; padding:0.375em; border-radius:0.375em; display:flex; flex-direction:column; height:calc(100vh - 16.25rem); overflow-y:auto; overflow-x:visible; position:relative; scrollbar-gutter:stable;"><div id="gigma-ordering-title" class="gigma-ordering-title">Sorted Lorebooks</div>
+                        <div id="gigma-ordering-container" class="MarginTop10" style="border:0.0625em solid #444; padding:0.375em; border-radius:0.375em; display:flex; flex-direction:column; height:calc(100vh - 16.25rem); overflow:hidden; position:relative; scrollbar-gutter:stable;"><div id="gigma-ordering-title" class="gigma-ordering-title">Sorted Lorebooks</div>
                         <div id="gigma-toolbar" class="MarginTop10">
                             <div class="gigma-toolbar-group">
                                 <button id="gigma-new-folder" class="menu_button" title="Create folder" aria-label="New Folder"><i class="fa-solid fa-folder" aria-hidden="true"></i></button>
@@ -20520,7 +20716,7 @@ try {
                             </div>
                         </div>
                         
-                            <div id="gigma-ordering-list" style="flex:1 1 auto; min-height:0; overflow:auto; scrollbar-gutter:stable;"></div>
+                            <div id="gigma-ordering-list" style="flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; touch-action:pan-y; -webkit-overflow-scrolling:auto; scrollbar-gutter:stable;"></div>
                         </div>
                         <div id="gigma-ordering-count-wrap" style="position:relative; height:0; width:100%;">
                             <small id="gigma-ordering-count" style="position:absolute; left:0.375em; top:0.125em; color:#aaa; text-align:left; font-size:80%; line-height:1.2; white-space:nowrap;">Lorebooks: 0</small>
@@ -23968,7 +24164,6 @@ async function populateOrderingList(opts = {}) {
         }
     }
 // reset display
-    try { __gigmaResetWorldUsageFlagsCache(); } catch (_e) {}
     listContainer.innerHTML = '';
     // GIGMA FIX: when reloading lorebooks or applying a preset, make sure we
     // don't accumulate multiple right‑pane instances. The wide-mode Unsorted
@@ -37713,9 +37908,13 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 inset:0;
                 z-index:100000;
                 display:flex;
-                align-items:center;
+                align-items:flex-start;
                 justify-content:center;
+                width:100vw;
+                height:100vh;
+                height:100dvh;
                 padding:1em;
+                overflow:auto;
                 background:rgba(0,0,0,0.8);
                 backdrop-filter:none;
                 -webkit-backdrop-filter:none;
@@ -37747,6 +37946,8 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 -webkit-backdrop-filter:none !important;
             }
             #gigma-dedupe-root{
+                --gigma-hdr-btn:2em;
+                --gigma-hdr-border:calc(var(--gigma-hdr-btn) * 0.045);
                 width:100%;
                 height:100%;
                 box-sizing:border-box;
@@ -37797,28 +37998,49 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 justify-content:center;
                 width:1.55em;
                 height:1.55em;
+                min-width:1.55em;
+                min-height:1.55em;
+                padding:0 !important;
+                margin:0 !important;
                 border-radius:999em;
-                border:0.0625em solid rgba(255,255,255,0.14);
-                background:rgba(255,255,255,0.05);
+                border:0.0625em solid rgba(255,255,255,0.24) !important;
+                background:rgba(255,255,255,0.1) !important;
+                color:rgba(255,255,255,0.92) !important;
                 font-size:0.86em;
-                opacity:0.86;
-                cursor:help;
+                font-weight:700;
+                line-height:1;
+                opacity:1;
+                cursor:pointer;
+            }
+            #gigma-dedupe-root .gigma-dedupe-titleinfo:hover,
+            #gigma-dedupe-root .gigma-dedupe-titleinfo:focus-visible{
+                background:rgba(255,255,255,0.18) !important;
+                border-color:rgba(255,255,255,0.42) !important;
+            }
+            #gigma-dedupe-root .gigma-dedupe-info-panel{
+                flex:0 0 auto;
+                padding:0.58em 0.7em;
+                border:0.0625em solid rgba(255,255,255,0.14);
+                border-radius:0.68em;
+                background:rgba(0,0,0,0.38);
+                color:rgba(255,255,255,0.9);
+                font-size:0.9em;
+                line-height:1.35;
             }
             #gigma-dedupe-root .gigma-dedupe-close{
-                display:inline-flex;
-                align-items:center;
-                justify-content:center;
-                width:2.25em;
-                min-width:2.25em;
-                height:2.25em;
-                min-height:2.25em;
-                padding:0;
-                border-radius:0.7em;
-            }
-            #gigma-dedupe-root .gigma-dedupe-close svg{
-                width:0.95em;
-                height:0.95em;
-                display:block;
+                display:inline-flex !important;
+                align-items:center !important;
+                justify-content:center !important;
+                width:var(--gigma-hdr-btn, 2em) !important;
+                min-width:var(--gigma-hdr-btn, 2em) !important;
+                max-width:var(--gigma-hdr-btn, 2em) !important;
+                height:var(--gigma-hdr-btn, 2em) !important;
+                min-height:var(--gigma-hdr-btn, 2em) !important;
+                max-height:var(--gigma-hdr-btn, 2em) !important;
+                margin:0 !important;
+                padding:0 !important;
+                line-height:1 !important;
+                flex:0 0 var(--gigma-hdr-btn, 2em) !important;
             }
             #gigma-dedupe-root .gigma-dedupe-controls{
                 flex:0 0 auto;
@@ -37894,6 +38116,15 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
             #gigma-dedupe-root .gigma-dedupe-detail-toolbar{
                 flex-wrap:wrap;
                 align-items:center;
+            }
+            #gigma-dedupe-root .gigma-dedupe-detail-toolbar-host{
+                flex:0 0 auto;
+                padding:0.45em 0.62em;
+                border-bottom:0.0625em solid rgba(255,255,255,0.1);
+                background:rgba(255,255,255,0.02);
+            }
+            #gigma-dedupe-root .gigma-dedupe-detail-toolbar-host:empty{
+                display:none;
             }
             #gigma-dedupe-root .gigma-dedupe-actions{
                 justify-content:flex-start;
@@ -37982,6 +38213,10 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 line-height:1.35;
                 opacity:0.76;
                 white-space:normal;
+            }
+            #gigma-dedupe-root .gigma-dedupe-list.is-empty,
+            #gigma-dedupe-root .gigma-dedupe-detail.is-empty{
+                overscroll-behavior:auto;
             }
             #gigma-dedupe-root .gigma-dedupe-row{
                 display:grid;
@@ -38211,6 +38446,24 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 justify-content:flex-end;
                 width:100%;
             }
+            #gigma-dedupe-root #gigma-dedupe-apply{
+                font-weight:700;
+                background:rgba(142,28,52,0.82) !important;
+                border:0.08em solid rgba(255,112,142,0.78) !important;
+                color:#ffffff !important;
+                opacity:1 !important;
+            }
+            #gigma-dedupe-root #gigma-dedupe-apply:hover,
+            #gigma-dedupe-root #gigma-dedupe-apply:focus-visible{
+                background:rgba(188,38,72,0.92) !important;
+                border-color:rgba(255,142,166,0.98) !important;
+            }
+            #gigma-dedupe-root #gigma-dedupe-apply:disabled{
+                background:rgba(255,255,255,0.1) !important;
+                border-color:rgba(255,255,255,0.26) !important;
+                color:rgba(255,255,255,0.64) !important;
+                opacity:1 !important;
+            }
             #gigma-dedupe-root .gigma-dedupe-group-head,
             #gigma-dedupe-root .gigma-dedupe-entry-head{
                 min-width:0;
@@ -38277,6 +38530,276 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 #gigma-dedupe-root .gigma-dedupe-actions,
                 #gigma-dedupe-root .gigma-dedupe-footer-actions{
                     margin-left:0;
+                }
+            }
+
+            html.gigma-mobile-fullscreen #gigma-duplicate-sentences-overlay{
+                align-items:flex-start !important;
+                justify-content:flex-start !important;
+                width:100dvw !important;
+                height:100dvh !important;
+                padding:0 !important;
+                overflow-x:hidden !important;
+                overflow-y:auto !important;
+                overscroll-behavior:contain;
+                -webkit-overflow-scrolling:touch;
+            }
+            html.gigma-mobile-fullscreen #gigma-duplicate-sentences-overlay .gigma-dedupe-shell{
+                width:100dvw !important;
+                max-width:100dvw !important;
+                height:auto !important;
+                min-height:100dvh !important;
+                max-height:none !important;
+                border:0 !important;
+                border-radius:0 !important;
+                box-shadow:none !important;
+                overflow:visible !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root{
+                height:auto !important;
+                min-height:100dvh !important;
+                gap:0.6em !important;
+                padding:max(0.68rem, env(safe-area-inset-top)) max(0.74rem, env(safe-area-inset-right)) max(0.68rem, env(safe-area-inset-bottom)) max(0.74rem, env(safe-area-inset-left)) !important;
+                overflow:visible !important;
+                font-size:clamp(12.5px, 1.72vw, 14.5px);
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-titlebar{
+                padding:0.08em 0.04em 0.1em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-titlewrap{
+                flex:1 1 auto;
+                min-width:0;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-title{
+                min-width:0;
+                overflow-wrap:anywhere;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-close{
+                width:var(--gigma-hdr-btn) !important;
+                min-width:var(--gigma-hdr-btn) !important;
+                max-width:var(--gigma-hdr-btn) !important;
+                height:var(--gigma-hdr-btn) !important;
+                min-height:var(--gigma-hdr-btn) !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-controls{
+                display:grid !important;
+                grid-template-columns:repeat(2, minmax(0, 1fr));
+                align-items:stretch !important;
+                gap:0.6em !important;
+                padding:0.6em !important;
+                overflow:visible !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field:nth-child(1),
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field:nth-child(2),
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field:nth-child(3),
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field:nth-child(4){
+                width:100% !important;
+                min-width:0 !important;
+                margin:0 !important;
+                flex:1 1 auto !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field > .text_pole{
+                width:100% !important;
+                max-width:100% !important;
+                min-width:0 !important;
+                min-height:2em !important;
+                padding:0.3em 0.48em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field-label,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field-inline span{
+                white-space:normal !important;
+                overflow-wrap:anywhere;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field-inline{
+                width:100%;
+                min-width:0;
+                gap:0.48em;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-actions,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer-actions{
+                display:grid !important;
+                gap:0.56em !important;
+                width:100% !important;
+                min-width:0 !important;
+                overflow:visible !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-actions{
+                grid-column:1 / -1;
+                grid-template-columns:repeat(4, minmax(0, 1fr));
+                align-self:stretch !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar{
+                grid-template-columns:repeat(3, minmax(0, 1fr));
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar-host{
+                padding:0.58em 0.64em !important;
+                flex:0 0 auto !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer-actions{
+                grid-template-columns:minmax(0, 1fr);
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-actions > .menu_button,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar > .menu_button,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer-actions > .menu_button{
+                width:100% !important;
+                min-width:0 !important;
+                min-height:2.22em !important;
+                white-space:normal !important;
+                overflow-wrap:anywhere !important;
+                text-align:center;
+                padding:0.34em 0.48em !important;
+                font-size:0.92em !important;
+                line-height:1.12 !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-summarybar{
+                padding:0.18em 0.08em !important;
+                gap:0.6em !important;
+                min-height:0 !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-summary{
+                max-height:none !important;
+                overflow:visible !important;
+                padding:0.08em 0.06em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-main{
+                flex:0 0 auto !important;
+                height:112dvh !important;
+                min-height:112dvh !important;
+                max-height:112dvh !important;
+                grid-template-columns:minmax(0, 1fr) !important;
+                grid-template-rows:minmax(0, 1fr) minmax(0, 1.08fr);
+                gap:0.7em !important;
+                overflow:hidden !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-pane{
+                min-width:0 !important;
+                min-height:0 !important;
+                overflow:hidden !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-pane-header{
+                min-height:2.05em;
+                white-space:normal !important;
+                overflow-wrap:anywhere;
+                padding:0.56em 0.72em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-list,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail{
+                min-height:0 !important;
+                overflow:auto !important;
+                overscroll-behavior:contain;
+                -webkit-overflow-scrolling:touch;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-list.is-empty,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail.is-empty{
+                overscroll-behavior:auto !important;
+                touch-action:pan-y;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-list{
+                padding:0.58em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail{
+                padding:0.66em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-row{
+                gap:0.64em !important;
+                padding:0.64em 0.72em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-chip{
+                min-width:0;
+                white-space:normal !important;
+                overflow-wrap:anywhere;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-group-head > .gigma-dedupe-subtle-meta,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-entry-head > .gigma-dedupe-subtle-meta{
+                margin-left:0 !important;
+                justify-content:flex-start !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-group > summary,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-entry > summary{
+                align-items:flex-start !important;
+                min-width:0;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-card{
+                padding:0.86em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-group-list,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-entry-list,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-occurrence-list{
+                gap:0.72em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-group > summary,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-entry > summary{
+                padding:0.72em 0.82em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-group-body,
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-entry-body{
+                padding:0.1em 0.82em 0.82em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-occurrence{
+                gap:0.56em !important;
+                padding:0.76em 0.82em !important;
+            }
+            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer{
+                padding:0.2em 0.08em 0.04em !important;
+                min-height:0 !important;
+            }
+            @media (orientation: landscape){
+                html.gigma-mobile-fullscreen #gigma-dedupe-root{
+                    gap:0.46em !important;
+                    padding:max(0.52rem, env(safe-area-inset-top)) max(0.62rem, env(safe-area-inset-right)) max(0.52rem, env(safe-area-inset-bottom)) max(0.62rem, env(safe-area-inset-left)) !important;
+                    font-size:clamp(11.5px, 1.22vw, 13.5px);
+                }
+                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-controls{
+                    grid-template-columns:repeat(4, minmax(0, 1fr));
+                    gap:0.48em !important;
+                    padding:0.48em !important;
+                }
+                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-actions{
+                    grid-template-columns:repeat(4, minmax(0, 1fr));
+                }
+                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-main{
+                    height:72dvh !important;
+                    min-height:72dvh !important;
+                    max-height:72dvh !important;
+                    grid-template-columns:minmax(16rem, 0.95fr) minmax(0, 1.05fr) !important;
+                    grid-template-rows:minmax(0, 1fr) !important;
+                }
+                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar{
+                    grid-template-columns:repeat(5, minmax(0, 1fr));
+                }
+                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar-host{
+                    padding:0.44em 0.54em !important;
+                }
+                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer{
+                    display:flex !important;
+                    justify-content:flex-end !important;
+                }
+                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer-actions{
+                    display:grid !important;
+                    grid-template-columns:max-content !important;
+                    justify-content:end !important;
+                    width:100% !important;
+                    max-width:none !important;
+                    justify-self:stretch !important;
+                }
+                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer-actions > .menu_button{
+                    width:fit-content !important;
+                    min-width:0 !important;
+                    max-width:100% !important;
+                    justify-self:end !important;
+                    padding-left:0.9em !important;
+                    padding-right:0.9em !important;
+                }
+            }
+            @media (orientation: portrait){
+                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-main{
+                    height:118dvh !important;
+                    min-height:118dvh !important;
+                    max-height:118dvh !important;
+                    grid-template-columns:minmax(0, 1fr) !important;
+                    grid-template-rows:minmax(0, 1fr) minmax(0, 1.12fr) !important;
                 }
             }
         `;
@@ -38960,9 +39483,9 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
         html =
             '<div id="gigma-layout-preset-tree-preview-root" data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
             '<div class="gigma-layout-preset-tree-first-screen">' +
-            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.kindLabel) + '</div>' +
-            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;"></div>' +
+            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
+            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(resolved.kindLabel) + '</div>' +
+            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;"></div>' +
             '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
             '</div>' +
             '<div style="opacity:0.85; padding:0.5em;"><p style="margin:0;">No layout data available for custom selection.</p></div>' +
@@ -38972,9 +39495,9 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
         const body = gigmaBuildLayoutPresetTreeHtml(resolved.snapshot, { kind: resolved.kind, viewMode: resolved.desiredViewMode, parentPresetId: (resolved.kind === 'parent' ? resolved.presetNameForHeader : null) });
         html =
             '<div id="gigma-layout-preset-tree-preview-root"' + (resolved.desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="' + gigmaEscapeHtml(resolved.desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.headerLabel) + '</div>' +
-            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
+            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
+            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(resolved.headerLabel) + '</div>' +
+            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;">' +
             '<button id="gigma-layout-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-layout-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-layout-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-layout-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-layout-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
             '<button id="gigma-layout-preset-tree-expand-all" class="menu_button gigma-icon-btn" type="button" title="Expand all folders" aria-label="Expand all folders">▼</button>' +
             '<button id="gigma-layout-preset-tree-collapse-all" class="menu_button gigma-icon-btn" type="button" title="Collapse all folders" aria-label="Collapse all folders">▲</button>' +
@@ -39051,12 +39574,13 @@ function gigmaBuildDuplicateSentencePopupHtml() {
             <div class="gigma-dedupe-titlebar">
                 <div class="gigma-dedupe-titlewrap">
                     <div class="gigma-dedupe-title" title="${gigmaEscapeHtml(infoTitle)}">Duplicate Sentences</div>
-                    <span class="gigma-dedupe-titleinfo" title="${gigmaEscapeHtml(infoTitle)}" aria-label="Duplicate sentence info">i</span>
+                    <button id="gigma-dedupe-info" class="gigma-dedupe-titleinfo" type="button" title="${gigmaEscapeHtml(infoTitle)}" aria-label="Duplicate sentence info" aria-expanded="false" aria-controls="gigma-dedupe-info-panel">i</button>
                 </div>
-                <button id="gigma-dedupe-close" class="menu_button gigma-dedupe-close" type="button" aria-label="Close duplicate sentences" title="Close duplicate sentences">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+                <button id="gigma-dedupe-close" class="menu_button gigma-global-cancel gigma-global-icon gigma-dedupe-close" type="button" aria-label="Close duplicate sentences" title="Close duplicate sentences">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
                 </button>
             </div>
+            <div id="gigma-dedupe-info-panel" class="gigma-dedupe-info-panel" hidden>${gigmaEscapeHtml(infoTitle)} ${gigmaEscapeHtml(survivorTitle)}</div>
             <div class="gigma-dedupe-controls">
                 <label class="gigma-dedupe-field">
                     <span class="gigma-dedupe-field-label">Scope</span>
@@ -39092,7 +39616,7 @@ function gigmaBuildDuplicateSentencePopupHtml() {
                 </div>
             </div>
             <div class="gigma-dedupe-summarybar">
-                <div id="gigma-dedupe-summary" class="gigma-dedupe-summary">Scanning…</div>
+                <div id="gigma-dedupe-summary" class="gigma-dedupe-summary">Scan the current lorebook, a custom lorebook selection, or all lorebooks for duplicate sentences.</div>
             </div>
             <div class="gigma-dedupe-main">
                 <div class="gigma-dedupe-pane">
@@ -39105,6 +39629,7 @@ function gigmaBuildDuplicateSentencePopupHtml() {
                     <div class="gigma-dedupe-pane-header">
                         <span>Lorebooks and entries</span>
                     </div>
+                    <div id="gigma-dedupe-detail-toolbar-host" class="gigma-dedupe-detail-toolbar-host"></div>
                     <div id="gigma-dedupe-detail" class="gigma-dedupe-detail"></div>
                 </div>
             </div>
@@ -39279,6 +39804,12 @@ function gigmaDuplicateSentenceRenderSummary(state) {
     return `${summary.findings} duplicate sentences found across ${summary.booksScanned} lorebooks, ${summary.entriesScanned} entries, and ${summary.sentencesScanned} scanned sentences. ${selectedCount} finding${selectedCount === 1 ? '' : 's'} selected, ${selectedRemovals} earlier cop${selectedRemovals === 1 ? 'y' : 'ies'} marked for removal.`;
 }
 
+function gigmaDuplicateSentenceSetEmptyPaneState(element, empty) {
+    if (!element) return;
+    element.classList.toggle('is-empty', !!empty);
+    element.setAttribute('data-gigma-dedupe-empty', empty ? '1' : '0');
+}
+
 function gigmaDuplicateSentenceRenderList(root) {
     const state = gigmaEnsureDuplicateSentenceState(root);
     const list = root?.querySelector?.('#gigma-dedupe-list');
@@ -39286,14 +39817,17 @@ function gigmaDuplicateSentenceRenderList(root) {
 
     if (state.busy && !state.results.length) {
         list.innerHTML = '<div class="gigma-dedupe-empty">Scanning lorebooks…</div>';
+        gigmaDuplicateSentenceSetEmptyPaneState(list, true);
         return;
     }
 
     if (!state.results.length) {
         list.innerHTML = '<div class="gigma-dedupe-empty">No duplicate sentences to show.</div>';
+        gigmaDuplicateSentenceSetEmptyPaneState(list, true);
         return;
     }
 
+    gigmaDuplicateSentenceSetEmptyPaneState(list, false);
     list.innerHTML = state.results.map((result, index) => {
         const selected = state.selectedKeys.has(result.key);
         const active = state.activeKey === result.key;
@@ -39383,11 +39917,23 @@ function gigmaDuplicateSentenceGetEntryContent(state, worldName, uid) {
     return typeof entry?.content === 'string' ? entry.content : '';
 }
 
+function gigmaBuildDuplicateSentenceDetailToolbarHtml(detailViewMode) {
+    const toggleLabel = detailViewMode === 'full' ? 'Show excerpts' : 'Show full entry';
+    return `
+        <div class="gigma-dedupe-detail-toolbar">
+            <button id="gigma-dedupe-toggle-entry-view" class="menu_button" type="button">${toggleLabel}</button>
+            <button id="gigma-dedupe-expand-books" class="menu_button" type="button">Expand books</button>
+            <button id="gigma-dedupe-collapse-books" class="menu_button" type="button">Collapse books</button>
+            <button id="gigma-dedupe-expand-entries" class="menu_button" type="button">Expand entries</button>
+            <button id="gigma-dedupe-collapse-entries" class="menu_button" type="button">Collapse entries</button>
+        </div>
+    `;
+}
+
 function gigmaBuildDuplicateSentenceDetailHtml(state, result, detailViewMode) {
     if (!state || !result) return '';
     const mode = detailViewMode === 'full' ? 'full' : 'excerpt';
     const grouped = gigmaDuplicateSentenceGetGroupedOccurrencesCached(state, result);
-    const toggleLabel = mode === 'full' ? 'Show excerpts' : 'Show full entry';
     return `
         <div class="gigma-dedupe-detail-card">
             <div class="gigma-dedupe-detail-label">Sentence</div>
@@ -39398,13 +39944,6 @@ function gigmaBuildDuplicateSentenceDetailHtml(state, result, detailViewMode) {
             <span class="gigma-dedupe-chip">${result.entryCount} entries</span>
             <span class="gigma-dedupe-chip">${result.bookCount} lorebooks</span>
             <span class="gigma-dedupe-chip">${result.removeCount} will be removed</span>
-        </div>
-        <div class="gigma-dedupe-detail-toolbar">
-            <button id="gigma-dedupe-toggle-entry-view" class="menu_button" type="button">${toggleLabel}</button>
-            <button id="gigma-dedupe-expand-books" class="menu_button" type="button">Expand books</button>
-            <button id="gigma-dedupe-collapse-books" class="menu_button" type="button">Collapse books</button>
-            <button id="gigma-dedupe-expand-entries" class="menu_button" type="button">Expand entries</button>
-            <button id="gigma-dedupe-collapse-entries" class="menu_button" type="button">Collapse entries</button>
         </div>
         <div class="gigma-dedupe-group-list">
             ${grouped.map((worldGroup, worldIndex) => {
@@ -39488,22 +40027,29 @@ function gigmaToggleDuplicateSentenceEntryView(root) {
 function gigmaDuplicateSentenceRenderDetail(root) {
     const state = gigmaEnsureDuplicateSentenceState(root);
     const detail = root?.querySelector?.('#gigma-dedupe-detail');
+    const toolbarHost = root?.querySelector?.('#gigma-dedupe-detail-toolbar-host');
     if (!state || !detail) return;
     gigmaDuplicateSentenceEnsureDetailCaches(state);
 
+    if (toolbarHost) toolbarHost.innerHTML = '';
+
     if (state.busy && !state.results.length) {
         detail.innerHTML = '<div class="gigma-dedupe-empty">Preparing details…</div>';
+        gigmaDuplicateSentenceSetEmptyPaneState(detail, true);
         return;
     }
 
     const result = gigmaDuplicateSentenceGetResultByKey(state, state.activeKey) || state.results[0];
     if (!result) {
         detail.innerHTML = '<div class="gigma-dedupe-empty">Select a finding to inspect the affected lorebooks and entries.</div>';
+        gigmaDuplicateSentenceSetEmptyPaneState(detail, true);
         return;
     }
 
     state.activeKey = result.key;
+    if (toolbarHost) toolbarHost.innerHTML = gigmaBuildDuplicateSentenceDetailToolbarHtml(state.detailViewMode);
     detail.innerHTML = gigmaBuildDuplicateSentenceDetailHtml(state, result, state.detailViewMode);
+    gigmaDuplicateSentenceSetEmptyPaneState(detail, false);
 }
 
 function gigmaUpdateDuplicateSentencePopupChrome(root) {
@@ -39818,8 +40364,9 @@ function gigmaEnsureDuplicateSentencePopupShell(root) {
         const shell = root.closest('.gigma-dedupe-shell');
         if (overlay) {
             overlay.style.display = 'flex';
-            overlay.style.alignItems = 'center';
+            overlay.style.alignItems = 'flex-start';
             overlay.style.justifyContent = 'center';
+            overlay.style.inset = '0';
             overlay.style.opacity = '1';
         }
         if (shell) {
@@ -39836,7 +40383,6 @@ function gigmaMountDuplicateSentencePopup() {
         gigmaEnsureDuplicateSentencePopupShell(root);
         gigmaEnsureDuplicateSentenceState(root);
         gigmaRenderDuplicateSentencePopup(root);
-        gigmaRunDuplicateSentenceScan(root);
     };
 
     try {
@@ -39877,6 +40423,20 @@ async function gigmaShowDuplicateSentencePopup() {
     document.addEventListener('keydown', handleKeydown, true);
 
     gigmaMountDuplicateSentencePopup();
+}
+
+function gigmaDuplicateSentenceGetEmptyScrollPane(target) {
+    if (!(target instanceof Element)) return null;
+    const pane = target.closest('#gigma-dedupe-root .gigma-dedupe-list.is-empty, #gigma-dedupe-root .gigma-dedupe-detail.is-empty');
+    return pane instanceof HTMLElement ? pane : null;
+}
+
+function gigmaDuplicateSentenceGetPopupScroller(pane) {
+    const overlay = pane?.closest?.('#gigma-duplicate-sentences-overlay');
+    if (overlay && overlay.scrollHeight > overlay.clientHeight) return overlay;
+    const shell = pane?.closest?.('.gigma-dedupe-shell');
+    if (shell && shell.scrollHeight > shell.clientHeight) return shell;
+    return null;
 }
 
 (function gigmaDuplicateSentencePopupEventsOnce() {
@@ -39941,6 +40501,20 @@ async function gigmaShowDuplicateSentencePopup() {
                     event.preventDefault();
                     if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
                     event.stopPropagation();
+                    return;
+                }
+
+                const infoButton = target.closest('#gigma-dedupe-info');
+                if (infoButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const root = infoButton.closest('#gigma-dedupe-root');
+                    const panel = root?.querySelector?.('#gigma-dedupe-info-panel');
+                    if (panel) {
+                        const nextHidden = !panel.hidden;
+                        panel.hidden = nextHidden;
+                        infoButton.setAttribute('aria-expanded', nextHidden ? 'false' : 'true');
+                    }
                     return;
                 }
 
@@ -40050,6 +40624,41 @@ async function gigmaShowDuplicateSentencePopup() {
                 }
             } catch (_eDuplicateSentencePopupClick) { }
         }, true);
+
+        let gigmaDuplicateSentenceEmptyPaneLastTouchY = 0;
+        document.addEventListener('wheel', (event) => {
+            try {
+                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+                if (!pane) return;
+                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
+                if (!scroller) return;
+                scroller.scrollTop += event.deltaY;
+                event.preventDefault();
+            } catch (_eDuplicateSentenceEmptyWheel) { }
+        }, { capture: true, passive: false });
+
+        document.addEventListener('touchstart', (event) => {
+            try {
+                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+                if (!pane) return;
+                const touch = event.touches && event.touches[0];
+                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch ? touch.clientY : 0;
+            } catch (_eDuplicateSentenceEmptyTouchStart) { }
+        }, { capture: true, passive: true });
+
+        document.addEventListener('touchmove', (event) => {
+            try {
+                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+                if (!pane) return;
+                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
+                if (!scroller) return;
+                const touch = event.touches && event.touches[0];
+                if (!touch || !gigmaDuplicateSentenceEmptyPaneLastTouchY) return;
+                scroller.scrollTop += gigmaDuplicateSentenceEmptyPaneLastTouchY - touch.clientY;
+                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch.clientY;
+                event.preventDefault();
+            } catch (_eDuplicateSentenceEmptyTouchMove) { }
+        }, { capture: true, passive: false });
     } catch (_eDuplicateSentencePopupEventsOnce) { }
 })();
 
@@ -43683,9 +44292,9 @@ async function gigmaShowLastLayoutPresetTreePopup() {
             var __gigmaPreviewDimUnchained = (__gigmaPreviewModalDim && (__gigmaPreviewModalDim.dimUnchained === '1' || __gigmaPreviewModalDim.dimUnchained === '0')) ? __gigmaPreviewModalDim.dimUnchained : ((kind === 'parent') ? '1' : '0');
             html =
                 '<div id="gigma-layout-preset-tree-preview-root" data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained + '" data-dim-unchained="' + __gigmaPreviewDimUnchained + '" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="' + __gigmaPreviewDimChained + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-                '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(kindLabel) + '</div>' +
-                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
+                '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
+                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(kindLabel) + '</div>' +
+                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;">' +
                 '</div>' +
                 '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
                 '</div>' +
@@ -43779,9 +44388,9 @@ async function gigmaShowLastLayoutPresetTreePopup() {
             html =
                 '<div id="gigma-layout-preset-tree-preview-root"' + (desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained2 + '" data-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" data-default-viewmode="' + gigmaEscapeHtml(desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="' + __gigmaPreviewDimChained2 + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
                     '<div class="gigma-layout-preset-tree-first-screen">' +
-                    '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
-                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(headerLabel) + '</div>' +
-                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
+                    '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
+                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(headerLabel) + '</div>' +
+                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;">' +
                 '<button id="gigma-layout-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-layout-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-layout-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-layout-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-layout-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
                 '<button id="gigma-layout-preset-tree-expand-all" class="menu_button gigma-icon-btn" type="button" title="Expand all folders" aria-label="Expand all folders">▼</button>' +
                 '<button id="gigma-layout-preset-tree-collapse-all" class="menu_button gigma-icon-btn" type="button" title="Collapse all folders" aria-label="Collapse all folders">▲</button>' +
@@ -54865,10 +55474,10 @@ dialog.gigma-wide .gigma-unsorted-pane .gigma-focus-pane-list > .gigma-folder-li
     const css = document.createElement('style');
     css.id = 'gigma-unsorted-pane-style-fix';
     css.textContent = `
-      /* Ensure the ordering container never clips absolutely positioned right pane */
+      /* Keep the ordering container as the fixed shell; the inner list and right pane own scrolling. */
       #gigma-ordering-container{
-        overflow-x: visible !important;
-        overflow-y: auto !important;
+        overflow: hidden !important;
+        overscroll-behavior: contain;
       }
       /* In wide dialogs, completely hide the Unsorted folder's header block in the left column */
       dialog.gigma-wide .gigma-folder.gigma-unsorted .gigma-folder-header{ display:flex !important; }
@@ -54947,12 +55556,11 @@ dialog.gigma-wide .gigma-unsorted-pane .gigma-focus-pane-list > .gigma-folder-li
     const css = document.createElement('style');
     css.id = 'gigma-scrollbars-restore';
     css.textContent = `
-      /* Always allow the main container to scroll vertically */
+      /* Keep the main container stable; scrolling belongs to the lorebook list. */
       #gigma-ordering-container{
         max-height: 46.875em;
-        overflow-y: auto !important;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
+        overflow: hidden !important;
+        overscroll-behavior: contain;
       }
       /* In wide view, give the LEFT column an explicit width so items aren't squashed */
       dialog.gigma-wide #gigma-ordering-list{
@@ -55164,11 +55772,11 @@ dialog.gigma-wide .gigma-folder.gigma-unsorted > .gigma-folder-list .gigma-folde
     const css = document.createElement('style');
     css.id = 'gigma-wide-height-lock';
     css.textContent = `
-      /* In wide view, keep a stable viewport-tied height so the right pane has a proper containing block. */
+      /* In wide view, keep a stable viewport-tied shell so only the panes scroll. */
       dialog.gigma-wide #gigma-ordering-container{
         height: calc(100vh - 16.25rem) !important;
-        overflow-y: auto !important;
-        overflow-x: visible !important;
+        overflow: hidden !important;
+        overscroll-behavior: contain;
       }
       /* Ensure the left list still stretches to fill the height even when empty */
       dialog.gigma-wide #gigma-ordering-list{
