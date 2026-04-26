@@ -32825,39 +32825,6 @@ inside.parentElement.removeChild(inside);
                     document.addEventListener('pointerdown', onDropPointerDown, true);
                 }
             };
-            if (ev.pointerType === 'touch' && ev.button === 0) {
-                // Touch scrolling must stay native; only a stationary long-press starts dragging.
-                let pressed = true;
-                let timer = null;
-                const startX = ev.clientX || 0;
-                const startY = ev.clientY || 0;
-                const cleanup = () => {
-                    document.removeEventListener('pointermove', onTouchMove, true);
-                    document.removeEventListener('pointerup', onTouchEnd, true);
-                    document.removeEventListener('pointercancel', onTouchEnd, true);
-                    clearTimeout(timer);
-                };
-                const cancelTouchDrag = () => {
-                    pressed = false;
-                    cleanup();
-                };
-                const onTouchMove = (eMove) => {
-                    if (!pressed) return;
-                    const dx = ((typeof eMove.clientX === 'number') ? eMove.clientX : startX) - startX;
-                    const dy = ((typeof eMove.clientY === 'number') ? eMove.clientY : startY) - startY;
-                    if ((dx * dx + dy * dy) >= 36) cancelTouchDrag();
-                };
-                const onTouchEnd = cancelTouchDrag;
-                timer = setTimeout(() => {
-                    if (!pressed) return;
-                    cancelTouchDrag();
-                    startDrag();
-                }, 220);
-                document.addEventListener('pointermove', onTouchMove, true);
-                document.addEventListener('pointerup', onTouchEnd, true);
-                document.addEventListener('pointercancel', onTouchEnd, true);
-                return;
-            }
             if (fromTitle && ev.button === 0) {
                 // For presses that originate on the folder title we want two behaviours:
                 //  - simple click (no/very small movement) => inline rename
@@ -55819,6 +55786,34 @@ dialog.gigma-wide .gigma-folder.gigma-unsorted > .gigma-folder-list .gigma-folde
     document.head.appendChild(css);
   }catch(_){}
 })();
+// === GIGMA: Mobile ordering-list scroll owner fix ===
+(function gigmaMobileOrderingListScrollOwnerOnce(){
+  try{
+    if (document.getElementById('gigma-mobile-ordering-scroll-owner')) return;
+    const css = document.createElement('style');
+    css.id = 'gigma-mobile-ordering-scroll-owner';
+    css.textContent = `
+      html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root) #gigma-ordering-container{
+        overflow-y:hidden !important;
+        overflow-x:visible !important;
+        -webkit-overflow-scrolling:auto !important;
+      }
+      html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root) .gigma-unsorted-pane{
+        overflow:hidden !important;
+        -webkit-overflow-scrolling:auto !important;
+      }
+      html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root) :is(#gigma-ordering-list,.gigma-unsorted-content,.gigma-focus-pane-list){
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        overscroll-behavior:contain;
+        touch-action:pan-y;
+        -webkit-overflow-scrolling:auto !important;
+      }
+    `;
+    document.head.appendChild(css);
+  }catch(_){}
+})();
+
 // === GIGMA helper: resolve the live content list for a folder ==================
 // In wide view the actual children of the currently focused folder (and the
 // special Unsorted folder) may live in the right‑hand focus pane instead of
