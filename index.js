@@ -2328,9 +2328,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        overscroll-behavior: contain;
-        touch-action: pan-y;
-        -webkit-overflow-scrolling: auto;
+        -webkit-overflow-scrolling: touch;
       }
       html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
         position: static !important;
@@ -2452,9 +2450,6 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
             dialog.gigma-narrow #gigma-ordering-list,
             dialog.gigma-wide #gigma-ordering-list{
                 box-sizing: border-box;
-                overscroll-behavior: contain;
-                touch-action: pan-y;
-                -webkit-overflow-scrolling: auto;
             }
 `;
     document.head.appendChild(s);
@@ -55452,9 +55447,6 @@ dialog.gigma-wide .gigma-unsorted-pane > .gigma-focus-pane-list{
   min-height: 0 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: auto;
   scrollbar-gutter: stable;
 }
 /* Match left-list top offset: remove extra top margin from the focused folder list in the right pane */
@@ -55603,9 +55595,7 @@ dialog.gigma-wide .gigma-unsorted-pane .gigma-focus-pane-list > .gigma-folder-li
         max-height: 46.875em;
         overflow-y: auto !important;
         overflow-x: hidden;
-        overscroll-behavior: contain;
-        touch-action: pan-y;
-        -webkit-overflow-scrolling: auto;
+        -webkit-overflow-scrolling: touch;
       }
       /* In wide view, give the LEFT column an explicit width so items aren't squashed */
       dialog.gigma-wide #gigma-ordering-list{
