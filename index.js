@@ -34092,9 +34092,12 @@ if (collapse && !isRight) {
           #gigma-layout-preset-tree-search{ padding: 0 !important; }
           #gigma-layout-preset-tree-search svg{ width:1.375em; height:1.375em; display:block; }
           #gigma-layout-preset-tree-preview-root .gigma-pane-search-host[data-gigma-pane="preview"]{
-            margin-top: 1.375em; /* keep header label visible */
-            width: calc(100% + 3.25em);
-            margin-right: -3.25em;
+            grid-column: 1 / -1;
+            grid-row: 3;
+            align-self: stretch;
+            margin-top: 0.25em;
+            width: 100%;
+            margin-right: 0;
           }
         `;
         document.head.appendChild(css);
@@ -35573,7 +35576,6 @@ function openDistribution(state){
     try{ closeSearch(state); }catch(_){ }
     const h = state.group.getBoundingClientRect ? state.group.getBoundingClientRect().height : state.group.offsetHeight;
     if (h) state.distRow.style.height = h + 'px';
-    state._prevGroupDisplay = state.group.style.display;
     state.group.style.display = 'none';
     state.distHost.style.display = 'block';
     state.distOpen = true;
@@ -35590,7 +35592,7 @@ function closeDistribution(state){
     state.distOpen = false;
     try{ closeDistributionShapeMenu(state); }catch(_){ }
     if (state.distHost) state.distHost.style.display = 'none';
-    if (state.group) state.group.style.display = (state._prevGroupDisplay !== undefined ? state._prevGroupDisplay : '');
+    if (state.group) state.group.style.display = 'inline-flex';
     syncDistributionUiBits(state);
   }catch(_){ }
 }
@@ -35970,7 +35972,6 @@ function openSearch(state){
           const h = state.group.getBoundingClientRect ? state.group.getBoundingClientRect().height : state.group.offsetHeight;
           if (h) state.row.style.height = h + 'px';
         }catch(_){ }
-        state._prevGroupDisplay = state.group.style.display;
         state.group.style.display = 'none';
         state.host.style.display = 'block';
         state.open = true;
@@ -35993,7 +35994,7 @@ function openSearch(state){
         state.open = false;
         try{ clearSearchKeyboardSelection(state); }catch(_){ }
         if (state.host) state.host.style.display = 'none';
-        if (state.group) state.group.style.display = (state._prevGroupDisplay !== undefined ? state._prevGroupDisplay : '');
+        if (state.group) state.group.style.display = (state.which === 'preview') ? 'flex' : 'inline-flex';
         try{
           if (state.resultsList && state.resultsList.isConnected) state.resultsList.innerHTML = '';
           else if (state.results) state.results.innerHTML = '';
