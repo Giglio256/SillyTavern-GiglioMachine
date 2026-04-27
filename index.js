@@ -2328,13 +2328,14 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch;
+      }
+      html.gigma-mobile-fullscreen #gigma-modal-root #gigma-ordering-container{
+        overflow: hidden !important;
         -webkit-overflow-scrolling: auto !important;
       }
-      html.gigma-mobile-fullscreen #gigma-ordering-container,
-      html.gigma-mobile-fullscreen #gigma-ordering-list,
-      html.gigma-mobile-fullscreen .gigma-unsorted-pane > .gigma-unsorted-content,
-      html.gigma-mobile-fullscreen .gigma-unsorted-pane > .gigma-focus-pane-list{
-        /* Keep complex lorebook rows on the main paint path; iOS async momentum scrolling can blank them during fast flings. */
+      html.gigma-mobile-fullscreen #gigma-modal-root #gigma-ordering-list{
+        overscroll-behavior: contain;
         -webkit-overflow-scrolling: auto !important;
       }
       html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
