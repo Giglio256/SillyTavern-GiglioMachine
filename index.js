@@ -2328,14 +2328,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        overscroll-behavior: contain;
-        transform: translateZ(0);
-        backface-visibility: hidden;
-        contain: paint;
         -webkit-overflow-scrolling: auto;
-      }
-      html.gigma-mobile-fullscreen #gigma-modal-root #gigma-ordering-container{
-        overflow: hidden !important;
       }
       html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
         position: static !important;
