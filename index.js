@@ -2308,6 +2308,17 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-ordering-container::after{
         display: none !important;
       }
+      html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root) #gigma-ordering-container{
+        overflow: hidden !important;
+        overscroll-behavior: contain;
+      }
+      html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root) #gigma-ordering-list{
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        overscroll-behavior: contain;
+        touch-action: pan-y;
+        -webkit-overflow-scrolling: touch;
+      }
       html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-ordering-title{
         grid-column: 1 !important;
         grid-row: 1 !important;
@@ -2328,8 +2339,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        overscroll-behavior: contain;
-        -webkit-overflow-scrolling: auto;
+        -webkit-overflow-scrolling: touch;
       }
       html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
         position: static !important;
