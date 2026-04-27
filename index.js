@@ -2350,6 +2350,43 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   }catch(_){
   }
 })();
+
+
+// --- GIGMA: Mobile ordering-list scroll stability ---
+(function gigmaMobileOrderingScrollStabilityOnce(){
+  try{
+    if (document.getElementById('gigma-mobile-ordering-scroll-stability-style')) return;
+    const s = document.createElement('style');
+    s.id = 'gigma-mobile-ordering-scroll-stability-style';
+    s.textContent = `
+      html.gigma-mobile-fullscreen #gigma-modal-root #gigma-modal-scroll{
+        overscroll-behavior:contain !important;
+      }
+      html.gigma-mobile-fullscreen #gigma-modal-root #gigma-ordering-container{
+        overflow:hidden !important;
+        overscroll-behavior:contain !important;
+      }
+      html.gigma-mobile-fullscreen #gigma-modal-root #gigma-ordering-list{
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+        overscroll-behavior:contain !important;
+        touch-action:pan-y !important;
+        -webkit-overflow-scrolling:auto !important;
+        will-change:scroll-position !important;
+        transform:translateZ(0) !important;
+        backface-visibility:hidden !important;
+      }
+      html.gigma-mobile-fullscreen #gigma-modal-root #gigma-ordering-list .gigma-row,
+      html.gigma-mobile-fullscreen #gigma-modal-root #gigma-ordering-list .gigma-folder-header,
+      html.gigma-mobile-fullscreen #gigma-modal-root .gigma-unsorted-pane .gigma-row,
+      html.gigma-mobile-fullscreen #gigma-modal-root .gigma-unsorted-pane .gigma-folder-header{
+        touch-action:pan-y !important;
+      }
+    `;
+    document.head.appendChild(s);
+  }catch(_e){}
+})();
+// --- end: Mobile ordering-list scroll stability ---
 // --- end: Global settings section styling ---
 
 /* --- GIGMA: Keep assignment section aligned to the preset dropdown width --- */
@@ -12122,12 +12159,22 @@ function gigmaObserveModalLorebookStatsRows(forceRefresh = false) {
 
 function gigmaBindModalLorebookStatsObserversOnce() {
     try {
-        if (window.__gigmaModalLorebookStatsIo) return;
         let visibleRows = window.__gigmaVisibleModalLorebookStatsRows;
         if (!(visibleRows && typeof visibleRows.add === 'function' && typeof visibleRows.delete === 'function')) {
             visibleRows = new Set();
             window.__gigmaVisibleModalLorebookStatsRows = visibleRows;
         }
+
+        const rootEl = document.getElementById('gigma-ordering-container') || document.getElementById('gigma-modal-root') || null;
+        if (window.__gigmaModalLorebookStatsIo && window.__gigmaModalLorebookStatsIoRoot === rootEl) return;
+
+        try {
+            if (window.__gigmaModalLorebookStatsIo) window.__gigmaModalLorebookStatsIo.disconnect();
+        } catch (_eDisconnect) { }
+
+        visibleRows.clear();
+        window.__gigmaObservedModalLorebookStatsRows = new WeakSet();
+        window.__gigmaModalLorebookStatsIoRoot = rootEl;
         window.__gigmaModalLorebookStatsIo = new IntersectionObserver((entries) => {
             try {
                 let changed = false;
@@ -12144,8 +12191,8 @@ function gigmaBindModalLorebookStatsObserversOnce() {
                 if (changed) gigmaScheduleModalLorebookStatsRefresh();
             } catch (_e) { }
         }, {
-            root: null,
-            rootMargin: '160px 0px 160px 0px',
+            root: rootEl,
+            rootMargin: '240px 0px 240px 0px',
             threshold: 0,
         });
     } catch (_e) { }
@@ -12233,7 +12280,10 @@ function gigmaRefreshVisibleModalLorebookStats() {
             return;
         }
 
-        const rows = gigmaGetModalLorebookStatsRows(false);
+        const visibleRows = window.__gigmaVisibleModalLorebookStatsRows;
+        const rows = (visibleRows && visibleRows.size)
+            ? Array.from(visibleRows)
+            : gigmaGetModalLorebookStatsRows(false);
         for (const row of rows) {
             try {
                 if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
@@ -12448,6 +12498,7 @@ function gigmaUpdateModalLorebookStatsAllRows() {
             } catch (_eRow) { }
         }
         try { gigmaUpdateModalLorebookStatsColumnCountsAllRows(); } catch (_eCols) { }
+        try { gigmaObserveModalLorebookStatsRows(true); } catch (_eObserve) { }
     } catch (_e) { }
 }
 
@@ -12565,6 +12616,12 @@ function gigmaInitOrderingModalStatsUi(modalEventListeners = []) {
         if (!root) return;
 
         const modalScroll = root.querySelector('#gigma-modal-scroll');
+        try {
+            if (window.__gigmaModalLorebookStatsIoRoot !== (document.getElementById('gigma-ordering-container') || root)) {
+                gigmaBindModalLorebookStatsObserversOnce();
+                gigmaObserveModalLorebookStatsRows(true);
+            }
+        } catch (_eObserveRoot) { }
 
         const mkBtn = (id, text, title) => {
             const b = document.createElement('button');
@@ -32825,6 +32882,42 @@ inside.parentElement.removeChild(inside);
                     document.addEventListener('pointerdown', onDropPointerDown, true);
                 }
             };
+            if (scope === 'row' && ev.pointerType === 'touch' && ev.button === 0) {
+                let pressed = true;
+                let moved = false;
+                const startX = ev.clientX || 0;
+                const startY = ev.clientY || 0;
+                const dragThreshold = 10; // Finger movement above this is scrolling, not dragging.
+                let timer = null;
+                const cleanupTouchRowDragGate = () => {
+                    pressed = false;
+                    document.removeEventListener('pointermove', onTouchRowMove, true);
+                    document.removeEventListener('pointerup', cleanupTouchRowDragGate, true);
+                    document.removeEventListener('pointercancel', cleanupTouchRowDragGate, true);
+                    if (timer !== null) clearTimeout(timer);
+                };
+                const startTouchRowDrag = () => {
+                    if (!pressed || moved) return;
+                    cleanupTouchRowDragGate();
+                    startDrag();
+                };
+                const onTouchRowMove = (eMove) => {
+                    if (!pressed) return;
+                    const mx = (typeof eMove.clientX === 'number') ? eMove.clientX : startX;
+                    const my = (typeof eMove.clientY === 'number') ? eMove.clientY : startY;
+                    const dx = mx - startX;
+                    const dy = my - startY;
+                    if ((dx * dx + dy * dy) >= (dragThreshold * dragThreshold)) {
+                        moved = true;
+                        cleanupTouchRowDragGate();
+                    }
+                };
+                timer = setTimeout(startTouchRowDrag, 250);
+                document.addEventListener('pointermove', onTouchRowMove, true);
+                document.addEventListener('pointerup', cleanupTouchRowDragGate, true);
+                document.addEventListener('pointercancel', cleanupTouchRowDragGate, true);
+                return;
+            }
             if (fromTitle && ev.button === 0) {
                 // For presses that originate on the folder title we want two behaviours:
                 //  - simple click (no/very small movement) => inline rename
