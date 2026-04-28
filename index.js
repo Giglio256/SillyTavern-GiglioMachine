@@ -7,7 +7,6 @@ import { loadWorldInfo, saveWorldInfo, worldInfoCache, world_info_character_stra
 import { prepareOpenAIMessages, setOpenAIMessages, setOpenAIMessageExamples, promptManager as stPromptManager } from '../../../openai.js';
 
 import { power_user } from '../../../power-user.js';
-import { isMobile } from '../../../RossAscends-mods.js';
 import { getCharaFilename } from '../../../utils.js';
 import { POPUP_TYPE, Popup } from '../../../popup.js';
 import { SlashCommand } from '../../../slash-commands/SlashCommand.js';
@@ -17,132 +16,86 @@ import { ARGUMENT_TYPE, SlashCommandArgument } from '../../../slash-commands/Sla
 // --- GIGMA: Giglio icon ---
 const GIGLIO_ICON_SRC = new URL('./Giglio 2 transparent.png', import.meta.url).href;
 
-// --- GIGMA: Mobile fullscreen detection for extension dialogs ---
-const GIGMA_MOBILE_FULLSCREEN_CLASS = 'gigma-mobile-fullscreen';
-
-const gigmaIsMobileFullscreenActive = () => isMobile();
-
-const gigmaSyncMobileFullscreenClass = () => {
-  document.documentElement.classList.toggle(GIGMA_MOBILE_FULLSCREEN_CLASS, gigmaIsMobileFullscreenActive());
-};
-
-(function gigmaMobileFullscreenClassOnce(){
-  gigmaSyncMobileFullscreenClass();
-  window.addEventListener('resize', gigmaSyncMobileFullscreenClass, { passive: true });
-  window.addEventListener('orientationchange', gigmaSyncMobileFullscreenClass, { passive: true });
-})();
-
 
 // --- GIGMA: Lorebook usage icons (persona/chat/character) ---
-let __gigmaWorldUsageFlagsCacheKey = '';
-let __gigmaWorldUsageFlagsCache = null;
-
-function __gigmaInvalidateWorldUsageFlagsCache(){
-  __gigmaWorldUsageFlagsCacheKey = '';
-  __gigmaWorldUsageFlagsCache = null;
-}
-
-function __gigmaBuildWorldUsageFlagsCache(){
-  const personaWorld = String(power_user?.persona_description_lorebook || '');
-  const chatWorld = String(chat_metadata?.[METADATA_KEY] || '');
-  const activeWorlds = new Set(Array.isArray(selected_world_info) ? selected_world_info : []);
-  const characterWorlds = new Map();
+const __gigmaGetWorldUsageFlags = (worldName) => {
+  const personaWorld = power_user?.persona_description_lorebook;
+  const chatWorld = chat_metadata?.[METADATA_KEY];
+  const baseWorld = characters?.[this_chid]?.data?.extensions?.world;
   const isGroupChat = !!selected_group;
+
+  const isActiveWorld = Array.isArray(selected_world_info) && selected_world_info.includes(worldName);
+  const isPersonaWorld = !!worldName && !!personaWorld && personaWorld === worldName;
+  const isChatWorld = !!worldName && !!chatWorld && chatWorld === worldName;
+
   let chatBoundName = '';
+  let characterBoundName = '';
 
-  const addCharacterWorld = (worldName, boundName) => {
-    const key = String(worldName || '').trim();
-    if (!key || characterWorlds.has(key)) return;
-    characterWorlds.set(key, String(boundName || '').trim());
-  };
-
-  if (chatWorld) {
+  if (isChatWorld) {
     try{
       if (isGroupChat) {
         const ctx = (typeof getContext === 'function') ? (getContext() || {}) : {};
         const gid = (ctx && (ctx.groupId ?? selected_group)) ?? selected_group;
         if (gid != null && Array.isArray(ctx.groups)) {
-          const group = ctx.groups.find(x => x && String(x.id) === String(gid));
-          if (group && typeof group.name === 'string' && group.name.trim()) chatBoundName = group.name.trim();
+          const g = ctx.groups.find(x => x && String(x.id) === String(gid));
+          if (g && typeof g.name === 'string' && g.name.trim()) chatBoundName = g.name.trim();
         }
         if (!chatBoundName && typeof getCurrentChatDetails === 'function') {
-          const details = getCurrentChatDetails() || {};
-          const group = details && details.group;
-          if (group && typeof group.name === 'string' && group.name.trim()) chatBoundName = group.name.trim();
+          const cd = getCurrentChatDetails() || {};
+          const gg = cd && cd.group;
+          if (gg && typeof gg.name === 'string' && gg.name.trim()) chatBoundName = gg.name.trim();
         }
       } else if (this_chid !== null && this_chid !== undefined) {
-        const character = characters?.[this_chid];
-        chatBoundName = String((character && (character.name || character.data?.name)) || '').trim();
+        const c = characters?.[this_chid];
+        chatBoundName = String((c && (c.name || c.data?.name)) || '').trim();
       }
     }catch(_){ }
   }
 
-  try{
-    const charLoreByName = new Map();
-    const charLore = Array.isArray(world_info?.charLore) ? world_info.charLore : [];
-    for (const item of charLore) {
-      const key = String(item?.name || '');
-      if (key) charLoreByName.set(key, item);
-    }
-
+  let isCharacterWorld = false;
+  if (worldName) {
+    // In group chats there is no single `this_chid` until a member is opened/peeked.
+    // The old logic only checked `this_chid`, so the icon appeared only after opening a member card.
+    // Fix: consider the lorebook character-bound if it is bound to ANY current group member.
     if (isGroupChat) {
       const members = (typeof getGroupMembers === 'function') ? (getGroupMembers(selected_group) || []) : [];
       for (const member of members) {
         const chid = (member && Array.isArray(characters)) ? characters.indexOf(member) : -1;
         if (chid < 0) continue;
-        const displayName = String((characters?.[chid]?.name || characters?.[chid]?.data?.name || member?.name || member?.data?.name || '')).trim();
-        addCharacterWorld(characters?.[chid]?.data?.extensions?.world, displayName);
+
+        const memberBaseWorld = characters?.[chid]?.data?.extensions?.world;
+        if (memberBaseWorld && memberBaseWorld === worldName) {
+          isCharacterWorld = true;
+          characterBoundName = String((characters?.[chid]?.name || characters?.[chid]?.data?.name || member?.name || member?.data?.name || '')).trim();
+          break;
+        }
+
         const fn = getCharaFilename(chid);
-        const extra = charLoreByName.get(fn);
-        const books = Array.isArray(extra?.extraBooks) ? extra.extraBooks : [];
-        for (const book of books) addCharacterWorld(book, displayName);
+        const extra = world_info?.charLore?.find((e) => e?.name === fn);
+        if (extra?.extraBooks && extra.extraBooks.includes(worldName)) {
+          isCharacterWorld = true;
+          characterBoundName = String((characters?.[chid]?.name || characters?.[chid]?.data?.name || member?.name || member?.data?.name || '')).trim();
+          break;
+        }
       }
-    } else if (this_chid !== null && this_chid !== undefined) {
-      const character = characters?.[this_chid];
-      const displayName = String((character && (character.name || character.data?.name)) || '').trim();
-      addCharacterWorld(character?.data?.extensions?.world, displayName);
-      const fn = getCharaFilename(this_chid);
-      const extra = charLoreByName.get(fn);
-      const books = Array.isArray(extra?.extraBooks) ? extra.extraBooks : [];
-      for (const book of books) addCharacterWorld(book, displayName);
+    } else {
+      if (baseWorld && baseWorld === worldName) {
+        isCharacterWorld = true;
+        const c = characters?.[this_chid];
+        characterBoundName = String((c && (c.name || c.data?.name)) || '').trim();
+      } else if (this_chid !== null && this_chid !== undefined) {
+        const fn = getCharaFilename(this_chid);
+        const extra = world_info?.charLore?.find((e) => e?.name === fn);
+        isCharacterWorld = !!(extra?.extraBooks && extra.extraBooks.includes(worldName));
+        if (isCharacterWorld) {
+          const c = characters?.[this_chid];
+          characterBoundName = String((c && (c.name || c.data?.name)) || '').trim();
+        }
+      }
     }
-  }catch(_){ }
-
-  return { personaWorld, chatWorld, activeWorlds, characterWorlds, chatBoundName };
-}
-
-function __gigmaGetWorldUsageFlagsCache(){
-  const activeKey = Array.isArray(selected_world_info) ? selected_world_info.join('\u0001') : '';
-  const key = [
-    String(power_user?.persona_description_lorebook || ''),
-    String(chat_metadata?.[METADATA_KEY] || ''),
-    String(selected_group || ''),
-    String(this_chid ?? ''),
-    String(Array.isArray(characters) ? characters.length : 0),
-    String(Array.isArray(world_info?.charLore) ? world_info.charLore.length : 0),
-    activeKey,
-  ].join('\u0002');
-
-  if (!__gigmaWorldUsageFlagsCache || __gigmaWorldUsageFlagsCacheKey !== key) {
-    __gigmaWorldUsageFlagsCacheKey = key;
-    __gigmaWorldUsageFlagsCache = __gigmaBuildWorldUsageFlagsCache();
   }
 
-  return __gigmaWorldUsageFlagsCache;
-}
-
-const __gigmaGetWorldUsageFlags = (worldName) => {
-  const world = String(worldName || '');
-  const cache = __gigmaGetWorldUsageFlagsCache();
-  const characterBoundName = cache.characterWorlds.get(world) || '';
-  return {
-    isActiveWorld: !!(world && cache.activeWorlds.has(world)),
-    isPersonaWorld: !!(world && cache.personaWorld === world),
-    isChatWorld: !!(world && cache.chatWorld === world),
-    isCharacterWorld: !!characterBoundName,
-    chatBoundName: cache.chatBoundName,
-    characterBoundName,
-  };
+  return { isActiveWorld, isPersonaWorld, isChatWorld, isCharacterWorld, chatBoundName, characterBoundName };
 };
 
 const __gigmaMakeUsageIconEl = (faName, extraClass) => {
@@ -299,31 +252,6 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
     css.id = 'gigma-no-text-select-style';
     css.textContent = `
       :root{ --gigma-modal-dialog-height: 95vh; }
-      html.gigma-mobile-fullscreen{ --gigma-modal-dialog-height: 100dvh; }
-      html.gigma-mobile-fullscreen dialog:has([id^="gigma-"]){
-        position: fixed !important;
-        inset: 0 !important;
-        width: 100vw !important;
-        width: 100dvw !important;
-        max-width: 100vw !important;
-        max-width: 100dvw !important;
-        height: 100vh !important;
-        height: 100dvh !important;
-        max-height: 100vh !important;
-        max-height: 100dvh !important;
-        margin: 0 !important;
-        border-radius: 0 !important;
-        box-sizing: border-box !important;
-      }
-      html.gigma-mobile-fullscreen dialog:has([id^="gigma-"]) :is(.popup-body, .popup-content, .popup-content-wrapper){
-        display: flex !important;
-        flex-direction: column !important;
-        width: 100% !important;
-        height: 100% !important;
-        max-height: 100% !important;
-        min-height: 0 !important;
-        box-sizing: border-box !important;
-      }
       dialog:has(#gigma-modal-root){
         height: var(--gigma-modal-dialog-height) !important;
       }
@@ -376,25 +304,21 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       /* Preview header close (X) button: scale with the preview font size */
       #gigma-layout-preset-tree-close{
         width: var(--gigma-hdr-btn) !important;
-        min-width: var(--gigma-hdr-btn) !important;
         height: var(--gigma-hdr-btn) !important;
         max-width: var(--gigma-hdr-btn) !important;
         line-height: 1 !important;
         font-size: 0.92em !important;
         padding: 0 !important;
-        margin-left: 0.35em !important;
-        margin-bottom: 0.35em !important;
-        position: static !important;
-        grid-column: 3 !important;
-        grid-row: 1 / 3 !important;
-        justify-self: end !important;
-        align-self: start !important;
+        margin-left: 0 !important;
+        position: absolute !important;
+        top: 0 !important;
+        right: 0 !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         box-sizing: border-box !important;
         background: rgba(255,255,255,0.08) !important;
-        border: var(--gigma-hdr-border, 0.09em) solid rgba(255,255,255,0.18) !important;
+        border: var(--gigma-hdr-border) solid rgba(255,255,255,0.18) !important;
         color: #ffffff !important;
         box-shadow: none !important;
         transition: background-color .12s ease-out, border-color .12s ease-out, box-shadow .12s ease-out;
@@ -617,108 +541,6 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
     s.id = 'gigma-modal-lorebook-stats-style';
     s.textContent = `
 .gigma-hidden{ display:none !important; }
-
-      .gigma-mobile-fullscreen-close{
-        display:none;
-      }
-
-      html.gigma-mobile-fullscreen body.gigma-native-wi-mobile-fullscreen-stats-open #top-settings-holder > .drawer > .drawer-toggle{
-        visibility:hidden !important;
-        pointer-events:none !important;
-      }
-
-      html.gigma-mobile-fullscreen body.gigma-native-wi-mobile-fullscreen-stats-open #WorldInfo{
-        z-index:40001 !important;
-      }
-
-      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel:not(.gigma-hidden){
-        position:fixed !important;
-        inset:0 !important;
-        left:0 !important;
-        right:auto !important;
-        top:0 !important;
-        bottom:auto !important;
-        width:100vw !important;
-        width:100dvw !important;
-        min-width:0 !important;
-        max-width:none !important;
-        height:100vh !important;
-        height:100dvh !important;
-        min-height:0 !important;
-        max-height:none !important;
-        margin:0 !important;
-        padding:calc(env(safe-area-inset-top) + 3.25em) calc(env(safe-area-inset-right) + 0.8em) calc(env(safe-area-inset-bottom) + 0.8em) calc(env(safe-area-inset-left) + 0.8em) !important;
-        border-radius:0 !important;
-        border:0 !important;
-        box-sizing:border-box !important;
-        background:rgba(0,0,0,0.96) !important;
-        box-shadow:none !important;
-        overflow-y:auto !important;
-        overflow-x:hidden !important;
-        z-index:40000 !important;
-        -webkit-overflow-scrolling:touch;
-      }
-
-      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel.gigma-hidden{
-        display:none !important;
-      }
-
-      html.gigma-mobile-fullscreen #gigma-modal-settings-popup.gigma-mobile-fullscreen-panel{
-        transform:none !important;
-      }
-
-      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close{
-        position:absolute !important;
-        top:max(0.6em, env(safe-area-inset-top)) !important;
-        right:max(0.6em, env(safe-area-inset-right)) !important;
-        width:var(--gigma-hdr-btn, 2.2em) !important;
-        min-width:var(--gigma-hdr-btn, 2.2em) !important;
-        max-width:var(--gigma-hdr-btn, 2.2em) !important;
-        height:var(--gigma-hdr-btn, 2.2em) !important;
-        padding:0 !important;
-        margin:0 !important;
-        display:inline-flex !important;
-        align-items:center !important;
-        justify-content:center !important;
-        box-sizing:border-box !important;
-        background:rgba(255,255,255,0.08) !important;
-        border:var(--gigma-hdr-border, 0.08em) solid rgba(255,255,255,0.18) !important;
-        color:#ffffff !important;
-        box-shadow:none !important;
-        z-index:1 !important;
-        transition:background-color .12s ease-out, border-color .12s ease-out, box-shadow .12s ease-out;
-      }
-
-      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close .gigma-global-icon-svg,
-      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close .gigma-global-icon-svg *{
-        stroke:rgba(220,220,220,0.84) !important;
-      }
-
-      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close:hover,
-      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close:focus-visible{
-        background:rgba(255,0,90,0.52) !important;
-        border-color:rgba(255,0,90,1) !important;
-      }
-
-      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel > .gigma-mobile-fullscreen-close .gigma-global-icon-svg{
-        width:1.05em !important;
-        height:1.05em !important;
-      }
-
-      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel .gigma-modal-stats-panel-actions{
-        padding-right:calc(var(--gigma-hdr-btn, 2.2em) + 0.55em);
-      }
-
-      html.gigma-mobile-fullscreen .gigma-mobile-fullscreen-panel .gigma-modal-stats-panel-list,
-      html.gigma-mobile-fullscreen #gigma-modal-settings-popup.gigma-mobile-fullscreen-panel table{
-        max-width:42em;
-        margin-left:auto;
-        margin-right:auto;
-      }
-
-      html.gigma-mobile-fullscreen #gigma-modal-settings-popup.gigma-mobile-fullscreen-panel table{
-        width:min(100%, 42em);
-      }
 
       /* Allow the Cats dropdown to expand beyond the pane border (avoid clipping) */
       #gigma-modal-root #gigma-ordering-container{
@@ -1057,13 +879,6 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   }
 }
   function setPref(v){ try { localStorage.setItem(KEY, String(gigmaWriteBinaryToggle(v))); } catch(e){} }
-  function getMobileAutoWide(){
-    return gigmaIsMobileFullscreenActive() ? window.matchMedia('(orientation: landscape)').matches : null;
-  }
-  function getEffectiveWide(wide){
-    const mobileWide = getMobileAutoWide();
-    return mobileWide === null ? !!wide : mobileWide;
-  }
   function findDialogFrom(el){
     let n = el;
     while(n){
@@ -1083,12 +898,9 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         dlg.classList.contains('gigma-narrow')
       );
       if (!isGigmaDialog) return;
-      const mobileFullscreen = gigmaIsMobileFullscreenActive();
-      const wide = getEffectiveWide(getPref());
+      const wide = !!getPref();
       const NARROW_PX = '44.6875rem';
       const WIDE_WIDTH = 'min(137.5rem, 94.5vw)';
-      const MOBILE_WIDTH = '100dvw';
-      const MOBILE_HEIGHT = '100dvh';
       if (wide){
         dlg.classList.add('gigma-wide');
         dlg.classList.remove('gigma-narrow');
@@ -1096,10 +908,8 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         dlg.classList.add('gigma-narrow');
         dlg.classList.remove('gigma-wide');
       }
-      dlg.style.maxWidth = mobileFullscreen ? MOBILE_WIDTH : (wide ? WIDE_WIDTH : NARROW_PX);
-      dlg.style.width = mobileFullscreen ? MOBILE_WIDTH : (wide ? WIDE_WIDTH : NARROW_PX);
-      dlg.style.height = mobileFullscreen ? MOBILE_HEIGHT : '';
-      dlg.style.maxHeight = mobileFullscreen ? MOBILE_HEIGHT : '';
+      dlg.style.maxWidth = wide ? WIDE_WIDTH : NARROW_PX;
+      dlg.style.width = wide ? WIDE_WIDTH : NARROW_PX;
       try{
         if (typeof window.gigmaSkinPreviewAndFolderButtons === 'function') window.gigmaSkinPreviewAndFolderButtons(dlg);
       }catch(_){}
@@ -1255,10 +1065,6 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       // Wide mode: keep roughly 10% margins on each side while respecting
       // the previous 137.5rem cap.
       const WIDE_WIDTH = 'min(137.5rem, 94.5vw)';
-      const MOBILE_WIDTH = '100dvw';
-      const MOBILE_HEIGHT = '100dvh';
-      const mobileFullscreen = gigmaIsMobileFullscreenActive();
-      wide = getEffectiveWide(wide);
       // State classes
       try{
         if (dlg && dlg.classList){
@@ -1272,10 +1078,8 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         }
       }catch(_){}
       // Apply widths
-      dlg.style.maxWidth = mobileFullscreen ? MOBILE_WIDTH : (wide ? WIDE_WIDTH : NARROW_PX);
-      dlg.style.width = mobileFullscreen ? MOBILE_WIDTH : (wide ? WIDE_WIDTH : NARROW_PX);
-      dlg.style.height = mobileFullscreen ? MOBILE_HEIGHT : '';
-      dlg.style.maxHeight = mobileFullscreen ? MOBILE_HEIGHT : '';
+      dlg.style.maxWidth = wide ? WIDE_WIDTH : NARROW_PX;
+      dlg.style.width = wide ? WIDE_WIDTH : NARROW_PX;
       try{ gigmaSyncFixedHeaderButtons(dlg); }catch(_){ }
       // GIGMA FIX (Nov 2025):
       // When switching layouts we need two behaviors:
@@ -1371,49 +1175,23 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   window.gigmaWireWidthButtons = function(){
     const buttons = document.querySelectorAll('.gigmaWidthBtn');
     const pref = getPref();
-    const effectivePref = getEffectiveWide(pref);
     for (const btn of buttons){
       if (btn.dataset.gigmaWired === '1') continue;
       btn.dataset.gigmaWired = '1';
       const dlg = findDialogFrom(btn);
-      setBtnLabel(btn, effectivePref);
+      setBtnLabel(btn, pref);
       applyWidthToDialog(dlg, pref);
       btn.addEventListener('click', (ev)=>{
         ev.preventDefault();
         ev.stopPropagation();
-        const d = findDialogFrom(btn);
-        const mobileWide = getMobileAutoWide();
-        if (mobileWide !== null){
-          setBtnLabel(btn, mobileWide);
-          applyWidthToDialog(d, mobileWide);
-          return;
-        }
         const next = !getPref();
         setPref(next);
+        const d = findDialogFrom(btn);
         setBtnLabel(btn, next);
         applyWidthToDialog(d, next);
       }, { passive: true });
     }
   };
-  function syncMobileAutoWidthMode(){
-    try{
-      const mobileWide = getMobileAutoWide();
-      if (mobileWide === null) return;
-      const dlgs = document.querySelectorAll('dialog.gigma-wide, dialog.gigma-narrow, dialog.popup');
-      for (const dlg of dlgs){
-        if (!dlg.querySelector?.('#gigma-modal-root, #gigma-global-settings, .gigmaWidthBtn')) continue;
-        applyWidthToDialog(dlg, mobileWide);
-        const btn = dlg.querySelector('.gigmaWidthBtn');
-        if (btn) setBtnLabel(btn, mobileWide);
-      }
-    }catch(_){ }
-  }
-  if (!window.__gigmaMobileAutoWidthListener){
-    window.__gigmaMobileAutoWidthListener = true;
-    window.addEventListener('resize', syncMobileAutoWidthMode, { passive: true });
-    window.addEventListener('orientationchange', syncMobileAutoWidthMode, { passive: true });
-  }
-
   // public getter for Popup option usage
   window.getModalWide = window.getModalWide || getPref;
   // Styles: toolbar row + button
@@ -1942,11 +1720,11 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
     s.textContent = `      dialog:has(#gigma-modal-root),
         dialog:has(#gigma-layout-preset-tree-preview-root){
         --gigma-hdr-btn: 2em;
-        --gigma-hdr-gap: 0.2em;
+        --gigma-hdr-gap: calc(var(--gigma-hdr-btn) * 0.16);
         --gigma-hdr-pad-x: calc(var(--gigma-hdr-btn) * 0.19);
-        --gigma-hdr-pad-b: calc(var(--gigma-hdr-btn) * 0.06);
-        --gigma-hdr-margin-b: 0em;
-        --gigma-hdr-center-gap: 0.2em;
+        --gigma-hdr-pad-b: calc(var(--gigma-hdr-btn) * 0.27);
+        --gigma-hdr-margin-b: calc(var(--gigma-hdr-btn) * 0.59);
+        --gigma-hdr-center-gap: calc(var(--gigma-hdr-btn) * 0.18);
         --gigma-hdr-border: calc(var(--gigma-hdr-btn) * 0.045);
         --gigma-hdr-layout-w: 44.6875rem;
         --gigma-hdr-layout-q: calc(var(--gigma-hdr-layout-w) / 4);
@@ -1955,11 +1733,6 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         --gigma-hdr-scroll-step-x: calc(var(--gigma-hdr-btn) + var(--gigma-hdr-center-gap));
         --gigma-hdr-accept-x: calc(50% - (var(--gigma-hdr-layout-w) / 2) + var(--gigma-hdr-pad-x) + var(--gigma-hdr-edge-inset) + (var(--gigma-hdr-btn) / 2));
         --gigma-hdr-cancel-x: calc(50% + (var(--gigma-hdr-layout-w) / 2) - var(--gigma-hdr-pad-x) - var(--gigma-hdr-edge-inset) - (var(--gigma-hdr-btn) / 2));
-      }
-      html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root){
-        --gigma-hdr-layout-w: 100dvw;
-        --gigma-hdr-edge-inset: calc(var(--gigma-hdr-btn) * 0.18);
-        --gigma-hdr-pad-x: max(0.75em, env(safe-area-inset-left), env(safe-area-inset-right));
       }
       /* Make the global header a real, non-overlapping header */
       #gigma-global-settings{
@@ -1974,32 +1747,6 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         background: transparent;
         backdrop-filter: none;
         min-height: calc(var(--gigma-hdr-btn) + var(--gigma-hdr-pad-b));
-      }
-      html.gigma-mobile-fullscreen #gigma-global-settings{
-        width: 100dvw;
-        max-width: 100dvw;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        flex-wrap: wrap;
-        column-gap: var(--gigma-hdr-gap);
-        row-gap: var(--gigma-hdr-gap);
-        min-height: auto;
-      }
-      html.gigma-mobile-fullscreen #gigma-global-settings #gigma-global-accept-slot,
-      html.gigma-mobile-fullscreen #gigma-global-settings #gigma-global-cancel-slot,
-      html.gigma-mobile-fullscreen #gigma-global-settings #gigma-global-width-slot,
-      html.gigma-mobile-fullscreen #gigma-global-settings #gigma-global-bughelp,
-      html.gigma-mobile-fullscreen #gigma-global-settings .gigma-global-center,
-      html.gigma-mobile-fullscreen #gigma-global-settings .gigma-global-scroll-controls{
-        position: static !important;
-        inset: auto !important;
-        transform: none !important;
-        width: auto !important;
-        height: var(--gigma-hdr-btn) !important;
-        display: contents !important;
       }
       #gigma-global-settings #gigma-global-accept-slot{
         position: absolute;
@@ -2073,8 +1820,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         align-items: center;
         gap: var(--gigma-hdr-center-gap);
       }
-      #gigma-global-settings .gigma-global-icon-svg,
-      #gigma-dedupe-root .gigma-global-icon-svg{
+      #gigma-global-settings .gigma-global-icon-svg{
         width: 0.92em;
         height: 0.92em;
         vertical-align: -0.12em;
@@ -2104,8 +1850,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         font-size: 0.92em !important;
       }
       #gigma-global-settings .gigma-global-icon,
-      #gigma-fixed-header-layer .gigma-global-icon,
-      #gigma-dedupe-root .gigma-global-icon{
+      #gigma-fixed-header-layer .gigma-global-icon{
         width: var(--gigma-hdr-btn) !important;
         max-width: var(--gigma-hdr-btn) !important;
         padding: 0 !important;
@@ -2144,14 +1889,12 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         height: 1.25em;
       }
       #gigma-global-settings .gigma-global-icon-svg *,
-      #gigma-fixed-header-layer .gigma-global-icon-svg *,
-      #gigma-dedupe-root .gigma-global-icon-svg *{
+      #gigma-fixed-header-layer .gigma-global-icon-svg *{
         stroke-width: 2.6 !important;
       }
 
       #gigma-global-settings #gigma-global-accept .gigma-global-icon-svg *,
-      #gigma-global-settings #gigma-global-cancel .gigma-global-icon-svg *,
-      #gigma-dedupe-root .gigma-global-cancel .gigma-global-icon-svg *{
+      #gigma-global-settings #gigma-global-cancel .gigma-global-icon-svg *{
         stroke-width: 4.4 !important;
       }
 
@@ -2187,8 +1930,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       #gigma-fixed-width-host .gigmaWidthBtn,
       #gigma-fixed-help-host .gigmaHelpBtn,
       #gigma-fixed-bug-host .gigmaBugBtn,
-      #gigma-wide-close-host #gigma-global-cancel,
-      #gigma-dedupe-root .gigma-global-cancel.gigma-global-icon{
+      #gigma-wide-close-host #gigma-global-cancel{
         background: rgba(255,255,255,0.08) !important;
         border: var(--gigma-hdr-border) solid rgba(255,255,255,0.18) !important;
         color: #ffffff !important;
@@ -2211,24 +1953,20 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       #gigma-fixed-accept-host .gigma-global-icon-svg,
       #gigma-fixed-cancel-host .gigma-global-icon-svg,
       #gigma-wide-close-host .gigma-global-icon-svg,
-      #gigma-dedupe-root .gigma-global-icon-svg,
       #gigma-global-settings .gigma-global-icon i,
       #gigma-fixed-accept-host .gigma-global-icon i,
       #gigma-fixed-cancel-host .gigma-global-icon i,
-      #gigma-wide-close-host .gigma-global-icon i,
-      #gigma-dedupe-root .gigma-global-icon i{
+      #gigma-wide-close-host .gigma-global-icon i{
         color: rgba(220,220,220,0.84) !important;
       }
       #gigma-global-settings .gigma-global-icon-svg,
       #gigma-fixed-accept-host .gigma-global-icon-svg,
       #gigma-fixed-cancel-host .gigma-global-icon-svg,
       #gigma-wide-close-host .gigma-global-icon-svg,
-      #gigma-dedupe-root .gigma-global-icon-svg,
       #gigma-global-settings .gigma-global-icon-svg *,
       #gigma-fixed-accept-host .gigma-global-icon-svg *,
       #gigma-fixed-cancel-host .gigma-global-icon-svg *,
-      #gigma-wide-close-host .gigma-global-icon-svg *,
-      #gigma-dedupe-root .gigma-global-icon-svg *{
+      #gigma-wide-close-host .gigma-global-icon-svg *{
         stroke: rgba(220,220,220,0.84) !important;
       }
       #gigma-global-settings button:hover,
@@ -2289,9 +2027,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       #gigma-fixed-cancel-host #gigma-global-cancel:hover,
       #gigma-fixed-cancel-host #gigma-global-cancel:focus-visible,
       #gigma-wide-close-host #gigma-global-cancel:hover,
-      #gigma-wide-close-host #gigma-global-cancel:focus-visible,
-      #gigma-dedupe-root .gigma-global-cancel:hover,
-      #gigma-dedupe-root .gigma-global-cancel:focus-visible{
+      #gigma-wide-close-host #gigma-global-cancel:focus-visible{
         background: rgba(255,0,90,0.52) !important;
         border-color: rgba(255,0,90,1) !important;
 
@@ -2324,59 +2060,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         display: flex !important;
         flex-direction: column !important;
         height: 100% !important;
-      }
-      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-ordering-container{
-        display: grid !important;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
-        grid-template-rows: auto auto minmax(0, 1fr) !important;
-        column-gap: 0.5em !important;
-        height: calc(100dvh - var(--gigma-hdr-btn) - var(--gigma-hdr-pad-b) - var(--gigma-hdr-margin-b) - 1em - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-        max-height: calc(100dvh - var(--gigma-hdr-btn) - var(--gigma-hdr-pad-b) - var(--gigma-hdr-margin-b) - 1em - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-        min-height: 0 !important;
-        padding: 0.375em !important;
-        overflow: hidden !important;
-      }
-      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-ordering-container::after{
-        display: none !important;
-      }
-      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-ordering-title{
-        grid-column: 1 !important;
-        grid-row: 1 !important;
-      }
-      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-toolbar{
-        grid-column: 1 !important;
-        grid-row: 2 !important;
-        min-width: 0 !important;
-      }
-      html.gigma-mobile-fullscreen dialog.gigma-wide #gigma-ordering-list{
-        grid-column: 1 !important;
-        grid-row: 3 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        height: 100% !important;
-        min-height: 0 !important;
-        max-height: 100% !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        -webkit-overflow-scrolling: touch;
-      }
-      html.gigma-mobile-fullscreen dialog.gigma-wide .gigma-unsorted-pane{
-        position: static !important;
-        grid-column: 2 !important;
-        grid-row: 1 / 4 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        min-width: 0 !important;
-        height: 100% !important;
-        min-height: 0 !important;
-        margin: 0 !important;
-        padding: 0 0 0.5em 0 !important;
-        box-sizing: border-box !important;
-        border-left: 0.0625em dashed rgba(255,255,255,0.15);
-        overflow: hidden !important;
-      }
-`;
+      }`;
     document.head.appendChild(s);
   }catch(_){
   }
@@ -2533,12 +2217,6 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         height:100%;
         min-height:0;
       }
-      #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-first-screen{
-        display:flex;
-        flex-direction:column;
-        flex:1 1 auto;
-        min-height:0;
-      }
       #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree{
         background:rgba(0,0,0,0.16);
       }
@@ -2670,116 +2348,6 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
   }catch(_){}
 })();
 // --- end: GIGMA layout layout preset tree styling ---
-// --- GIGMA: mobile layout preset tree preview viewport ---
-(function gigmaMobileLayoutPresetTreePreviewViewportStyleOnce(){
-  try{
-    if (document.getElementById('gigma-mobile-layout-preset-tree-preview-viewport-style')) return;
-    const s = document.createElement('style');
-    s.id = 'gigma-mobile-layout-preset-tree-preview-viewport-style';
-    s.textContent = `
-      html.gigma-mobile-fullscreen dialog:has(#gigma-layout-preset-tree-preview-root){
-        width:100dvw !important;
-        max-width:100dvw !important;
-        height:100dvh !important;
-        max-height:100dvh !important;
-        padding:0 !important;
-        overflow:hidden !important;
-      }
-      html.gigma-mobile-fullscreen dialog:has(#gigma-layout-preset-tree-preview-root) :is(.popup-body,.popup-content,.popup-content-wrapper){
-        display:block !important;
-        width:100% !important;
-        height:100% !important;
-        max-height:100% !important;
-        min-height:0 !important;
-        overflow-y:auto !important;
-        overflow-x:hidden !important;
-        -webkit-overflow-scrolling:touch;
-      }
-      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root{
-        display:block !important;
-        width:100% !important;
-        max-width:none !important;
-        min-width:0 !important;
-        min-height:100% !important;
-        height:auto !important;
-        box-sizing:border-box !important;
-        padding:max(0.5em, env(safe-area-inset-top)) max(0.5em, env(safe-area-inset-right)) max(0.5em, env(safe-area-inset-bottom)) max(0.5em, env(safe-area-inset-left)) !important;
-        overflow:visible !important;
-      }
-      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-header{
-        flex:0 0 auto !important;
-        display:grid !important;
-        grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em) !important;
-        grid-template-rows:auto auto !important;
-        width:100% !important;
-        min-width:0 !important;
-        box-sizing:border-box !important;
-        padding-right:0 !important;
-        overflow:visible !important;
-      }
-      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-first-screen{
-        display:grid !important;
-        grid-template-rows:auto minmax(0, 1fr) !important;
-        width:100% !important;
-        min-width:0 !important;
-        height:calc(100dvh - 2em - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-        max-height:calc(100dvh - 2em - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-        min-height:0 !important;
-        overflow:hidden !important;
-        box-sizing:border-box !important;
-      }
-      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-first-screen > .gigma-layout-preset-tree-display-wrap{
-        height:100% !important;
-        max-height:100% !important;
-        min-height:0 !important;
-      }
-      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-display-wrap{
-        display:block !important;
-        flex:0 0 auto !important;
-        width:100% !important;
-        min-width:0 !important;
-        min-height:0 !important;
-        height:100% !important;
-        max-height:100% !important;
-        overflow:hidden !important;
-        position:relative !important;
-        box-sizing:border-box !important;
-      }
-      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-display-wrap > .gigma-layout-preset-tree{
-        display:block !important;
-        width:100% !important;
-        max-width:100% !important;
-        height:100% !important;
-        max-height:100% !important;
-        min-height:0 !important;
-        box-sizing:border-box !important;
-        overflow-y:auto !important;
-        overflow-x:hidden !important;
-        -webkit-overflow-scrolling:touch;
-      }
-      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-preview-gwi-host{
-        position:static !important;
-        inset:auto !important;
-        display:inline-flex !important;
-        align-items:center !important;
-        justify-content:center !important;
-        flex:0 0 auto !important;
-      }
-      html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-global-wi-stats-display{
-        flex:0 0 auto !important;
-        order:100 !important;
-        width:100% !important;
-        max-width:100% !important;
-        max-height:none !important;
-        margin-top:0.5em !important;
-        overflow:visible !important;
-        box-sizing:border-box !important;
-      }
-    `;
-    document.head.appendChild(s);
-  }catch(_){ }
-})();
-// --- end: mobile layout preset tree preview viewport ---
 // --- GIGMA: duplicate sentence custom layout-preset-tree selection styling ---
 (function gigmaDuplicateSentenceLayoutPresetTreeSelectionStyleOnce(){
   try{
@@ -2791,7 +2359,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         position:relative;
       }
       #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-header{
-        padding-left:0;
+        padding-left:3.25em;
       }
       #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-row.gigma-selected,
       #gigma-layout-preset-tree-preview-root[data-gigma-selection-mode="duplicate-scan"] .gigma-layout-preset-tree-folder.gigma-selected{
@@ -4723,30 +4291,6 @@ function gigmaSetShowLorebookIdProcessDialogPref(enabled){
     }catch(_){ }
 }
 
-function gigmaGetHideUndoRedoDesktopPref(){
-    try{
-        return gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.hideUndoRedoDesktop, true);
-    }catch(_){ return true; }
-}
-function gigmaSetHideUndoRedoDesktopPref(enabled){
-    try{
-        gigmaPersistBinaryExtensionSetting('hideUndoRedoDesktop', !!enabled, 1);
-        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
-        gigmaApplyHideUndoRedoDesktopPref();
-    }catch(_){ }
-}
-function gigmaApplyHideUndoRedoDesktopPref(){
-    try{
-        const hide = !!gigmaGetHideUndoRedoDesktopPref() && !gigmaIsMobileFullscreenActive();
-        document.documentElement.classList.toggle('gigma-hide-undo-redo-desktop', hide);
-    }catch(_){ }
-}
-(function gigmaHideUndoRedoDesktopSyncOnce(){
-    gigmaApplyHideUndoRedoDesktopPref();
-    window.addEventListener('resize', gigmaApplyHideUndoRedoDesktopPref, { passive: true });
-    window.addEventListener('orientationchange', gigmaApplyHideUndoRedoDesktopPref, { passive: true });
-})();
-
 function gigmaClampModalUndoHistorySteps(value){
     try{
         const n = parseInt(value, 10);
@@ -6012,65 +5556,6 @@ function gigmaGeneratePresetId() {
     const rand = (BigInt(buf[0] >>> 0) << 32n) | BigInt(buf[1] >>> 0);
     const idBig = (ts << 64n) | rand;
     return 'gigmap-' + idBig.toString(36);
-}
-
-function gigmaCreateLocalLorebookId(worldName, usedIds) {
-    const base = 'gigmal-' + gigmaHash32(String(worldName || '')).toString(36);
-    let id = base;
-    let i = 1;
-    while (usedIds && usedIds.has(id)) {
-        id = `${base}-${i++}`;
-    }
-    if (usedIds) usedIds.add(id);
-    return id;
-}
-
-function gigmaEnsureLorebookIdMapsForNamesFast(worldNames, options = {}) {
-    const names = Array.from(new Set((worldNames || []).map((name) => String(name || '').trim()).filter(Boolean)));
-    const pruneMissingNames = !!options.prune;
-    const stored = gigmaGetWorldIdMap();
-    if (!window.gigmaWorldIdByName || typeof window.gigmaWorldIdByName !== 'object') window.gigmaWorldIdByName = { ...stored };
-    if (!window.gigmaNameByWorldId || typeof window.gigmaNameByWorldId !== 'object') window.gigmaNameByWorldId = {};
-
-    const validNames = new Set(names);
-    const usedIds = new Set();
-    let changed = false;
-
-    for (const [name, idValue] of Object.entries(window.gigmaWorldIdByName || {})) {
-        const id = String(idValue || '').trim();
-        if (!id || (pruneMissingNames && !validNames.has(name))) {
-            delete window.gigmaWorldIdByName[name];
-            changed = true;
-            continue;
-        }
-        usedIds.add(id);
-        window.gigmaNameByWorldId[id] = name;
-    }
-
-    for (const name of names) {
-        let id = String(window.gigmaWorldIdByName[name] || '').trim();
-        if (!id) {
-            id = gigmaCreateLocalLorebookId(name, usedIds);
-            window.gigmaWorldIdByName[name] = id;
-            changed = true;
-        } else {
-            usedIds.add(id);
-        }
-        window.gigmaNameByWorldId[id] = name;
-    }
-
-    if (pruneMissingNames) {
-        for (const id of Object.keys(window.gigmaNameByWorldId || {})) {
-            const name = window.gigmaNameByWorldId[id];
-            if (!validNames.has(name) || window.gigmaWorldIdByName[name] !== id) {
-                delete window.gigmaNameByWorldId[id];
-                changed = true;
-            }
-        }
-    }
-
-    if (changed) gigmaSetWorldIdMap(window.gigmaWorldIdByName);
-    return { changed, nameToId: window.gigmaWorldIdByName, idToName: window.gigmaNameByWorldId };
 }
 
 async function gigmaAssignLorebookIdsServerBulk(worldNames){
@@ -7979,20 +7464,60 @@ async function gigmaSyncAllLorebookIdsAndStatsIndex() {
 
     const run = (async () => {
         try {
+            if (!window.gigmaWorldIdByName || typeof window.gigmaWorldIdByName !== 'object') {
+                window.gigmaWorldIdByName = gigmaGetWorldIdMap();
+            }
+            if (!window.gigmaNameByWorldId || typeof window.gigmaNameByWorldId !== 'object') {
+                window.gigmaNameByWorldId = {};
+            }
+
             const names = Array.isArray(world_names) ? world_names.filter(n => typeof n === 'string' && n.trim()) : [];
-            const maps = gigmaEnsureLorebookIdMapsForNamesFast(names, { prune: true });
-            const currentIds = new Set(Object.values(maps.nameToId || {}).map(id => String(id || '').trim()).filter(Boolean));
+            const currentNames = new Set(names);
+            const currentIds = new Set();
+            const ensureResult = await gigmaEnsureLorebookIdsForNamesBatched(names, { popupThreshold: 10 });
+
+            if (ensureResult.aborted) {
+                try {
+                    if (typeof toastr !== 'undefined' && toastr && typeof toastr.warning === 'function') {
+                        toastr.warning('Adding lorebook IDs to world json files was aborted.');
+                    }
+                } catch (_){ }
+                return;
+            }
+
+            for (const name of names) {
+                let id = window.gigmaWorldIdByName[name];
+                if (!id) id = await gigmaEnsureLorebookId(name);
+                if (!id) continue;
+                id = String(id);
+                currentIds.add(id);
+                window.gigmaWorldIdByName[name] = id;
+                window.gigmaNameByWorldId[id] = name;
+
+                const book = gigmaGetLorebookStatsIndexBookById(id);
+                if (!book || !book.stats || !book.entriesByUid) {
+                    await gigmaEnsureLorebookStatsIndexForWorld(name, { forceRebuild: true });
+                    await new Promise(r => setTimeout(r, 0));
+                } else if (book.worldName !== name) {
+                    book.worldName = name;
+                }
+            }
+
+            for (const name of Object.keys(window.gigmaWorldIdByName || {})) {
+                if (!currentNames.has(name)) delete window.gigmaWorldIdByName[name];
+            }
+            for (const id of Object.keys(window.gigmaNameByWorldId || {})) {
+                if (!currentIds.has(id)) delete window.gigmaNameByWorldId[id];
+            }
 
             const store = gigmaGetLorebookStatsIndexStore();
             const booksById = (store && store.booksById && typeof store.booksById === 'object') ? store.booksById : {};
-            let pruned = false;
             for (const id of Object.keys(booksById)) {
-                if (!currentIds.has(id)) {
-                    delete booksById[id];
-                    pruned = true;
-                }
+                if (!currentIds.has(id)) delete booksById[id];
             }
-            if (pruned) gigmaPersigigmarebookStatsIndexStore();
+
+            gigmaSetWorldIdMap(window.gigmaWorldIdByName);
+            gigmaPersigigmarebookStatsIndexStore();
         } catch (e) {
             console.warn('[GIGMA] Failed to sync lorebook ID/stats index:', e);
         } finally {
@@ -8031,7 +7556,6 @@ function gigmaInstallLorebookStatsIndexLifecycleHooksOnce() {
                     if (!window.__gigmaLorebookStatsDirtyByWorld || typeof window.__gigmaLorebookStatsDirtyByWorld !== 'object') window.__gigmaLorebookStatsDirtyByWorld = {};
                     delete window.__gigmaLorebookStatsDirtyByWorld[w];
                 } catch (_e2) {}
-                try { __gigmaInvalidateWorldUsageFlagsCache(); } catch (_eCache) {}
 
                 gigmaEnsureLorebookStatsIndexForWorld(w, { worldData: data }).catch((_e3) => {});
             } catch (_e) {}
@@ -8100,7 +7624,7 @@ function gigmaInstallWorldInfoLorebookStatsIndexHooksOnce() {
                     timers[key] = setTimeout(() => {
                         delete timers[key];
                         gigmaUpdateLorebookStatsIndexEntry(worldName, uid, { contentOverride: content }).catch((_e) => {});
-                    }, 450);
+                    }, 70);
                     return;
                 }
 
@@ -8186,6 +7710,7 @@ function gigmaBeginModalLorebookStatsSession() {
         try { window.__gigmaModalLorebookStatsBuildActive = false; } catch (_e) { }
         try { window.__gigmaModalLorebookStatsRefreshRaf = 0; } catch (_e) { }
         try { window.__gigmaModalLorebookStatsTargetCountCache = null; } catch (_e) { }
+        scheduleBackground(() => gigmaPrecomputeAllModalLorebookStats());
     } catch (_e) {}
 }
 
@@ -9509,16 +9034,6 @@ function gigmaIsOrderingModalUndoMutationRelevant(mutation){
                 }, 0);
             } catch (_e) { }
         }, true);
-        document.addEventListener('click', (ev) => {
-            try {
-                const btn = ev && ev.target && ev.target.closest ? ev.target.closest('#gigma-parent-preset-undo, #gigma-child-preset-undo, #gigma-assignment-preset-undo, #gigma-parent-preset-redo, #gigma-child-preset-redo, #gigma-assignment-preset-redo') : null;
-                if (!btn) return;
-                if (typeof gigmaIsOrderingModalActive === 'function' && !gigmaIsOrderingModalActive()) return;
-                try { ev.preventDefault(); } catch (_ePrevent) { }
-                if (btn.id === 'gigma-parent-preset-undo' || btn.id === 'gigma-child-preset-undo' || btn.id === 'gigma-assignment-preset-undo') void gigmaUndoOrderingModalChange();
-                else void gigmaRedoOrderingModalChange();
-            } catch (_e) { }
-        }, true);
         document.addEventListener('keydown', (ev) => {
             try {
                 if (!ev || !(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
@@ -10397,84 +9912,13 @@ function gigmaSetPrettySwitchDisabled(input, disabled){
     }catch(_){ }
 }
 
-function gigmaSyncNativeWiMobileFullscreenStatsLayer(){
-    const active = document.documentElement.classList.contains(GIGMA_MOBILE_FULLSCREEN_CLASS)
-        && !!(EXTENSION_STATE.globalWiStatsWiPanelOpen || EXTENSION_STATE.worldInfoLorebookStatsPanelOpen);
-    document.body.classList.toggle('gigma-native-wi-mobile-fullscreen-stats-open', active);
-}
-
-function gigmaCloseMobileFullscreenDropdown(panelEl){
-    try{
-        if (!panelEl) return;
-        const id = String(panelEl.id || '');
-        if (id === 'gigma-modal-settings-popup') {
-            panelEl.style.display = 'none';
-            return;
-        }
-        if (id === SELECTORS.WORLD_INFO_GLOBAL_WI_STATS_PANEL) {
-            EXTENSION_STATE.globalWiStatsWiPanelOpen = false;
-            gigmaUpdateGlobalWiStatsControlsUi('wi');
-            return;
-        }
-        if (id === SELECTORS.WORLD_INFO_LOREBOOK_STATS_PANEL) {
-            EXTENSION_STATE.worldInfoLorebookStatsPanelOpen = false;
-            gigmaUpdateWorldInfoLorebookStatsDropdownUi();
-            return;
-        }
-        if (id === 'gigma-layout-preset-tree-global-wi-stats-panel') {
-            EXTENSION_STATE.globalWiStatsPreviewPanelOpen = false;
-            gigmaUpdateGlobalWiStatsControlsUi('preview');
-            return;
-        }
-        if (id === 'gigma-layout-preset-tree-stats-panel') {
-            const root = panelEl.closest ? panelEl.closest('#gigma-layout-preset-tree-preview-root') : null;
-            const state = gigmaGetLayoutPresetTreePreviewLorebookStatsState();
-            state.panelOpen = false;
-            gigmaUpdateLayoutPresetTreePreviewLorebookStatsControlsUi(root);
-            return;
-        }
-        if (id.indexOf('gigma-modal-global-wi-stats-panel') === 0) {
-            EXTENSION_STATE.globalWiStatsModalPanelOpen = false;
-            EXTENSION_STATE.globalWiStatsModalPanelSuffixOpen = '';
-            gigmaUpdateGlobalWiStatsControlsUi('modal');
-            return;
-        }
-        if (id.indexOf('gigma-modal-stats-panel') === 0) {
-            const suffix = id.endsWith('-right') ? '-right' : '';
-            panelEl.classList.add('gigma-hidden');
-            panelEl.setAttribute('aria-hidden', 'true');
-            const btn = document.getElementById('gigma-modal-stats-cats' + suffix);
-            if (btn) btn.setAttribute('aria-expanded', 'false');
-        }
-    }catch(_){ }
-}
-
-function gigmaEnsureMobileFullscreenDropdownShell(panelEl, closeLabel){
-    try{
-        if (!panelEl) return;
-        panelEl.classList.add('gigma-mobile-fullscreen-panel');
-        if (panelEl.querySelector(':scope > .gigma-mobile-fullscreen-close')) return;
-        const closeBtn = document.createElement('button');
-        closeBtn.type = 'button';
-        closeBtn.className = 'menu_button gigma-global-cancel gigma-global-icon gigma-mobile-fullscreen-close';
-        closeBtn.setAttribute('aria-label', closeLabel || 'Close popup');
-        closeBtn.title = closeLabel || 'Close popup';
-        closeBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>';
-        closeBtn.addEventListener('click', (ev) => {
-            try{ ev.preventDefault(); ev.stopPropagation(); }catch(_e){ }
-            gigmaCloseMobileFullscreenDropdown(panelEl);
-        });
-        panelEl.insertBefore(closeBtn, panelEl.firstChild);
-    }catch(_){ }
-}
-
 function gigmaBuildGlobalWiStatsPanel(panel, place){
     try{
         if (!panel) return;
         if (panel.getAttribute('data-gigma-built') === '1') return;
         panel.setAttribute('data-gigma-built', '1');
         panel.classList.add('gigma-global-wi-stats-panel');
-        gigmaEnsureMobileFullscreenDropdownShell(panel, 'Close Global WI statistics');
+
 
         const headRow = document.createElement('div');
         headRow.className = 'gigma-gwi-panel-headrow';
@@ -10886,7 +10330,6 @@ function gigmaUpdateGlobalWiStatsControlsUi(place){
 
             if (btn) btn.setAttribute('aria-expanded', EXTENSION_STATE.globalWiStatsWiPanelOpen ? 'true' : 'false');
             gigmaSyncStatsButtonPairUi(btn, collapseBtn, !!EXTENSION_STATE.globalWiStatsWiEnabled, !gigmaGetGlobalWiStatsDisplayCollapsed('wi'), 'Global Stats', gigmaGetStatsCollapseButtonVisible('wi', 'global'));
-            gigmaSyncNativeWiMobileFullscreenStatsLayer();
             return;
         }
 
@@ -12716,7 +12159,6 @@ const ensure = (toolbarSelector, suffix) => {
         panelCats.id = 'gigma-modal-stats-panel' + suffix;
         panelCats.className = 'gigma-modal-stats-panel gigma-lorebook-stats-panel gigma-hidden';
         panelCats.setAttribute('aria-hidden', 'true');
-        gigmaEnsureMobileFullscreenDropdownShell(panelCats, 'Close Lorebook statistics');
 
         const headCats = document.createElement('div');
         headCats.className = 'gigma-gwi-panel-headrow';
@@ -13049,16 +12491,14 @@ const ensure = (toolbarSelector, suffix) => {
             } catch (_e) { }
         });
 
-        // Keep the global WI panel and display synced immediately on build.
+        // Keep the global WI panel checkboxes/buttons synced immediately on build.
         gigmaUpdateGlobalWiStatsControlsUi('modal');
-        gigmaQueueGlobalWiStatsUpdate('modal');
     } catch (_e) { }
 };
 
         try { gigmaInstallLorebookContentStylesOnce(); } catch (_e) { }
         try { gigmaEnsureOrderingModalLorebookContentToggleButton(root); } catch (_e) { }
         try { gigmaEnsureOrderingModalSettingsButton(root); } catch (_e) { }
-        try { gigmaApplyHideUndoRedoDesktopPref(); } catch (_e) { }
 
         try { gigmaUpdateLorebookContentToggleButtonsUi(); } catch (_e) { }
         try { gigmaUpdateLorebookContentExpandersInModal(root); } catch (_e) { }
@@ -14633,7 +14073,6 @@ function gigmaBuildLayoutPresetTreePreviewLorebookStatsPanel(panel) {
         if (panel.getAttribute('data-gigma-built') === '1') return;
         panel.setAttribute('data-gigma-built', '1');
         try{ panel.classList.add('gigma-lorebook-stats-panel'); }catch(_e){}
-        gigmaEnsureMobileFullscreenDropdownShell(panel, 'Close Lorebook statistics');
 
         const head = document.createElement('div');
         head.className = 'gigma-gwi-panel-headrow';
@@ -14812,54 +14251,6 @@ function gigmaEnsureLayoutPresetTreePreviewGlobalWiStatsOverlay(rootOverride){
     }catch(_e){}
 }
 
-
-function gigmaSyncMobileLayoutPresetTreePreviewViewport(rootOverride, finalPass){
-    try{
-        const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
-        if (!root || !document.documentElement.classList.contains('gigma-mobile-fullscreen')) return;
-        const wrap = root.querySelector('.gigma-layout-preset-tree-display-wrap');
-        const tree = wrap ? wrap.querySelector('.gigma-layout-preset-tree') : null;
-        if (!wrap || !tree) return;
-        const vv = window.visualViewport;
-        const viewportHeight = Math.floor((vv && vv.height) || window.innerHeight || document.documentElement.clientHeight || 0);
-        if (!viewportHeight) return;
-        const viewportTop = Math.floor((vv && vv.offsetTop) || 0);
-        const viewportBottom = viewportTop + viewportHeight;
-        const rect = wrap.getBoundingClientRect();
-        const wrapTop = Math.max(viewportTop, Math.ceil(rect.top || 0));
-        const available = Math.max(240, viewportBottom - wrapTop - 8);
-        root.style.setProperty('--gigma-preview-tree-height', available + 'px');
-        wrap.style.setProperty('height', available + 'px', 'important');
-        wrap.style.setProperty('max-height', available + 'px', 'important');
-        wrap.style.setProperty('overflow', 'hidden', 'important');
-        tree.style.setProperty('height', '100%', 'important');
-        tree.style.setProperty('max-height', '100%', 'important');
-        tree.style.setProperty('overflow-y', 'auto', 'important');
-        tree.style.setProperty('overflow-x', 'hidden', 'important');
-        if (!finalPass && !root.__gigmaPreviewViewportRaf) {
-            root.__gigmaPreviewViewportRaf = requestAnimationFrame(() => {
-                root.__gigmaPreviewViewportRaf = 0;
-                gigmaSyncMobileLayoutPresetTreePreviewViewport(root, true);
-            });
-        }
-    }catch(_e){}
-}
-
-(function gigmaBindMobileLayoutPresetTreePreviewViewportSyncOnce(){
-    try{
-        if (window.__gigmaMobileLayoutPresetTreePreviewViewportSyncBound) return;
-        window.__gigmaMobileLayoutPresetTreePreviewViewportSyncBound = true;
-        const sync = () => {
-            try{
-                const roots = document.querySelectorAll('#gigma-layout-preset-tree-preview-root');
-                for (const root of roots) gigmaSyncMobileLayoutPresetTreePreviewViewport(root);
-            }catch(_e){}
-        };
-        window.addEventListener('resize', sync, { passive:true });
-        window.addEventListener('orientationchange', sync, { passive:true });
-        if (window.visualViewport) window.visualViewport.addEventListener('resize', sync, { passive:true });
-    }catch(_e){}
-})();
 
 function gigmaEnsureLayoutPresetTreePreviewGlobalWiStatsRightAligned(rootOverride){
     try{
@@ -15477,8 +14868,6 @@ function gigmaUpdateWorldInfoLorebookStatsDropdownUi(){
         const collapseBtn = document.getElementById(SELECTORS.WORLD_INFO_LOREBOOK_COLLAPSE_BUTTON);
         gigmaSyncStatsButtonPairUi(btn, collapseBtn, !!EXTENSION_STATE.worldInfoLorebookStatsEnabled, !gigmaIsWorldInfoStatsSectionCollapsed('lorebook'), 'Lorebook Stats', gigmaGetStatsCollapseButtonVisible('wi', 'lorebook'));
 
-        gigmaSyncNativeWiMobileFullscreenStatsLayer();
-
         if (!panel) return;
 
         panel.classList.toggle('gigma-hidden', !open);
@@ -15552,7 +14941,6 @@ function gigmaBuildWorldInfoLorebookStatsDropdown(panel){
         panel.dataset.gigmaBuilt = '1';
         panel.classList.add('gigma-wi-lorebook-stats-panel', 'gigma-modal-stats-panel', 'gigma-hidden');
         panel.setAttribute('aria-hidden', 'true');
-        gigmaEnsureMobileFullscreenDropdownShell(panel, 'Close Lorebook statistics');
 
         const mkRow = (labelText, controlEl) => {
             const row = document.createElement('div');
@@ -17633,14 +17021,6 @@ function gigmaUpdateAutoUpdateWiOrderButtonUi(btn) {
     } catch (_e) { }
 }
 
-function gigmaUpdateHideUndoRedoDesktopButtonUi(btn) {
-    try {
-        if (!btn) return;
-        btn.checked = !!gigmaGetHideUndoRedoDesktopPref();
-        gigmaApplyHideUndoRedoDesktopPref();
-    } catch (_e) { }
-}
-
 async function gigmaApplyDetailedLorebookEntriesPrefChangeNow(){
     try{
         const roots = [];
@@ -17780,7 +17160,6 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Debug logs', 'gigma-modal-settings-slot-budget-debug-logs');
             addRow('Auto-update entry order in WI UI', 'gigma-modal-settings-slot-auto-wi-order');
             addRow('Undo history steps', 'gigma-modal-settings-slot-undo-history');
-            addRow('Hide undo & redo buttons on desktop', 'gigma-modal-settings-slot-hide-undo-redo-desktop');
             addRow('LB ID assignment & removal popup', 'gigma-modal-settings-slot-show-lorebook-id-dialog');
             addRow('Erase all LB IDs from world json files', 'gigma-modal-settings-slot-erase-lorebook-ids');
             addRow('Erase all GIGMA extension settings', 'gigma-modal-settings-slot-erase-all');
@@ -17788,7 +17167,6 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             popup.appendChild(table);
             root.appendChild(popup);
         }
-        gigmaEnsureMobileFullscreenDropdownShell(popup, 'Close settings');
 
         const slotConvert = popup.querySelector('#gigma-modal-settings-slot-convert');
         if (slotConvert) {
@@ -18039,29 +17417,6 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             }
             input.value = String(gigmaGetModalUndoHistoryStepsPref());
             slotUndoHistory.replaceChildren(input);
-        }
-
-        const slotHideUndoRedoDesktop = popup.querySelector('#gigma-modal-settings-slot-hide-undo-redo-desktop');
-        if (slotHideUndoRedoDesktop) {
-            let b = popup.querySelector('#gigma-modal-settings-hide-undo-redo-desktop-btn');
-            if (!b) {
-                const control = gigmaCreatePrettySwitch(
-                    gigmaGetHideUndoRedoDesktopPref(),
-                    'Hide undo & redo buttons on desktop',
-                    'Hide undo & redo buttons on desktop',
-                    (ev) => {
-                        try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
-                        gigmaSetHideUndoRedoDesktopPref(ev.currentTarget.checked);
-                        gigmaUpdateHideUndoRedoDesktopButtonUi(ev.currentTarget);
-                    },
-                );
-                b = control.input;
-                b.id = 'gigma-modal-settings-hide-undo-redo-desktop-btn';
-                slotHideUndoRedoDesktop.appendChild(control.switchLabel);
-            } else if (b.closest('label')?.parentElement !== slotHideUndoRedoDesktop) {
-                slotHideUndoRedoDesktop.appendChild(b.closest('label'));
-            }
-            gigmaUpdateHideUndoRedoDesktopButtonUi(b);
         }
 
         const slotShowLorebookIdDialog = popup.querySelector('#gigma-modal-settings-slot-show-lorebook-id-dialog');
@@ -20735,7 +20090,7 @@ try {
                     </button>
                 </div>
                 <div id="gigma-modal-scroll" class="gigma-modal-scroll">
-                <h3 class="marginBot10" style="margin-top:0.625em; padding-bottom:0.375em;"><span aria-hidden="true" style="display:inline-block; width:1.4em; height:1.4em; background-color:currentColor; -webkit-mask-image:url(${GIGLIO_ICON_SRC}); mask-image:url(${GIGLIO_ICON_SRC}); -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:center; mask-position:center; -webkit-mask-size:contain; mask-size:contain; vertical-align:-0.2em; margin-right:0.525em;"></span>Giglio Machine</h3>
+                <h3 class="marginBot10" style="padding-bottom:0.375em;"><span aria-hidden="true" style="display:inline-block; width:1.4em; height:1.4em; background-color:currentColor; -webkit-mask-image:url(${GIGLIO_ICON_SRC}); mask-image:url(${GIGLIO_ICON_SRC}); -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:center; mask-position:center; -webkit-mask-size:contain; mask-size:contain; vertical-align:-0.2em; margin-right:0.525em;"></span>Giglio Machine</h3>
                 <div class="wide100p world_entry_form_control MarginTop5 MarginBot10">
                     <div class="world_entry_form_control">
                         <div class="gigma-widthbtn-stash" style="height:0; overflow:hidden;">
@@ -20800,8 +20155,6 @@ try {
                                                         <button id="gigma-editable-unchained-parent" class="menu_button gigma-icon-btn gigma-modal-dim-btn gigma-unchained-edit-toggle" type="button" title="Editable unchained lorebooks" aria-label="Editable unchained lorebooks" aria-pressed="false"><span class="gigma-modal-dim-icon gigma-unchained-edit-icon"><i class="fa-solid fa-link-slash gigma-unchained-edit-main"></i><i class="fa-solid fa-pen-to-square gigma-unchained-edit-pen"></i></span></button>
                             <button id="gigma-budget-mode-parent" class="menu_button gigma-budget-mode-toggle" type="button">Order</button>
                             <span class="gigma-layout-preset-separator" aria-hidden="true"></span>
-                            <button id="gigma-parent-preset-undo" class="menu_button gigma-icon-btn" type="button" title="Undo" aria-label="Undo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-left"></i></span></button>
-                            <button id="gigma-parent-preset-redo" class="menu_button gigma-icon-btn" type="button" title="Redo" aria-label="Redo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-right"></i></span></button>
                             <button id="gigma-parent-preset-restore" class="menu_button gigma-icon-btn" type="button" title="Restore" aria-label="Restore"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-recycle"></i></span></button>
                                 <button id="gigma-parent-preset-new" class="menu_button gigma-icon-btn" type="button" title="New" aria-label="New"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-file"></i></span></button>
                                 <button id="gigma-parent-preset-quicksave" class="menu_button gigma-quicksave-btn" type="button" title="Quicksave" aria-label="Quicksave"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-bolt"></i></span></button>
@@ -20817,8 +20170,6 @@ try {
                                                         <button id="gigma-editable-unchained-child" class="menu_button gigma-icon-btn gigma-modal-dim-btn gigma-unchained-edit-toggle" type="button" title="Editable unchained lorebooks" aria-label="Editable unchained lorebooks" aria-pressed="true"><span class="gigma-modal-dim-icon gigma-unchained-edit-icon"><i class="fa-solid fa-link-slash gigma-unchained-edit-main"></i><i class="fa-solid fa-pen-to-square gigma-unchained-edit-pen"></i></span></button>
                             <button id="gigma-budget-mode-child" class="menu_button gigma-budget-mode-toggle" type="button">Order</button>
                             <span class="gigma-layout-preset-separator" aria-hidden="true"></span>
-                            <button id="gigma-child-preset-undo" class="menu_button gigma-icon-btn" type="button" title="Undo" aria-label="Undo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-left"></i></span></button>
-                            <button id="gigma-child-preset-redo" class="menu_button gigma-icon-btn" type="button" title="Redo" aria-label="Redo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-right"></i></span></button>
                             <button id="gigma-child-preset-restore" class="menu_button gigma-icon-btn" type="button" title="Restore" aria-label="Restore"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-recycle"></i></span></button>
                                 <button id="gigma-child-preset-new" class="menu_button gigma-icon-btn" type="button" title="New" aria-label="New"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-file"></i></span></button>
                                 <button id="gigma-child-preset-quicksave" class="menu_button gigma-quicksave-btn" type="button" title="Quicksave" aria-label="Quicksave"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-bolt"></i></span></button>
@@ -20840,9 +20191,9 @@ try {
                         <div id="gigma-ordering-count-wrap" style="position:relative; height:0; width:100%;">
                             <small id="gigma-ordering-count" style="position:absolute; left:0.375em; top:0.125em; color:#aaa; text-align:left; font-size:80%; line-height:1.2; white-space:nowrap;">Lorebooks: 0</small>
                         </div>
-                        <div class="MarginTop10 gigma-below-pane-actions" style="display:flex; align-items:center; justify-content:center; flex-wrap:wrap; column-gap:var(--gigma-hdr-gap); row-gap:0.12em; width:100%; max-width:100%; box-sizing:border-box; overflow:visible;">
-                            <button id="gigma-ordering-load" class="menu_button" type="button" style="white-space:nowrap; flex:0 1 auto;">Reset List</button>
-                            <button id="gigma-ordering-preview" class="menu_button" type="button" style="white-space:nowrap; flex:0 1 auto;">Preview</button>
+                        <div class="MarginTop10" style="display:flex; align-items:center; justify-content:center; flex-wrap:nowrap; gap: var(--gigma-hdr-gap);">
+                            <button id="gigma-ordering-load" class="menu_button" type="button" style="white-space:nowrap;">Reset List</button>
+                            <button id="gigma-ordering-preview" class="menu_button" type="button" style="white-space:nowrap;">Preview</button>
                         </div>
                         <div id="gigma-global-wi-stats-display-modal" class="gigma-global-wi-stats-display world_entry_form_control MarginTop10" style="width:100%; max-width:var(--gigma-ordering-list-width,40.5rem); margin:0 auto; box-sizing:border-box;"></div>
                         <div class="world_entry_form_control MarginTop10" style="width:100%; max-width:var(--gigma-ordering-list-width,40.5rem); margin:0 auto; text-align:left; box-sizing:border-box;">
@@ -20855,8 +20206,6 @@ try {
                                 <select id="gigma-assignment-preset-select" class="text_pole textarea_compact" style="flex:1 1 auto; min-width:0;"></select>
                             </div>
                             <div id="gigma-assignment-preset-controls" class="gigma-layout-or-assignment-preset-controls" style="display:flex; flex-wrap:wrap; align-items:center; column-gap:0.375em; row-gap:0em; justify-content:center; margin-top:0.375em; margin-bottom:0.625em;">
-                                <button id="gigma-assignment-preset-undo" class="menu_button gigma-icon-btn" type="button" title="Undo" aria-label="Undo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-left"></i></span></button>
-                                <button id="gigma-assignment-preset-redo" class="menu_button gigma-icon-btn" type="button" title="Redo" aria-label="Redo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-right"></i></span></button>
                                 <button id="gigma-assignment-preset-restore" class="menu_button gigma-icon-btn" type="button" title="Restore" aria-label="Restore"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-recycle"></i></span></button>
                                 <button id="gigma-assignment-preset-new" class="menu_button gigma-icon-btn" type="button" title="New" aria-label="New"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-file"></i></span></button>
                                 <button id="gigma-assignment-preset-quicksave" class="menu_button gigma-quicksave-btn" type="button" title="Quicksave" aria-label="Quicksave"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-bolt"></i></span></button>
@@ -24088,18 +23437,29 @@ async function gigmaBuildRuntimePresetCacheForCurrentSpeaker(entries) {
         if (!window.gigmaNameByWorldId) window.gigmaNameByWorldId = {};
     } catch (_eMaps) {}
 
-    // Ensure IDs only for lorebooks present in this generation path; never scan every installed lorebook here.
+    // Ensure IDs exist for any lorebooks we see in this generation.
     const namesToEnsure = new Set();
     try {
         for (const e of (entries || [])) {
             const w = e?.world;
             if (w && typeof w === 'string') namesToEnsure.add(w);
         }
+        if (Array.isArray(world_names)) {
+            for (const w of world_names) if (w && typeof w === 'string') namesToEnsure.add(w);
+        }
     } catch (_eNames) {}
 
-    if (namesToEnsure.size) {
-        try { gigmaEnsureLorebookIdMapsForNamesFast(Array.from(namesToEnsure)); } catch (_eFastIds) {}
+    for (const name of namesToEnsure) {
+        try {
+            let id = window.gigmaWorldIdByName[name];
+            if (!id) {
+                id = await gigmaEnsureLorebookId(name);
+                if (id) window.gigmaWorldIdByName[name] = id;
+            }
+            if (id && !window.gigmaNameByWorldId[id]) window.gigmaNameByWorldId[id] = name;
+        } catch (_eOne) {}
     }
+    try { gigmaSetWorldIdMap(window.gigmaWorldIdByName); } catch (_ePersistIds) {}
 
     for (const [name, id] of Object.entries(window.gigmaWorldIdByName || {})) {
         if (id) runtime.worldIdByName.set(String(name), String(id));
@@ -24228,8 +23588,51 @@ async function populateOrderingList(opts = {}) {
     // NEW: parent map for nested folders (folderId -> parentFolderId or 'ROOT')
     if (!window.gigmaFolderParent) window.gigmaFolderParent = {};
     
-    // GIGMA: keep preset IDs local and synchronous so opening the modal never loads every lorebook JSON.
-    gigmaEnsureLorebookIdMapsForNamesFast(Array.isArray(world_names) ? world_names : [], { prune: true });
+    // GIGMA: ensure every lorebook has a stable ID for presets.
+// Bootstrap from persisted settings the first time in this session.
+    if (!window.gigmaWorldIdByName) {
+        window.gigmaWorldIdByName = gigmaGetWorldIdMap();
+    }
+    if (!window.gigmaNameByWorldId) window.gigmaNameByWorldId = {};
+    const nameToId = window.gigmaWorldIdByName;
+    const idToName = window.gigmaNameByWorldId;
+    let didUpdateMap = false;
+    if (Array.isArray(world_names)) {
+        for (const name of world_names) {
+            if (!name || typeof name !== 'string') continue;
+            let id = nameToId[name];
+            if (!id) {
+                id = await gigmaEnsureLorebookId(name);
+                if (id) {
+                    didUpdateMap = true;
+                }
+                nameToId[name] = id;
+            }
+            if (!idToName[id]) {
+                idToName[id] = name;
+            }
+        }
+        // Clean up mappings for lorebooks that no longer exist (renamed/deleted)
+        const validNames = new Set(
+            world_names.filter(n => typeof n === 'string' && n.trim())
+        );
+        const cleaned = {};
+        let didCleanup = false;
+        for (const [name, id] of Object.entries(nameToId)) {
+            if (validNames.has(name)) {
+                cleaned[name] = id;
+            } else {
+                didCleanup = true;
+            }
+        }
+        if (didCleanup) {
+            window.gigmaWorldIdByName = cleaned;
+        }
+        // Persist updated mapping so future sessions don't have to reload every lorebook
+        if (didUpdateMap || didCleanup) {
+            gigmaSetWorldIdMap(window.gigmaWorldIdByName);
+        }
+    }
 // reset display
     listContainer.innerHTML = '';
     // GIGMA FIX: when reloading lorebooks or applying a preset, make sure we
@@ -26774,7 +26177,6 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
       .gigma-layout-or-assignment-preset-controls{--gigma-btn-h:2.1em;}
       .gigma-layout-or-assignment-preset-controls>button.menu_button{height:var(--gigma-btn-h)!important;display:inline-flex;align-items:center;justify-content:center;}
       .gigma-layout-or-assignment-preset-controls>button.menu_button.gigma-icon-btn{width:var(--gigma-btn-h)!important;padding:0!important;}
-      html.gigma-hide-undo-redo-desktop #gigma-modal-root :is(#gigma-parent-preset-undo,#gigma-parent-preset-redo,#gigma-child-preset-undo,#gigma-child-preset-redo,#gigma-assignment-preset-undo,#gigma-assignment-preset-redo){display:none!important;}
       .gigma-modal-dim-btn{position:relative;width:var(--gigma-btn-h,2.1em)!important;height:var(--gigma-btn-h,2.1em)!important;box-sizing:border-box!important;padding:0!important;display:inline-flex;align-items:center;justify-content:center;}
       .gigma-modal-dim-icon{
         position:relative;
@@ -29258,36 +28660,6 @@ margin-bottom: 0; /* keep it snug; container below adds its own margin */
         console.warn('GIGMA: failed to add toolbar style:', e);
     }
 })();
-
-(function gigmaMobilePortraitToolbarFitOnce(){
-  try{
-    if (document.getElementById('gigma-mobile-portrait-toolbar-fit-style')) return;
-    const s = document.createElement('style');
-    s.id = 'gigma-mobile-portrait-toolbar-fit-style';
-    s.textContent = `
-      html.gigma-mobile-fullscreen #gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right) .gigma-toolbar-group{
-        gap:0.4em !important;
-        flex-wrap:wrap !important;
-      }
-      html.gigma-mobile-fullscreen #gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right) .gigma-modal-stats-controls{
-        gap:0.4em !important;
-        margin-left:0 !important;
-      }
-      html.gigma-mobile-fullscreen #gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right) .gigma-toolbar-group > button.menu_button,
-      html.gigma-mobile-fullscreen #gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right) .gigma-toolbar-group > .gigma-modal-stats-controls > button.menu_button{
-        width:var(--gigma-toolbar-btn-h) !important;
-        min-width:var(--gigma-toolbar-btn-h) !important;
-        max-width:var(--gigma-toolbar-btn-h) !important;
-        height:var(--gigma-toolbar-btn-h) !important;
-        min-height:var(--gigma-toolbar-btn-h) !important;
-        padding:0 !important;
-        justify-content:center !important;
-        flex:0 0 var(--gigma-toolbar-btn-h) !important;
-      }
-    `;
-    document.head.appendChild(s);
-  }catch(_){ }
-})();
 (function gigmaNormalizeButtonRowHeightsOnce(){
   try{
     if (document.getElementById('gigma-button-row-height-style')) return;
@@ -29344,65 +28716,6 @@ margin-bottom: 0; /* keep it snug; container below adds its own margin */
 #gigma-world-info-budgetsection #gigma-worldinfo-gwi-host .gigma-global-wi-stats-btn{
   height:2.25em !important;
   min-height:2.25em !important;
-}
-/* Wrapped button rows use flex gap for both axes; native menu buttons add vertical margins. */
-#gigma-modal-root :is(
-  .gigma-modal-toolbar,
-  .gigma-layout-or-assignment-preset-controls,
-  .gigma-below-pane-actions,
-  .gigma-toolbar-group,
-  .gigma-modal-stats-controls
-) > button.menu_button,
-#gigma-modal-root :is(
-  .gigma-toolbar-group,
-  .gigma-below-pane-actions
-) > .gigma-modal-stats-controls > button.menu_button,
-#gigma-modal-root .gigma-ordering-gwi-host > button.menu_button,
-dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-layout-preset-tree-header-right > button.menu_button,
-dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-preview-gwi-host > button.menu_button,
-#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-stats-controls > button.menu_button,
-#gigma-world-info-budgetsection button.menu_button{
-  margin:0 !important;
-}
-#gigma-modal-root .gigma-layout-or-assignment-preset-controls{
-  row-gap:0.375em !important;
-}
-#gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right){
-  padding-top:0.25em !important;
-  padding-bottom:0.375em !important;
-}
-#gigma-modal-root :is(#gigma-toolbar,#gigma-toolbar-right) .gigma-toolbar-group{
-  row-gap:0.5em !important;
-}
-#gigma-modal-root .gigma-below-pane-actions{
-  row-gap:var(--gigma-hdr-gap) !important;
-  margin-top:0.625em !important;
-  margin-bottom:0.625em !important;
-}
-dialog:has(#gigma-layout-preset-tree-preview-root) .gigma-layout-preset-tree-header-right{
-  row-gap:0.375em !important;
-  padding-top:0.25em !important;
-  padding-bottom:0.25em !important;
-}
-#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree-stats-controls{
-  row-gap:0.375em !important;
-}
-`;
-    document.head.appendChild(css);
-  }catch(_e){}
-})();
-(function gigmaWorldInfoStatsButtonWrapStyleOnce(){
-  try{
-    if (document.getElementById('gigma-worldinfo-stats-button-wrap-style')) return;
-    const css = document.createElement('style');
-    css.id = 'gigma-worldinfo-stats-button-wrap-style';
-    css.textContent = `
-#world_popup .flex-container:has(> #world_info_search){
-  flex-wrap:wrap !important;
-}
-#world_popup .flex-container:has(> #world_info_search) > #gigma-worldinfo-gwi-host,
-#world_popup .flex-container:has(> #world_info_search) > #gigma-worldinfo-gwi-host > .gigma-worldinfo-wi-stats-wrap{
-  display:contents !important;
 }
 `;
     document.head.appendChild(css);
@@ -32895,42 +32208,6 @@ inside.parentElement.removeChild(inside);
                     document.addEventListener('pointerdown', onDropPointerDown, true);
                 }
             };
-            if (scope === 'row' && ev.pointerType === 'touch' && ev.button === 0) {
-                let pressed = true;
-                let moved = false;
-                const startX = ev.clientX || 0;
-                const startY = ev.clientY || 0;
-                const dragThreshold = 10; // Finger movement above this is scrolling, not dragging.
-                let timer = null;
-                const cleanupTouchRowDragGate = () => {
-                    pressed = false;
-                    document.removeEventListener('pointermove', onTouchRowMove, true);
-                    document.removeEventListener('pointerup', cleanupTouchRowDragGate, true);
-                    document.removeEventListener('pointercancel', cleanupTouchRowDragGate, true);
-                    if (timer !== null) clearTimeout(timer);
-                };
-                const startTouchRowDrag = () => {
-                    if (!pressed || moved) return;
-                    cleanupTouchRowDragGate();
-                    startDrag();
-                };
-                const onTouchRowMove = (eMove) => {
-                    if (!pressed) return;
-                    const mx = (typeof eMove.clientX === 'number') ? eMove.clientX : startX;
-                    const my = (typeof eMove.clientY === 'number') ? eMove.clientY : startY;
-                    const dx = mx - startX;
-                    const dy = my - startY;
-                    if ((dx * dx + dy * dy) >= (dragThreshold * dragThreshold)) {
-                        moved = true;
-                        cleanupTouchRowDragGate();
-                    }
-                };
-                timer = setTimeout(startTouchRowDrag, 250);
-                document.addEventListener('pointermove', onTouchRowMove, true);
-                document.addEventListener('pointerup', cleanupTouchRowDragGate, true);
-                document.addEventListener('pointercancel', cleanupTouchRowDragGate, true);
-                return;
-            }
             if (fromTitle && ev.button === 0) {
                 // For presses that originate on the folder title we want two behaviours:
                 //  - simple click (no/very small movement) => inline rename
@@ -34105,17 +33382,20 @@ if (collapse && !isRight) {
             opacity:0.55;
           }
           .gigma-pane-distribution-input{
-            width:0;
+            width:100%;
             height:100%;
             box-sizing:border-box;
-            padding: 0 0.625em !important;
+            padding: 0 0.625em;
+            padding-right:22.5em !important;
             text-align:left;
             flex:1 1 auto;
             min-width:0;
           }
           .gigma-pane-distribution-unit{
-            flex:0 0 auto;
-            min-width:0;
+            position:absolute;
+            right:2.45em;
+            top:50%;
+            transform:translateY(-50%);
             max-width:none;
             overflow:visible;
             text-overflow:clip;
@@ -34124,16 +33404,14 @@ if (collapse && !isRight) {
             pointer-events:none;
             text-align:right;
           }
-          html.gigma-mobile-fullscreen .gigma-pane-distribution-unit{
-            flex:0 1 auto;
-            max-width:8em;
-            overflow:hidden;
-          }
           .gigma-pane-distribution-close{
+            position:absolute;
+            right:0.35em;
+            top:50%;
+            transform:translateY(-50%);
             width:1.7em;
             height:1.7em;
             min-width:1.7em;
-            flex:0 0 1.7em;
             padding:0 !important;
             margin:0;
             border-radius:0.25em;
@@ -34161,12 +33439,9 @@ if (collapse && !isRight) {
           #gigma-layout-preset-tree-search{ padding: 0 !important; }
           #gigma-layout-preset-tree-search svg{ width:1.375em; height:1.375em; display:block; }
           #gigma-layout-preset-tree-preview-root .gigma-pane-search-host[data-gigma-pane="preview"]{
-            grid-column: 1 / -1;
-            grid-row: 3;
-            align-self: stretch;
-            margin-top: 0.25em;
-            width: 100%;
-            margin-right: 0;
+            margin-top: 1.375em; /* keep header label visible */
+            width: calc(100% + 3.25em);
+            margin-right: -3.25em;
           }
         `;
         document.head.appendChild(css);
@@ -35232,15 +34507,6 @@ function getBudgetDrawerLabel(mode){
   return String(mode || '');
 }
 
-function getBudgetDistributionLabel(mode){
-  try{
-    const opts = Array.isArray(GIGMA_LOREBOOK_BUDGET_MODE_OPTIONS) ? GIGMA_LOREBOOK_BUDGET_MODE_OPTIONS : [];
-    const hit = opts.find((opt)=>opt && opt.value === mode);
-    if (hit) return String((gigmaIsMobileFullscreenActive() ? hit.header : hit.drawer) || hit.header || mode || '');
-  }catch(_){ }
-  return String(mode || '');
-}
-
 function getDistributionRange(mode){
   if (mode === 'percentage_budget' || mode === 'percentage_context' || mode === 'percentage_lorebook' || mode === 'percentage_entries') return { min: 0, max: 100 };
   if (mode === 'fixed' || mode === 'entries') return { min: 0, max: 99999 };
@@ -35432,7 +34698,7 @@ function getDistributionModeInfo(){
     rows,
     sameMode,
     mode,
-    label: sameMode ? getBudgetDistributionLabel(mode) : '',
+    label: sameMode ? getBudgetDrawerLabel(mode) : '',
     decimalsAllowed: sameMode && gigmaIsPercentageBudgetMode(mode),
     min: range.min,
     max: range.max,
@@ -35654,6 +34920,7 @@ function openDistribution(state){
     try{ closeSearch(state); }catch(_){ }
     const h = state.group.getBoundingClientRect ? state.group.getBoundingClientRect().height : state.group.offsetHeight;
     if (h) state.distRow.style.height = h + 'px';
+    state._prevGroupDisplay = state.group.style.display;
     state.group.style.display = 'none';
     state.distHost.style.display = 'block';
     state.distOpen = true;
@@ -35670,7 +34937,7 @@ function closeDistribution(state){
     state.distOpen = false;
     try{ closeDistributionShapeMenu(state); }catch(_){ }
     if (state.distHost) state.distHost.style.display = 'none';
-    if (state.group) state.group.style.display = 'inline-flex';
+    if (state.group) state.group.style.display = (state._prevGroupDisplay !== undefined ? state._prevGroupDisplay : '');
     syncDistributionUiBits(state);
   }catch(_){ }
 }
@@ -35898,20 +35165,6 @@ function installPaneSearchKeyboardNav(){
 }
 
 
-const GIGMA_PANE_SEARCH_RENDER_LIMIT = 80;
-
-function schedulePaneSearchRender(state){
-  try{
-    if (!state) return;
-    if (state.__gigmaPaneSearchRenderRaf) return;
-    state.__gigmaPaneSearchRenderRaf = requestAnimationFrame(()=>{
-      state.__gigmaPaneSearchRenderRaf = 0;
-      try{ renderResults(state); }catch(_){ }
-      try{ syncSearchUiBits(state); }catch(_){ }
-    });
-  }catch(_){ }
-}
-
 function renderResults(state){
   try{
     if (!state || !state.results || !state.input) return;
@@ -35923,6 +35176,7 @@ function renderResults(state){
     try{ setLastQuery(qRaw); }catch(_){ }
 
     const listHost = state.resultsList || state.results;
+    if (listHost) listHost.innerHTML = '';
 
     const isPreview = state.which === 'preview';
     const previewRoot = isPreview ? state.previewRoot : null;
@@ -35949,11 +35203,9 @@ function renderResults(state){
       const t = { token, label, isFolder, isRow, unch, origin, flags };
       if (!tokenPassesQualifierFilters(t, qState)) continue;
       tokens.push(t);
-      if (tokens.length >= GIGMA_PANE_SEARCH_RENDER_LIMIT) break;
     }
 
     if (!tokens.length) {
-      if (listHost) listHost.replaceChildren();
       try{
         if (state.__gigmaPaneSearchKbSelKind === 'item') clearSearchKeyboardSelection(state);
         else syncSearchKeyboardSelection(state);
@@ -35963,7 +35215,6 @@ function renderResults(state){
       return;
     }
 
-    const frag = document.createDocumentFragment();
     for (const t of tokens){
       const div = document.createElement('div');
       div.className = 'gigma-pane-search-item';
@@ -36047,10 +35298,9 @@ function renderResults(state){
         try{ div.__gigmaSearchMouseDownActivated = false; }catch(_){ }
         activatePaneSearchResultItem(ev);
       });
-      frag.appendChild(div);
+      if (listHost) listHost.appendChild(div);
+      else state.results.appendChild(div);
     }
-    if (listHost) listHost.replaceChildren(frag);
-    else state.results.replaceChildren(frag);
     state.results.style.display = 'block';
     try{ syncSearchKeyboardSelection(state); }catch(_){ }
     syncSearchUiBits(state);
@@ -36067,6 +35317,7 @@ function openSearch(state){
           const h = state.group.getBoundingClientRect ? state.group.getBoundingClientRect().height : state.group.offsetHeight;
           if (h) state.row.style.height = h + 'px';
         }catch(_){ }
+        state._prevGroupDisplay = state.group.style.display;
         state.group.style.display = 'none';
         state.host.style.display = 'block';
         state.open = true;
@@ -36089,7 +35340,7 @@ function openSearch(state){
         state.open = false;
         try{ clearSearchKeyboardSelection(state); }catch(_){ }
         if (state.host) state.host.style.display = 'none';
-        if (state.group) state.group.style.display = (state.which === 'preview') ? 'flex' : 'inline-flex';
+        if (state.group) state.group.style.display = (state._prevGroupDisplay !== undefined ? state._prevGroupDisplay : '');
         try{
           if (state.resultsList && state.resultsList.isConnected) state.resultsList.innerHTML = '';
           else if (state.results) state.results.innerHTML = '';
@@ -36274,7 +35525,8 @@ function openSearch(state){
             inp.__gigmaPaneSearchInputWired = true;
             inp.addEventListener('input', ()=>{
               try{ setLastQuery(inp.value || ''); }catch(_){ }
-              try{ schedulePaneSearchRender(STATES[which]); }catch(_){ }
+              try{ renderResults(STATES[which]); }catch(_){ }
+              try{ syncSearchUiBits(STATES[which]); }catch(_){ }
             });
           }
         }catch(_){ }
@@ -36455,7 +35707,8 @@ function openSearch(state){
             inp.__gigmaPaneSearchInputWired = true;
             inp.addEventListener('input', ()=>{
               try{ setLastQuery(inp.value || ''); }catch(_){ }
-              try{ if (STATES.preview) schedulePaneSearchRender(STATES.preview); }catch(_){ }
+              try{ if (STATES.preview) renderResults(STATES.preview); }catch(_){ }
+              try{ syncSearchUiBits(STATES.preview); }catch(_){ }
             });
           }
         }catch(_){ }
@@ -36551,21 +35804,7 @@ function openSearch(state){
         if (raf) return;
         raf = requestAnimationFrame(()=>{ raf = 0; ensureAll(); });
       };
-      const obs = new MutationObserver((muts)=>{
-        try{
-          for (const m of muts){
-            for (const n of m.addedNodes || []){
-              if (!(n instanceof HTMLElement)) continue;
-              if (n.id === 'gigma-modal-root' || n.id === 'gigma-layout-preset-tree-preview-root' ||
-                  n.matches?.('#gigma-modal-root, #gigma-layout-preset-tree-preview-root, .gigma-unsorted-pane') ||
-                  n.querySelector?.('#gigma-modal-root, #gigma-layout-preset-tree-preview-root, .gigma-unsorted-pane')) {
-                schedule();
-                return;
-              }
-            }
-          }
-        }catch(_){ }
-      });
+      const obs = new MutationObserver(()=>schedule());
       obs.observe(document.documentElement, {subtree:true, childList:true});
       window.__gigmaPaneSearchObs = obs;
     }
@@ -38050,13 +37289,9 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 inset:0;
                 z-index:100000;
                 display:flex;
-                align-items:flex-start;
+                align-items:center;
                 justify-content:center;
-                width:100vw;
-                height:100vh;
-                height:100dvh;
                 padding:1em;
-                overflow:auto;
                 background:rgba(0,0,0,0.8);
                 backdrop-filter:none;
                 -webkit-backdrop-filter:none;
@@ -38088,8 +37323,6 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 -webkit-backdrop-filter:none !important;
             }
             #gigma-dedupe-root{
-                --gigma-hdr-btn:2em;
-                --gigma-hdr-border:calc(var(--gigma-hdr-btn) * 0.045);
                 width:100%;
                 height:100%;
                 box-sizing:border-box;
@@ -38140,49 +37373,28 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 justify-content:center;
                 width:1.55em;
                 height:1.55em;
-                min-width:1.55em;
-                min-height:1.55em;
-                padding:0 !important;
-                margin:0 !important;
                 border-radius:999em;
-                border:0.0625em solid rgba(255,255,255,0.24) !important;
-                background:rgba(255,255,255,0.1) !important;
-                color:rgba(255,255,255,0.92) !important;
-                font-size:0.86em;
-                font-weight:700;
-                line-height:1;
-                opacity:1;
-                cursor:pointer;
-            }
-            #gigma-dedupe-root .gigma-dedupe-titleinfo:hover,
-            #gigma-dedupe-root .gigma-dedupe-titleinfo:focus-visible{
-                background:rgba(255,255,255,0.18) !important;
-                border-color:rgba(255,255,255,0.42) !important;
-            }
-            #gigma-dedupe-root .gigma-dedupe-info-panel{
-                flex:0 0 auto;
-                padding:0.58em 0.7em;
                 border:0.0625em solid rgba(255,255,255,0.14);
-                border-radius:0.68em;
-                background:rgba(0,0,0,0.38);
-                color:rgba(255,255,255,0.9);
-                font-size:0.9em;
-                line-height:1.35;
+                background:rgba(255,255,255,0.05);
+                font-size:0.86em;
+                opacity:0.86;
+                cursor:help;
             }
             #gigma-dedupe-root .gigma-dedupe-close{
-                display:inline-flex !important;
-                align-items:center !important;
-                justify-content:center !important;
-                width:var(--gigma-hdr-btn, 2em) !important;
-                min-width:var(--gigma-hdr-btn, 2em) !important;
-                max-width:var(--gigma-hdr-btn, 2em) !important;
-                height:var(--gigma-hdr-btn, 2em) !important;
-                min-height:var(--gigma-hdr-btn, 2em) !important;
-                max-height:var(--gigma-hdr-btn, 2em) !important;
-                margin:0 !important;
-                padding:0 !important;
-                line-height:1 !important;
-                flex:0 0 var(--gigma-hdr-btn, 2em) !important;
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                width:2.25em;
+                min-width:2.25em;
+                height:2.25em;
+                min-height:2.25em;
+                padding:0;
+                border-radius:0.7em;
+            }
+            #gigma-dedupe-root .gigma-dedupe-close svg{
+                width:0.95em;
+                height:0.95em;
+                display:block;
             }
             #gigma-dedupe-root .gigma-dedupe-controls{
                 flex:0 0 auto;
@@ -38258,15 +37470,6 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
             #gigma-dedupe-root .gigma-dedupe-detail-toolbar{
                 flex-wrap:wrap;
                 align-items:center;
-            }
-            #gigma-dedupe-root .gigma-dedupe-detail-toolbar-host{
-                flex:0 0 auto;
-                padding:0.45em 0.62em;
-                border-bottom:0.0625em solid rgba(255,255,255,0.1);
-                background:rgba(255,255,255,0.02);
-            }
-            #gigma-dedupe-root .gigma-dedupe-detail-toolbar-host:empty{
-                display:none;
             }
             #gigma-dedupe-root .gigma-dedupe-actions{
                 justify-content:flex-start;
@@ -38355,10 +37558,6 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 line-height:1.35;
                 opacity:0.76;
                 white-space:normal;
-            }
-            #gigma-dedupe-root .gigma-dedupe-list.is-empty,
-            #gigma-dedupe-root .gigma-dedupe-detail.is-empty{
-                overscroll-behavior:auto;
             }
             #gigma-dedupe-root .gigma-dedupe-row{
                 display:grid;
@@ -38588,24 +37787,6 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 justify-content:flex-end;
                 width:100%;
             }
-            #gigma-dedupe-root #gigma-dedupe-apply{
-                font-weight:700;
-                background:rgba(142,28,52,0.82) !important;
-                border:0.08em solid rgba(255,112,142,0.78) !important;
-                color:#ffffff !important;
-                opacity:1 !important;
-            }
-            #gigma-dedupe-root #gigma-dedupe-apply:hover,
-            #gigma-dedupe-root #gigma-dedupe-apply:focus-visible{
-                background:rgba(188,38,72,0.92) !important;
-                border-color:rgba(255,142,166,0.98) !important;
-            }
-            #gigma-dedupe-root #gigma-dedupe-apply:disabled{
-                background:rgba(255,255,255,0.1) !important;
-                border-color:rgba(255,255,255,0.26) !important;
-                color:rgba(255,255,255,0.64) !important;
-                opacity:1 !important;
-            }
             #gigma-dedupe-root .gigma-dedupe-group-head,
             #gigma-dedupe-root .gigma-dedupe-entry-head{
                 min-width:0;
@@ -38672,276 +37853,6 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 #gigma-dedupe-root .gigma-dedupe-actions,
                 #gigma-dedupe-root .gigma-dedupe-footer-actions{
                     margin-left:0;
-                }
-            }
-
-            html.gigma-mobile-fullscreen #gigma-duplicate-sentences-overlay{
-                align-items:flex-start !important;
-                justify-content:flex-start !important;
-                width:100dvw !important;
-                height:100dvh !important;
-                padding:0 !important;
-                overflow-x:hidden !important;
-                overflow-y:auto !important;
-                overscroll-behavior:contain;
-                -webkit-overflow-scrolling:touch;
-            }
-            html.gigma-mobile-fullscreen #gigma-duplicate-sentences-overlay .gigma-dedupe-shell{
-                width:100dvw !important;
-                max-width:100dvw !important;
-                height:auto !important;
-                min-height:100dvh !important;
-                max-height:none !important;
-                border:0 !important;
-                border-radius:0 !important;
-                box-shadow:none !important;
-                overflow:visible !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root{
-                height:auto !important;
-                min-height:100dvh !important;
-                gap:0.6em !important;
-                padding:max(0.68rem, env(safe-area-inset-top)) max(0.74rem, env(safe-area-inset-right)) max(0.68rem, env(safe-area-inset-bottom)) max(0.74rem, env(safe-area-inset-left)) !important;
-                overflow:visible !important;
-                font-size:clamp(12.5px, 1.72vw, 14.5px);
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-titlebar{
-                padding:0.08em 0.04em 0.1em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-titlewrap{
-                flex:1 1 auto;
-                min-width:0;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-title{
-                min-width:0;
-                overflow-wrap:anywhere;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-close{
-                width:var(--gigma-hdr-btn) !important;
-                min-width:var(--gigma-hdr-btn) !important;
-                max-width:var(--gigma-hdr-btn) !important;
-                height:var(--gigma-hdr-btn) !important;
-                min-height:var(--gigma-hdr-btn) !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-controls{
-                display:grid !important;
-                grid-template-columns:repeat(2, minmax(0, 1fr));
-                align-items:stretch !important;
-                gap:0.6em !important;
-                padding:0.6em !important;
-                overflow:visible !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field:nth-child(1),
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field:nth-child(2),
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field:nth-child(3),
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field:nth-child(4){
-                width:100% !important;
-                min-width:0 !important;
-                margin:0 !important;
-                flex:1 1 auto !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field > .text_pole{
-                width:100% !important;
-                max-width:100% !important;
-                min-width:0 !important;
-                min-height:2em !important;
-                padding:0.3em 0.48em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field-label,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field-inline span{
-                white-space:normal !important;
-                overflow-wrap:anywhere;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-field-inline{
-                width:100%;
-                min-width:0;
-                gap:0.48em;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-actions,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer-actions{
-                display:grid !important;
-                gap:0.56em !important;
-                width:100% !important;
-                min-width:0 !important;
-                overflow:visible !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-actions{
-                grid-column:1 / -1;
-                grid-template-columns:repeat(4, minmax(0, 1fr));
-                align-self:stretch !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar{
-                grid-template-columns:repeat(3, minmax(0, 1fr));
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar-host{
-                padding:0.58em 0.64em !important;
-                flex:0 0 auto !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer-actions{
-                grid-template-columns:minmax(0, 1fr);
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-actions > .menu_button,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar > .menu_button,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer-actions > .menu_button{
-                width:100% !important;
-                min-width:0 !important;
-                min-height:2.22em !important;
-                white-space:normal !important;
-                overflow-wrap:anywhere !important;
-                text-align:center;
-                padding:0.34em 0.48em !important;
-                font-size:0.92em !important;
-                line-height:1.12 !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-summarybar{
-                padding:0.18em 0.08em !important;
-                gap:0.6em !important;
-                min-height:0 !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-summary{
-                max-height:none !important;
-                overflow:visible !important;
-                padding:0.08em 0.06em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-main{
-                flex:0 0 auto !important;
-                height:112dvh !important;
-                min-height:112dvh !important;
-                max-height:112dvh !important;
-                grid-template-columns:minmax(0, 1fr) !important;
-                grid-template-rows:minmax(0, 1fr) minmax(0, 1.08fr);
-                gap:0.7em !important;
-                overflow:hidden !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-pane{
-                min-width:0 !important;
-                min-height:0 !important;
-                overflow:hidden !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-pane-header{
-                min-height:2.05em;
-                white-space:normal !important;
-                overflow-wrap:anywhere;
-                padding:0.56em 0.72em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-list,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail{
-                min-height:0 !important;
-                overflow:auto !important;
-                overscroll-behavior:contain;
-                -webkit-overflow-scrolling:touch;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-list.is-empty,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail.is-empty{
-                overscroll-behavior:auto !important;
-                touch-action:pan-y;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-list{
-                padding:0.58em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail{
-                padding:0.66em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-row{
-                gap:0.64em !important;
-                padding:0.64em 0.72em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-chip{
-                min-width:0;
-                white-space:normal !important;
-                overflow-wrap:anywhere;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-group-head > .gigma-dedupe-subtle-meta,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-entry-head > .gigma-dedupe-subtle-meta{
-                margin-left:0 !important;
-                justify-content:flex-start !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-group > summary,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-entry > summary{
-                align-items:flex-start !important;
-                min-width:0;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-card{
-                padding:0.86em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-group-list,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-entry-list,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-occurrence-list{
-                gap:0.72em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-group > summary,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-entry > summary{
-                padding:0.72em 0.82em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-group-body,
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-entry-body{
-                padding:0.1em 0.82em 0.82em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-occurrence{
-                gap:0.56em !important;
-                padding:0.76em 0.82em !important;
-            }
-            html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer{
-                padding:0.2em 0.08em 0.04em !important;
-                min-height:0 !important;
-            }
-            @media (orientation: landscape){
-                html.gigma-mobile-fullscreen #gigma-dedupe-root{
-                    gap:0.46em !important;
-                    padding:max(0.52rem, env(safe-area-inset-top)) max(0.62rem, env(safe-area-inset-right)) max(0.52rem, env(safe-area-inset-bottom)) max(0.62rem, env(safe-area-inset-left)) !important;
-                    font-size:clamp(11.5px, 1.22vw, 13.5px);
-                }
-                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-controls{
-                    grid-template-columns:repeat(4, minmax(0, 1fr));
-                    gap:0.48em !important;
-                    padding:0.48em !important;
-                }
-                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-actions{
-                    grid-template-columns:repeat(4, minmax(0, 1fr));
-                }
-                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-main{
-                    height:72dvh !important;
-                    min-height:72dvh !important;
-                    max-height:72dvh !important;
-                    grid-template-columns:minmax(16rem, 0.95fr) minmax(0, 1.05fr) !important;
-                    grid-template-rows:minmax(0, 1fr) !important;
-                }
-                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar{
-                    grid-template-columns:repeat(5, minmax(0, 1fr));
-                }
-                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-detail-toolbar-host{
-                    padding:0.44em 0.54em !important;
-                }
-                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer{
-                    display:flex !important;
-                    justify-content:flex-end !important;
-                }
-                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer-actions{
-                    display:grid !important;
-                    grid-template-columns:max-content !important;
-                    justify-content:end !important;
-                    width:100% !important;
-                    max-width:none !important;
-                    justify-self:stretch !important;
-                }
-                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-footer-actions > .menu_button{
-                    width:fit-content !important;
-                    min-width:0 !important;
-                    max-width:100% !important;
-                    justify-self:end !important;
-                    padding-left:0.9em !important;
-                    padding-right:0.9em !important;
-                }
-            }
-            @media (orientation: portrait){
-                html.gigma-mobile-fullscreen #gigma-dedupe-root .gigma-dedupe-main{
-                    height:118dvh !important;
-                    min-height:118dvh !important;
-                    max-height:118dvh !important;
-                    grid-template-columns:minmax(0, 1fr) !important;
-                    grid-template-rows:minmax(0, 1fr) minmax(0, 1.12fr) !important;
                 }
             }
         `;
@@ -39624,10 +38535,9 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
         const initialUnchainedStateEmpty = (resolved.kind === 'parent') ? 'selected' : 'show';
         html =
             '<div id="gigma-layout-preset-tree-preview-root" data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-            '<div class="gigma-layout-preset-tree-first-screen">' +
-            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
-            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(resolved.kindLabel) + '</div>' +
-            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;"></div>' +
+            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
+            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.kindLabel) + '</div>' +
+            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;"></div>' +
             '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
             '</div>' +
             '<div style="opacity:0.85; padding:0.5em;"><p style="margin:0;">No layout data available for custom selection.</p></div>' +
@@ -39637,9 +38547,9 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
         const body = gigmaBuildLayoutPresetTreeHtml(resolved.snapshot, { kind: resolved.kind, viewMode: resolved.desiredViewMode, parentPresetId: (resolved.kind === 'parent' ? resolved.presetNameForHeader : null) });
         html =
             '<div id="gigma-layout-preset-tree-preview-root"' + (resolved.desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-gigma-selection-mode="duplicate-scan" data-preset-kind="' + gigmaEscapeHtml(resolved.kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="0" data-dim-unchained="0" data-default-viewmode="' + gigmaEscapeHtml(resolved.desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="0" data-default-dim-unchained="0" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
-            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(resolved.headerLabel) + '</div>' +
-            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;">' +
+            '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
+            '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(resolved.headerLabel) + '</div>' +
+            '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
             '<button id="gigma-layout-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-layout-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-layout-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-layout-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-layout-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
             '<button id="gigma-layout-preset-tree-expand-all" class="menu_button gigma-icon-btn" type="button" title="Expand all folders" aria-label="Expand all folders">▼</button>' +
             '<button id="gigma-layout-preset-tree-collapse-all" class="menu_button gigma-icon-btn" type="button" title="Collapse all folders" aria-label="Collapse all folders">▲</button>' +
@@ -39648,7 +38558,7 @@ async function gigmaShowDuplicateSentenceCustomSelectionPopup(sourceRoot) {
             '</div>' +
             '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
             '</div>' +
-            '<div class="gigma-layout-preset-tree-display-wrap" style="display:block;width:100%;min-width:0;min-height:0;height:100%;max-height:100%;overflow:hidden;position:relative;box-sizing:border-box;">' + body + '</div></div>' +
+            body +
             '<div id="gigma-global-wi-stats-display-preview" class="gigma-global-wi-stats-display"></div>' +
             '</div>';
     }
@@ -39716,13 +38626,12 @@ function gigmaBuildDuplicateSentencePopupHtml() {
             <div class="gigma-dedupe-titlebar">
                 <div class="gigma-dedupe-titlewrap">
                     <div class="gigma-dedupe-title" title="${gigmaEscapeHtml(infoTitle)}">Duplicate Sentences</div>
-                    <button id="gigma-dedupe-info" class="gigma-dedupe-titleinfo" type="button" title="${gigmaEscapeHtml(infoTitle)}" aria-label="Duplicate sentence info" aria-expanded="false" aria-controls="gigma-dedupe-info-panel">i</button>
+                    <span class="gigma-dedupe-titleinfo" title="${gigmaEscapeHtml(infoTitle)}" aria-label="Duplicate sentence info">i</span>
                 </div>
-                <button id="gigma-dedupe-close" class="menu_button gigma-global-cancel gigma-global-icon gigma-dedupe-close" type="button" aria-label="Close duplicate sentences" title="Close duplicate sentences">
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+                <button id="gigma-dedupe-close" class="menu_button gigma-dedupe-close" type="button" aria-label="Close duplicate sentences" title="Close duplicate sentences">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
                 </button>
             </div>
-            <div id="gigma-dedupe-info-panel" class="gigma-dedupe-info-panel" hidden>${gigmaEscapeHtml(infoTitle)} ${gigmaEscapeHtml(survivorTitle)}</div>
             <div class="gigma-dedupe-controls">
                 <label class="gigma-dedupe-field">
                     <span class="gigma-dedupe-field-label">Scope</span>
@@ -39758,7 +38667,7 @@ function gigmaBuildDuplicateSentencePopupHtml() {
                 </div>
             </div>
             <div class="gigma-dedupe-summarybar">
-                <div id="gigma-dedupe-summary" class="gigma-dedupe-summary">Scan the current lorebook, a custom lorebook selection, or all lorebooks for duplicate sentences.</div>
+                <div id="gigma-dedupe-summary" class="gigma-dedupe-summary">Scanning…</div>
             </div>
             <div class="gigma-dedupe-main">
                 <div class="gigma-dedupe-pane">
@@ -39771,7 +38680,6 @@ function gigmaBuildDuplicateSentencePopupHtml() {
                     <div class="gigma-dedupe-pane-header">
                         <span>Lorebooks and entries</span>
                     </div>
-                    <div id="gigma-dedupe-detail-toolbar-host" class="gigma-dedupe-detail-toolbar-host"></div>
                     <div id="gigma-dedupe-detail" class="gigma-dedupe-detail"></div>
                 </div>
             </div>
@@ -39946,12 +38854,6 @@ function gigmaDuplicateSentenceRenderSummary(state) {
     return `${summary.findings} duplicate sentences found across ${summary.booksScanned} lorebooks, ${summary.entriesScanned} entries, and ${summary.sentencesScanned} scanned sentences. ${selectedCount} finding${selectedCount === 1 ? '' : 's'} selected, ${selectedRemovals} earlier cop${selectedRemovals === 1 ? 'y' : 'ies'} marked for removal.`;
 }
 
-function gigmaDuplicateSentenceSetEmptyPaneState(element, empty) {
-    if (!element) return;
-    element.classList.toggle('is-empty', !!empty);
-    element.setAttribute('data-gigma-dedupe-empty', empty ? '1' : '0');
-}
-
 function gigmaDuplicateSentenceRenderList(root) {
     const state = gigmaEnsureDuplicateSentenceState(root);
     const list = root?.querySelector?.('#gigma-dedupe-list');
@@ -39959,17 +38861,14 @@ function gigmaDuplicateSentenceRenderList(root) {
 
     if (state.busy && !state.results.length) {
         list.innerHTML = '<div class="gigma-dedupe-empty">Scanning lorebooks…</div>';
-        gigmaDuplicateSentenceSetEmptyPaneState(list, true);
         return;
     }
 
     if (!state.results.length) {
         list.innerHTML = '<div class="gigma-dedupe-empty">No duplicate sentences to show.</div>';
-        gigmaDuplicateSentenceSetEmptyPaneState(list, true);
         return;
     }
 
-    gigmaDuplicateSentenceSetEmptyPaneState(list, false);
     list.innerHTML = state.results.map((result, index) => {
         const selected = state.selectedKeys.has(result.key);
         const active = state.activeKey === result.key;
@@ -40059,23 +38958,11 @@ function gigmaDuplicateSentenceGetEntryContent(state, worldName, uid) {
     return typeof entry?.content === 'string' ? entry.content : '';
 }
 
-function gigmaBuildDuplicateSentenceDetailToolbarHtml(detailViewMode) {
-    const toggleLabel = detailViewMode === 'full' ? 'Show excerpts' : 'Show full entry';
-    return `
-        <div class="gigma-dedupe-detail-toolbar">
-            <button id="gigma-dedupe-toggle-entry-view" class="menu_button" type="button">${toggleLabel}</button>
-            <button id="gigma-dedupe-expand-books" class="menu_button" type="button">Expand books</button>
-            <button id="gigma-dedupe-collapse-books" class="menu_button" type="button">Collapse books</button>
-            <button id="gigma-dedupe-expand-entries" class="menu_button" type="button">Expand entries</button>
-            <button id="gigma-dedupe-collapse-entries" class="menu_button" type="button">Collapse entries</button>
-        </div>
-    `;
-}
-
 function gigmaBuildDuplicateSentenceDetailHtml(state, result, detailViewMode) {
     if (!state || !result) return '';
     const mode = detailViewMode === 'full' ? 'full' : 'excerpt';
     const grouped = gigmaDuplicateSentenceGetGroupedOccurrencesCached(state, result);
+    const toggleLabel = mode === 'full' ? 'Show excerpts' : 'Show full entry';
     return `
         <div class="gigma-dedupe-detail-card">
             <div class="gigma-dedupe-detail-label">Sentence</div>
@@ -40086,6 +38973,13 @@ function gigmaBuildDuplicateSentenceDetailHtml(state, result, detailViewMode) {
             <span class="gigma-dedupe-chip">${result.entryCount} entries</span>
             <span class="gigma-dedupe-chip">${result.bookCount} lorebooks</span>
             <span class="gigma-dedupe-chip">${result.removeCount} will be removed</span>
+        </div>
+        <div class="gigma-dedupe-detail-toolbar">
+            <button id="gigma-dedupe-toggle-entry-view" class="menu_button" type="button">${toggleLabel}</button>
+            <button id="gigma-dedupe-expand-books" class="menu_button" type="button">Expand books</button>
+            <button id="gigma-dedupe-collapse-books" class="menu_button" type="button">Collapse books</button>
+            <button id="gigma-dedupe-expand-entries" class="menu_button" type="button">Expand entries</button>
+            <button id="gigma-dedupe-collapse-entries" class="menu_button" type="button">Collapse entries</button>
         </div>
         <div class="gigma-dedupe-group-list">
             ${grouped.map((worldGroup, worldIndex) => {
@@ -40169,29 +39063,22 @@ function gigmaToggleDuplicateSentenceEntryView(root) {
 function gigmaDuplicateSentenceRenderDetail(root) {
     const state = gigmaEnsureDuplicateSentenceState(root);
     const detail = root?.querySelector?.('#gigma-dedupe-detail');
-    const toolbarHost = root?.querySelector?.('#gigma-dedupe-detail-toolbar-host');
     if (!state || !detail) return;
     gigmaDuplicateSentenceEnsureDetailCaches(state);
 
-    if (toolbarHost) toolbarHost.innerHTML = '';
-
     if (state.busy && !state.results.length) {
         detail.innerHTML = '<div class="gigma-dedupe-empty">Preparing details…</div>';
-        gigmaDuplicateSentenceSetEmptyPaneState(detail, true);
         return;
     }
 
     const result = gigmaDuplicateSentenceGetResultByKey(state, state.activeKey) || state.results[0];
     if (!result) {
         detail.innerHTML = '<div class="gigma-dedupe-empty">Select a finding to inspect the affected lorebooks and entries.</div>';
-        gigmaDuplicateSentenceSetEmptyPaneState(detail, true);
         return;
     }
 
     state.activeKey = result.key;
-    if (toolbarHost) toolbarHost.innerHTML = gigmaBuildDuplicateSentenceDetailToolbarHtml(state.detailViewMode);
     detail.innerHTML = gigmaBuildDuplicateSentenceDetailHtml(state, result, state.detailViewMode);
-    gigmaDuplicateSentenceSetEmptyPaneState(detail, false);
 }
 
 function gigmaUpdateDuplicateSentencePopupChrome(root) {
@@ -40506,9 +39393,8 @@ function gigmaEnsureDuplicateSentencePopupShell(root) {
         const shell = root.closest('.gigma-dedupe-shell');
         if (overlay) {
             overlay.style.display = 'flex';
-            overlay.style.alignItems = 'flex-start';
+            overlay.style.alignItems = 'center';
             overlay.style.justifyContent = 'center';
-            overlay.style.inset = '0';
             overlay.style.opacity = '1';
         }
         if (shell) {
@@ -40525,6 +39411,7 @@ function gigmaMountDuplicateSentencePopup() {
         gigmaEnsureDuplicateSentencePopupShell(root);
         gigmaEnsureDuplicateSentenceState(root);
         gigmaRenderDuplicateSentencePopup(root);
+        gigmaRunDuplicateSentenceScan(root);
     };
 
     try {
@@ -40565,20 +39452,6 @@ async function gigmaShowDuplicateSentencePopup() {
     document.addEventListener('keydown', handleKeydown, true);
 
     gigmaMountDuplicateSentencePopup();
-}
-
-function gigmaDuplicateSentenceGetEmptyScrollPane(target) {
-    if (!(target instanceof Element)) return null;
-    const pane = target.closest('#gigma-dedupe-root .gigma-dedupe-list.is-empty, #gigma-dedupe-root .gigma-dedupe-detail.is-empty');
-    return pane instanceof HTMLElement ? pane : null;
-}
-
-function gigmaDuplicateSentenceGetPopupScroller(pane) {
-    const overlay = pane?.closest?.('#gigma-duplicate-sentences-overlay');
-    if (overlay && overlay.scrollHeight > overlay.clientHeight) return overlay;
-    const shell = pane?.closest?.('.gigma-dedupe-shell');
-    if (shell && shell.scrollHeight > shell.clientHeight) return shell;
-    return null;
 }
 
 (function gigmaDuplicateSentencePopupEventsOnce() {
@@ -40643,20 +39516,6 @@ function gigmaDuplicateSentenceGetPopupScroller(pane) {
                     event.preventDefault();
                     if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
                     event.stopPropagation();
-                    return;
-                }
-
-                const infoButton = target.closest('#gigma-dedupe-info');
-                if (infoButton) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const root = infoButton.closest('#gigma-dedupe-root');
-                    const panel = root?.querySelector?.('#gigma-dedupe-info-panel');
-                    if (panel) {
-                        const nextHidden = !panel.hidden;
-                        panel.hidden = nextHidden;
-                        infoButton.setAttribute('aria-expanded', nextHidden ? 'false' : 'true');
-                    }
                     return;
                 }
 
@@ -40766,41 +39625,6 @@ function gigmaDuplicateSentenceGetPopupScroller(pane) {
                 }
             } catch (_eDuplicateSentencePopupClick) { }
         }, true);
-
-        let gigmaDuplicateSentenceEmptyPaneLastTouchY = 0;
-        document.addEventListener('wheel', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
-                if (!scroller) return;
-                scroller.scrollTop += event.deltaY;
-                event.preventDefault();
-            } catch (_eDuplicateSentenceEmptyWheel) { }
-        }, { capture: true, passive: false });
-
-        document.addEventListener('touchstart', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const touch = event.touches && event.touches[0];
-                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch ? touch.clientY : 0;
-            } catch (_eDuplicateSentenceEmptyTouchStart) { }
-        }, { capture: true, passive: true });
-
-        document.addEventListener('touchmove', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
-                if (!scroller) return;
-                const touch = event.touches && event.touches[0];
-                if (!touch || !gigmaDuplicateSentenceEmptyPaneLastTouchY) return;
-                scroller.scrollTop += gigmaDuplicateSentenceEmptyPaneLastTouchY - touch.clientY;
-                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch.clientY;
-                event.preventDefault();
-            } catch (_eDuplicateSentenceEmptyTouchMove) { }
-        }, { capture: true, passive: false });
     } catch (_eDuplicateSentencePopupEventsOnce) { }
 })();
 
@@ -40883,19 +39707,7 @@ function gigmaEnsureDuplicateSentenceToolbarButton() {
             schedule();
         }
 
-        const observer = new MutationObserver((muts) => {
-            try {
-                for (const m of muts) {
-                    for (const n of m.addedNodes || []) {
-                        if (!(n instanceof HTMLElement)) continue;
-                        if (n.id === 'send_form' || n.querySelector?.('#send_form, #send_textarea')) {
-                            schedule();
-                            return;
-                        }
-                    }
-                }
-            } catch (_e) { }
-        });
+        const observer = new MutationObserver(() => schedule());
         observer.observe(document.documentElement || document.body, { childList: true, subtree: true });
     } catch (_eDuplicateSentenceToolbarButtonOnce) { }
 })();
@@ -43304,7 +42116,7 @@ return '<li class="' + rowCls + '"' + dataAttrs + '>' +
         bodyHtml = '<div class="gigma-layout-preset-tree-empty">This preset does not contain any lorebooks yet.</div>';
     }
     return '' +
-        '<div class="gigma-layout-preset-tree" style="display:block;width:100%;max-width:100%;height:100%;max-height:100%;min-height:0;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;">' +
+        '<div class="gigma-layout-preset-tree">' +
         bodyHtml +
         '</div>';
 }
@@ -44446,9 +43258,9 @@ async function gigmaShowLastLayoutPresetTreePopup() {
             var __gigmaPreviewDimUnchained = (__gigmaPreviewModalDim && (__gigmaPreviewModalDim.dimUnchained === '1' || __gigmaPreviewModalDim.dimUnchained === '0')) ? __gigmaPreviewModalDim.dimUnchained : ((kind === 'parent') ? '1' : '0');
             html =
                 '<div id="gigma-layout-preset-tree-preview-root" data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained + '" data-dim-unchained="' + __gigmaPreviewDimUnchained + '" data-default-viewmode="order" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedStateEmpty) + '" data-default-dim-chained="' + __gigmaPreviewDimChained + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-                '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
-                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(kindLabel) + '</div>' +
-                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;">' +
+                '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
+                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(kindLabel) + '</div>' +
+                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
                 '</div>' +
                 '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
                 '</div>' +
@@ -44541,10 +43353,9 @@ async function gigmaShowLastLayoutPresetTreePopup() {
             }
             html =
                 '<div id="gigma-layout-preset-tree-preview-root"' + (desiredViewMode === 'budget' ? ' class="gigma-preview-viewmode-budget"' : '') + ' data-preset-kind="' + gigmaEscapeHtml(kind) + '" data-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-chained-state="show" data-dim-chained="' + __gigmaPreviewDimChained2 + '" data-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" data-default-viewmode="' + gigmaEscapeHtml(desiredViewMode) + '" data-default-chained-state="show" data-default-unchained-state="' + gigmaEscapeHtml(initialUnchainedState) + '" data-default-dim-chained="' + __gigmaPreviewDimChained2 + '" data-default-dim-unchained="' + __gigmaPreviewDimUnchained2 + '" style="max-width:72rem; -webkit-user-select:none; -moz-user-select:none; user-select:none;">' +
-                    '<div class="gigma-layout-preset-tree-first-screen">' +
-                    '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:grid; grid-template-columns:calc(var(--gigma-hdr-btn) + 0.35em) minmax(0,1fr) calc(var(--gigma-hdr-btn) + 0.35em); grid-template-rows:auto auto; align-items:start; gap:0; position:relative; padding-right:0;">' +
-                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0; grid-column:2; grid-row:1;">' + gigmaEscapeHtml(headerLabel) + '</div>' +
-                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap; grid-column:2; grid-row:2; min-width:0;">' +
+                '<div class="gigma-layout-preset-tree-header" style="margin-bottom:0.1875em; display:flex; flex-direction:column; align-items:stretch; gap:0; position:relative; padding-right:3.25em;">' +
+                '<div class="gigma-layout-preset-tree-header-left" style="font-size:0.86em; opacity:0.8; text-align:left; flex:1; min-width:0;">' + gigmaEscapeHtml(headerLabel) + '</div>' +
+                '<div class="gigma-layout-preset-tree-header-right" style="display:flex; align-items:center; justify-content:center; gap:0.375em; flex-wrap:wrap;">' +
                 '<button id="gigma-layout-preset-tree-reset" class="menu_button" type="button" style="flex:0 0 auto; width:calc(6ch + 1.25em); box-sizing:border-box; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 0.75em;" title="Reset preview controls" aria-label="Reset preview controls">Reset</button><button id="gigma-layout-preset-tree-chained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim chained lorebooks" aria-label="Dim chained lorebooks"><span class="gigma-preview-circle"></span></button><button id="gigma-layout-preset-tree-chained-toggle" class="menu_button gigma-icon-btn" type="button" title="Chained lorebooks" aria-label="Chained lorebooks"><i class="fa-solid fa-link"></i></button><button id="gigma-layout-preset-tree-unchained-toggle" class="menu_button gigma-icon-btn" type="button" title="Unchained lorebooks" aria-label="Unchained lorebooks"><i class="fa-solid fa-link-slash"></i></button><button id="gigma-layout-preset-tree-unchained-dim-toggle" class="menu_button gigma-icon-btn gigma-preview-circle-btn" type="button" title="Dim unchained lorebooks" aria-label="Dim unchained lorebooks"><span class="gigma-preview-circle"></span></button>' +
                 '<button id="gigma-layout-preset-tree-expand-all" class="menu_button gigma-icon-btn" type="button" title="Expand all folders" aria-label="Expand all folders">▼</button>' +
                 '<button id="gigma-layout-preset-tree-collapse-all" class="menu_button gigma-icon-btn" type="button" title="Collapse all folders" aria-label="Collapse all folders">▲</button>' +
@@ -44553,8 +43364,8 @@ async function gigmaShowLastLayoutPresetTreePopup() {
                 '</div>' +
                 '<button id="gigma-layout-preset-tree-close" class="menu_button gigma-global-cancel gigma-global-icon" type="button" aria-label="Close preview" title="Close preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></button>' +
                 '</div>' +
-                '<div class="gigma-layout-preset-tree-display-wrap" style="display:block;width:100%;min-width:0;min-height:0;height:100%;max-height:100%;overflow:hidden;position:relative;box-sizing:border-box;">' + body + '</div></div>' +
-                    '<div id="gigma-global-wi-stats-display-preview" class="gigma-global-wi-stats-display"></div>' +
+                body +
+                '<div id="gigma-global-wi-stats-display-preview" class="gigma-global-wi-stats-display"></div>' +
                 '</div>';
         }
         // Prefer SillyTavern\'s Popup helper when available so the styling matches other ST popups.
