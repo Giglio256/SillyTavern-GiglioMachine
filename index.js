@@ -26741,45 +26741,63 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
 
     window.gigmaSkinPreviewAndFolderButtons = skinAll;
 
-    const pendingSkinScopes = new Set();
     let queued = false;
-    const scheduleSkin = (scope = document) => {
-      pendingSkinScopes.add(scope);
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(() => {
+    let queuedScopes = [];
+    const queueSkinScope = (scope) => {
+      try{
+        const nextScope = (scope && typeof scope.querySelectorAll === 'function') ? scope : document;
+        if (nextScope === document || nextScope === document.documentElement || nextScope === document.body) {
+          queuedScopes = [document];
+          return;
+        }
+        if (!queuedScopes.includes(document) && !queuedScopes.includes(nextScope)) queuedScopes.push(nextScope);
+      }catch(_){
+        queuedScopes = [document];
+      }
+    };
+    const flushSkinQueue = () => {
+      queued = false;
+      const scopes = queuedScopes.length ? queuedScopes.splice(0) : [document];
+      for (const scope of scopes) {
+        try{ skinAll(scope); }catch(_){ }
+      }
+    };
+    const scheduleSkin = (scope) => {
+      try{
+        queueSkinScope(scope);
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(flushSkinQueue);
+      }catch(_){
         queued = false;
-        const scopes = Array.from(pendingSkinScopes);
-        pendingSkinScopes.clear();
-        for (const currentScope of scopes) skinAll(currentScope);
-      });
+        try{ skinAll(scope || document); }catch(__){ }
+      }
     };
 
-    const getSkinScopeFromMutationNode = (node) => {
-      if (!(node instanceof Element)) return null;
-      if (node.matches?.(TARGET_SELECTOR)) return node;
-      const button = node.closest?.(TARGET_SELECTOR);
-      if (button) return button;
-      return node.querySelector?.(TARGET_SELECTOR) ? node : null;
+    const scheduleSkinForAddedNode = (node) => {
+      try{
+        if (!(node instanceof HTMLElement)) return;
+        if ((node.matches && node.matches(TARGET_SELECTOR)) || (node.querySelector && node.querySelector(TARGET_SELECTOR))) {
+          scheduleSkin(node);
+        }
+      }catch(_){ }
     };
 
     try{
       const obs = new MutationObserver((mutations) => {
-        for (const mutation of mutations || []) {
-          const targetScope = getSkinScopeFromMutationNode(mutation.target);
-          if (targetScope) scheduleSkin(targetScope);
-          for (const node of mutation.addedNodes || []) {
-            const addedScope = getSkinScopeFromMutationNode(node);
-            if (addedScope) scheduleSkin(addedScope);
+        try{
+          for (const mutation of mutations || []) {
+            if (!mutation || mutation.type !== 'childList') continue;
+            for (const node of mutation.addedNodes || []) scheduleSkinForAddedNode(node);
           }
-        }
+        }catch(_){ }
       });
       obs.observe(document.documentElement, { subtree:true, childList:true });
       window.__gigmaIconizePreviewAndFolderButtonsObserver = obs;
     }catch(_){ }
 
-    try{ window.addEventListener('resize', scheduleSkin, { passive:true }); }catch(_){ }
-    scheduleSkin();
+    try{ window.addEventListener('resize', () => scheduleSkin(document), { passive:true }); }catch(_){ }
+    scheduleSkin(document);
   }catch(_){ }
 })();
 
