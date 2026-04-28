@@ -16088,6 +16088,35 @@ function gigmaBlockNativeWorldInfoEntryTokenCounter() {
     gigmaNativeWITokenCounterMonkeypatchInstalled = true;
 }
 
+let gigmaNativeWIInitialTokenCountMonkeypatchInstalled = false;
+
+function gigmaBlockNativeWorldInfoEntryInitialTokenCounter() {
+    if (gigmaNativeWIInitialTokenCountMonkeypatchInstalled) return;
+
+    const originalSetTimeout = window.setTimeout;
+    if (typeof originalSetTimeout !== 'function') return;
+
+    window.setTimeout = function (...args) {
+        const callback = args[0];
+        const delay = Number(args[1] ?? 0);
+
+        if (typeof callback === 'function' && delay > 1) {
+            const stack = String(new Error().stack || '');
+            const fromWorldInfo = stack.includes('world-info.js');
+            const fromEditorDrawer = stack.includes('addEditorDrawerContent');
+            const fromKnownInitialCountLine = /world-info\.js:3784:\d+/.test(stack);
+
+            if (fromWorldInfo && (fromEditorDrawer || fromKnownInitialCountLine)) {
+                return 0;
+            }
+        }
+
+        return originalSetTimeout.apply(this, args);
+    };
+
+    gigmaNativeWIInitialTokenCountMonkeypatchInstalled = true;
+}
+
 
 function gigmaGetWorldInfoLorebookStatsDisplayItems(stats, removeIrrelevantCategories, removeZeroTokenCategories, categorySet, sectionKey) {
     try {
@@ -26712,24 +26741,40 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
 
     window.gigmaSkinPreviewAndFolderButtons = skinAll;
 
+    const pendingSkinScopes = new Set();
     let queued = false;
-    const scheduleSkin = () => {
-      try{
-        if (queued) return;
-        queued = true;
-        queueMicrotask(() => {
-          queued = false;
-          try{ skinAll(document); }catch(_){ }
-        });
-      }catch(_){
+    const scheduleSkin = (scope = document) => {
+      pendingSkinScopes.add(scope);
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
         queued = false;
-        try{ skinAll(document); }catch(__){ }
-      }
+        const scopes = Array.from(pendingSkinScopes);
+        pendingSkinScopes.clear();
+        for (const currentScope of scopes) skinAll(currentScope);
+      });
+    };
+
+    const getSkinScopeFromMutationNode = (node) => {
+      if (!(node instanceof Element)) return null;
+      if (node.matches?.(TARGET_SELECTOR)) return node;
+      const button = node.closest?.(TARGET_SELECTOR);
+      if (button) return button;
+      return node.querySelector?.(TARGET_SELECTOR) ? node : null;
     };
 
     try{
-      const obs = new MutationObserver(() => { scheduleSkin(); });
-      obs.observe(document.documentElement, { subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:['class','style'] });
+      const obs = new MutationObserver((mutations) => {
+        for (const mutation of mutations || []) {
+          const targetScope = getSkinScopeFromMutationNode(mutation.target);
+          if (targetScope) scheduleSkin(targetScope);
+          for (const node of mutation.addedNodes || []) {
+            const addedScope = getSkinScopeFromMutationNode(node);
+            if (addedScope) scheduleSkin(addedScope);
+          }
+        }
+      });
+      obs.observe(document.documentElement, { subtree:true, childList:true });
       window.__gigmaIconizePreviewAndFolderButtonsObserver = obs;
     }catch(_){ }
 
@@ -50378,6 +50423,7 @@ async function init() {
             try { gigmaInstallLorebookContentStylesOnce(); } catch (_e) { }
             gigmaInstallDuplicateSentenceStylesOnce();
             gigmaBlockNativeWorldInfoEntryTokenCounter();
+            gigmaBlockNativeWorldInfoEntryInitialTokenCounter();
             addGiglioMachineButton();
             registerGigmaSlashCommand();
             addGiglioMachinebudgetsection();
