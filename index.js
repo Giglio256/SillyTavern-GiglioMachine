@@ -26,27 +26,6 @@ const gigmaSyncMobileFullscreenClass = () => {
   document.documentElement.classList.toggle(GIGMA_MOBILE_FULLSCREEN_CLASS, gigmaIsMobileFullscreenActive());
 };
 
-const gigmaIsMobilePerformanceMode = () => {
-  try { return gigmaIsMobileFullscreenActive() || isMobile(); } catch (_) { return false; }
-};
-
-function gigmaEnsureLorebookIdMappedOnly(name) {
-  const worldName = String(name || '').trim();
-  if (!worldName) return { id: '', changed: false };
-  if (!window.gigmaWorldIdByName || typeof window.gigmaWorldIdByName !== 'object') window.gigmaWorldIdByName = gigmaGetWorldIdMap();
-  if (!window.gigmaNameByWorldId || typeof window.gigmaNameByWorldId !== 'object') window.gigmaNameByWorldId = {};
-  let id = String(window.gigmaWorldIdByName[worldName] || '').trim();
-  let changed = false;
-  if (!id) {
-    const usedIds = new Set(Object.values(window.gigmaWorldIdByName).map(v => String(v || '').trim()).filter(Boolean));
-    id = gigmaGenerateUniqueLorebookIdFromSet(usedIds);
-    window.gigmaWorldIdByName[worldName] = id;
-    changed = true;
-  }
-  window.gigmaNameByWorldId[id] = worldName;
-  return { id, changed };
-}
-
 (function gigmaMobileFullscreenClassOnce(){
   gigmaSyncMobileFullscreenClass();
   window.addEventListener('resize', gigmaSyncMobileFullscreenClass, { passive: true });
@@ -8067,11 +8046,10 @@ function gigmaInstallWorldInfoLorebookStatsIndexHooksOnce() {
                     const key = `${worldName}:${uid}`;
                     if (timers[key]) clearTimeout(timers[key]);
                     const content = target.value;
-                    const delay = (typeof gigmaIsMobilePerformanceMode === 'function' && gigmaIsMobilePerformanceMode()) ? 900 : 250;
                     timers[key] = setTimeout(() => {
                         delete timers[key];
                         gigmaUpdateLorebookStatsIndexEntry(worldName, uid, { contentOverride: content }).catch((_e) => {});
-                    }, delay);
+                    }, 70);
                     return;
                 }
 
@@ -12490,17 +12468,16 @@ function gigmaUpdateModalLorebookRowStats(row) {
 function gigmaUpdateModalLorebookStatsAllRows() {
     try {
         if (!gigmaIsOrderingModalActive()) return;
-        const allRows = gigmaGetModalLorebookStatsRows(true);
-        let rows = allRows;
-        if (typeof gigmaIsMobilePerformanceMode === 'function' && gigmaIsMobilePerformanceMode()) {
-            try { gigmaObserveModalLorebookStatsRows(false); } catch (_eObserve) { }
-            const visible = window.__gigmaVisibleModalLorebookStatsRows;
-            rows = (visible && visible.size) ? Array.from(visible) : allRows.slice(0, 32);
-        }
+        const rows = gigmaGetModalLorebookStatsRows(true);
         for (const row of rows) {
             try {
                 if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
                 gigmaEnsureModalRowStatsHost(row);
+            } catch (_eHost) { }
+        }
+        for (const row of rows) {
+            try {
+                if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
                 gigmaUpdateModalLorebookRowStats(row);
             } catch (_eRow) { }
         }
@@ -12516,10 +12493,6 @@ function gigmaMaybeAttachModalLorebookStats(labelEl, worldName) {
         if (!root) return;
         const row = labelEl.closest && labelEl.closest('.gigma-row');
         if (!row) return;
-        if (typeof gigmaIsMobilePerformanceMode === 'function' && gigmaIsMobilePerformanceMode()) {
-            gigmaObserveModalLorebookStatsRow(row);
-            return;
-        }
         gigmaEnsureModalRowStatsHost(row);
         gigmaUpdateModalLorebookRowStats(row);
     } catch (_e) { }
@@ -21132,13 +21105,18 @@ if (footer) {
                     const entries = [];
                     for (const name of world_names) {
                         if (!name || typeof name !== 'string') continue;
-                        const mapped = gigmaEnsureLorebookIdMappedOnly(name);
-                        const id = mapped.id;
-                        if (mapped.changed) didUpdateMap = true;
-                        if (id && !idToName[id]) {
+                        let id = nameToId[name];
+                        if (!id) {
+                            id = await gigmaEnsureLorebookId(name);
+                            if (id) {
+                                didUpdateMap = true;
+                            }
+                            nameToId[name] = id;
+                        }
+                        if (!idToName[id]) {
                             idToName[id] = name;
                         }
-                        if (id) entries.push({ name, id });
+                        entries.push({ name, id });
                     }
                     // Clean up mapping of lorebooks that no longer exist
                     const validNames = new Set(
@@ -24072,16 +24050,17 @@ async function gigmaBuildRuntimePresetCacheForCurrentSpeaker(entries) {
         }
     } catch (_eNames) {}
 
-    let runtimeIdMapChanged = false;
     for (const name of namesToEnsure) {
         try {
-            const mapped = gigmaEnsureLorebookIdMappedOnly(name);
-            if (mapped.changed) runtimeIdMapChanged = true;
+            let id = window.gigmaWorldIdByName[name];
+            if (!id) {
+                id = await gigmaEnsureLorebookId(name);
+                if (id) window.gigmaWorldIdByName[name] = id;
+            }
+            if (id && !window.gigmaNameByWorldId[id]) window.gigmaNameByWorldId[id] = name;
         } catch (_eOne) {}
     }
-    if (runtimeIdMapChanged) {
-        try { gigmaSetWorldIdMap(window.gigmaWorldIdByName); } catch (_ePersistIds) {}
-    }
+    try { gigmaSetWorldIdMap(window.gigmaWorldIdByName); } catch (_ePersistIds) {}
 
     for (const [name, id] of Object.entries(window.gigmaWorldIdByName || {})) {
         if (id) runtime.worldIdByName.set(String(name), String(id));
@@ -24222,10 +24201,15 @@ async function populateOrderingList(opts = {}) {
     if (Array.isArray(world_names)) {
         for (const name of world_names) {
             if (!name || typeof name !== 'string') continue;
-            const mapped = gigmaEnsureLorebookIdMappedOnly(name);
-            const id = mapped.id;
-            if (mapped.changed) didUpdateMap = true;
-            if (id && !idToName[id]) {
+            let id = nameToId[name];
+            if (!id) {
+                id = await gigmaEnsureLorebookId(name);
+                if (id) {
+                    didUpdateMap = true;
+                }
+                nameToId[name] = id;
+            }
+            if (!idToName[id]) {
                 idToName[id] = name;
             }
         }
