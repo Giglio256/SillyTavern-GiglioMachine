@@ -16088,35 +16088,6 @@ function gigmaBlockNativeWorldInfoEntryTokenCounter() {
     gigmaNativeWITokenCounterMonkeypatchInstalled = true;
 }
 
-let gigmaNativeWIInitialTokenCountMonkeypatchInstalled = false;
-
-function gigmaBlockNativeWorldInfoEntryInitialTokenCounter() {
-    if (gigmaNativeWIInitialTokenCountMonkeypatchInstalled) return;
-
-    const originalSetTimeout = window.setTimeout;
-    if (typeof originalSetTimeout !== 'function') return;
-
-    window.setTimeout = function (...args) {
-        const callback = args[0];
-        const delay = Number(args[1] ?? 0);
-
-        if (typeof callback === 'function' && delay > 1) {
-            const stack = String(new Error().stack || '');
-            const fromWorldInfo = stack.includes('world-info.js');
-            const fromEditorDrawer = stack.includes('addEditorDrawerContent');
-            const fromKnownInitialCountLine = /world-info\.js:3784:\d+/.test(stack);
-
-            if (fromWorldInfo && (fromEditorDrawer || fromKnownInitialCountLine)) {
-                return 0;
-            }
-        }
-
-        return originalSetTimeout.apply(this, args);
-    };
-
-    gigmaNativeWIInitialTokenCountMonkeypatchInstalled = true;
-}
-
 
 function gigmaGetWorldInfoLorebookStatsDisplayItems(stats, removeIrrelevantCategories, removeZeroTokenCategories, categorySet, sectionKey) {
     try {
@@ -40509,47 +40480,6 @@ function gigmaMountDuplicateSentencePopup() {
     }
 }
 
-function gigmaInstallDuplicateSentenceEmptyPaneScrollBridge(overlay) {
-    if (!overlay || overlay.__gigmaDedupeEmptyScrollBridge) return;
-    overlay.__gigmaDedupeEmptyScrollBridge = true;
-
-    let lastTouchY = 0;
-
-    overlay.addEventListener('wheel', (event) => {
-        try {
-            const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-            if (!pane) return;
-            const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
-            if (!scroller) return;
-            scroller.scrollTop += event.deltaY;
-            event.preventDefault();
-        } catch (_eDuplicateSentenceEmptyWheel) { }
-    }, { capture: true, passive: false });
-
-    overlay.addEventListener('touchstart', (event) => {
-        try {
-            const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-            if (!pane) return;
-            const touch = event.touches && event.touches[0];
-            lastTouchY = touch ? touch.clientY : 0;
-        } catch (_eDuplicateSentenceEmptyTouchStart) { }
-    }, { capture: true, passive: true });
-
-    overlay.addEventListener('touchmove', (event) => {
-        try {
-            const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-            if (!pane) return;
-            const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
-            if (!scroller) return;
-            const touch = event.touches && event.touches[0];
-            if (!touch || !lastTouchY) return;
-            scroller.scrollTop += lastTouchY - touch.clientY;
-            lastTouchY = touch.clientY;
-            event.preventDefault();
-        } catch (_eDuplicateSentenceEmptyTouchMove) { }
-    }, { capture: true, passive: false });
-}
-
 async function gigmaShowDuplicateSentencePopup() {
     gigmaInstallDuplicateSentenceStylesOnce();
     gigmaCloseDuplicateSentenceOverlay();
@@ -40563,7 +40493,6 @@ async function gigmaShowDuplicateSentencePopup() {
         </div>
     `;
     document.body.appendChild(overlay);
-    gigmaInstallDuplicateSentenceEmptyPaneScrollBridge(overlay);
 
     const handleKeydown = (event) => {
         try {
@@ -40784,6 +40713,40 @@ function gigmaDuplicateSentenceGetPopupScroller(pane) {
             } catch (_eDuplicateSentencePopupClick) { }
         }, true);
 
+        let gigmaDuplicateSentenceEmptyPaneLastTouchY = 0;
+        document.addEventListener('wheel', (event) => {
+            try {
+                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+                if (!pane) return;
+                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
+                if (!scroller) return;
+                scroller.scrollTop += event.deltaY;
+                event.preventDefault();
+            } catch (_eDuplicateSentenceEmptyWheel) { }
+        }, { capture: true, passive: false });
+
+        document.addEventListener('touchstart', (event) => {
+            try {
+                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+                if (!pane) return;
+                const touch = event.touches && event.touches[0];
+                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch ? touch.clientY : 0;
+            } catch (_eDuplicateSentenceEmptyTouchStart) { }
+        }, { capture: true, passive: true });
+
+        document.addEventListener('touchmove', (event) => {
+            try {
+                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+                if (!pane) return;
+                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
+                if (!scroller) return;
+                const touch = event.touches && event.touches[0];
+                if (!touch || !gigmaDuplicateSentenceEmptyPaneLastTouchY) return;
+                scroller.scrollTop += gigmaDuplicateSentenceEmptyPaneLastTouchY - touch.clientY;
+                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch.clientY;
+                event.preventDefault();
+            } catch (_eDuplicateSentenceEmptyTouchMove) { }
+        }, { capture: true, passive: false });
     } catch (_eDuplicateSentencePopupEventsOnce) { }
 })();
 
@@ -50415,7 +50378,6 @@ async function init() {
             try { gigmaInstallLorebookContentStylesOnce(); } catch (_e) { }
             gigmaInstallDuplicateSentenceStylesOnce();
             gigmaBlockNativeWorldInfoEntryTokenCounter();
-            gigmaBlockNativeWorldInfoEntryInitialTokenCounter();
             addGiglioMachineButton();
             registerGigmaSlashCommand();
             addGiglioMachinebudgetsection();
