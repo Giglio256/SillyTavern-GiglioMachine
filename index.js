@@ -4692,6 +4692,30 @@ function gigmaSetShowLorebookIdProcessDialogPref(enabled){
     }catch(_){ }
 }
 
+function gigmaGetHideUndoRedoDesktopPref(){
+    try{
+        return gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.hideUndoRedoDesktop, true);
+    }catch(_){ return true; }
+}
+function gigmaSetHideUndoRedoDesktopPref(enabled){
+    try{
+        gigmaPersistBinaryExtensionSetting('hideUndoRedoDesktop', !!enabled, 1);
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+        gigmaApplyHideUndoRedoDesktopPref();
+    }catch(_){ }
+}
+function gigmaApplyHideUndoRedoDesktopPref(){
+    try{
+        const hide = !!gigmaGetHideUndoRedoDesktopPref() && !gigmaIsMobileFullscreenActive();
+        document.documentElement.classList.toggle('gigma-hide-undo-redo-desktop', hide);
+    }catch(_){ }
+}
+(function gigmaHideUndoRedoDesktopSyncOnce(){
+    gigmaApplyHideUndoRedoDesktopPref();
+    window.addEventListener('resize', gigmaApplyHideUndoRedoDesktopPref, { passive: true });
+    window.addEventListener('orientationchange', gigmaApplyHideUndoRedoDesktopPref, { passive: true });
+})();
+
 function gigmaClampModalUndoHistorySteps(value){
     try{
         const n = parseInt(value, 10);
@@ -9435,6 +9459,16 @@ function gigmaIsOrderingModalUndoMutationRelevant(mutation){
                 }, 0);
             } catch (_e) { }
         }, true);
+        document.addEventListener('click', (ev) => {
+            try {
+                const btn = ev && ev.target && ev.target.closest ? ev.target.closest('#gigma-parent-preset-undo, #gigma-child-preset-undo, #gigma-assignment-preset-undo, #gigma-parent-preset-redo, #gigma-child-preset-redo, #gigma-assignment-preset-redo') : null;
+                if (!btn) return;
+                if (typeof gigmaIsOrderingModalActive === 'function' && !gigmaIsOrderingModalActive()) return;
+                try { ev.preventDefault(); } catch (_ePrevent) { }
+                if (btn.id === 'gigma-parent-preset-undo' || btn.id === 'gigma-child-preset-undo' || btn.id === 'gigma-assignment-preset-undo') void gigmaUndoOrderingModalChange();
+                else void gigmaRedoOrderingModalChange();
+            } catch (_e) { }
+        }, true);
         document.addEventListener('keydown', (ev) => {
             try {
                 if (!ev || !(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
@@ -12974,6 +13008,7 @@ const ensure = (toolbarSelector, suffix) => {
         try { gigmaInstallLorebookContentStylesOnce(); } catch (_e) { }
         try { gigmaEnsureOrderingModalLorebookContentToggleButton(root); } catch (_e) { }
         try { gigmaEnsureOrderingModalSettingsButton(root); } catch (_e) { }
+        try { gigmaApplyHideUndoRedoDesktopPref(); } catch (_e) { }
 
         try { gigmaUpdateLorebookContentToggleButtonsUi(); } catch (_e) { }
         try { gigmaUpdateLorebookContentExpandersInModal(root); } catch (_e) { }
@@ -17548,6 +17583,14 @@ function gigmaUpdateAutoUpdateWiOrderButtonUi(btn) {
     } catch (_e) { }
 }
 
+function gigmaUpdateHideUndoRedoDesktopButtonUi(btn) {
+    try {
+        if (!btn) return;
+        btn.checked = !!gigmaGetHideUndoRedoDesktopPref();
+        gigmaApplyHideUndoRedoDesktopPref();
+    } catch (_e) { }
+}
+
 async function gigmaApplyDetailedLorebookEntriesPrefChangeNow(){
     try{
         const roots = [];
@@ -17687,6 +17730,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Debug logs', 'gigma-modal-settings-slot-budget-debug-logs');
             addRow('Auto-update entry order in WI UI', 'gigma-modal-settings-slot-auto-wi-order');
             addRow('Undo history steps', 'gigma-modal-settings-slot-undo-history');
+            addRow('Hide undo & redo buttons on desktop', 'gigma-modal-settings-slot-hide-undo-redo-desktop');
             addRow('LB ID assignment & removal popup', 'gigma-modal-settings-slot-show-lorebook-id-dialog');
             addRow('Erase all LB IDs from world json files', 'gigma-modal-settings-slot-erase-lorebook-ids');
             addRow('Erase all GIGMA extension settings', 'gigma-modal-settings-slot-erase-all');
@@ -17945,6 +17989,29 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             }
             input.value = String(gigmaGetModalUndoHistoryStepsPref());
             slotUndoHistory.replaceChildren(input);
+        }
+
+        const slotHideUndoRedoDesktop = popup.querySelector('#gigma-modal-settings-slot-hide-undo-redo-desktop');
+        if (slotHideUndoRedoDesktop) {
+            let b = popup.querySelector('#gigma-modal-settings-hide-undo-redo-desktop-btn');
+            if (!b) {
+                const control = gigmaCreatePrettySwitch(
+                    gigmaGetHideUndoRedoDesktopPref(),
+                    'Hide undo & redo buttons on desktop',
+                    'Hide undo & redo buttons on desktop',
+                    (ev) => {
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
+                        gigmaSetHideUndoRedoDesktopPref(ev.currentTarget.checked);
+                        gigmaUpdateHideUndoRedoDesktopButtonUi(ev.currentTarget);
+                    },
+                );
+                b = control.input;
+                b.id = 'gigma-modal-settings-hide-undo-redo-desktop-btn';
+                slotHideUndoRedoDesktop.appendChild(control.switchLabel);
+            } else if (b.closest('label')?.parentElement !== slotHideUndoRedoDesktop) {
+                slotHideUndoRedoDesktop.appendChild(b.closest('label'));
+            }
+            gigmaUpdateHideUndoRedoDesktopButtonUi(b);
         }
 
         const slotShowLorebookIdDialog = popup.querySelector('#gigma-modal-settings-slot-show-lorebook-id-dialog');
@@ -20683,6 +20750,8 @@ try {
                                                         <button id="gigma-editable-unchained-parent" class="menu_button gigma-icon-btn gigma-modal-dim-btn gigma-unchained-edit-toggle" type="button" title="Editable unchained lorebooks" aria-label="Editable unchained lorebooks" aria-pressed="false"><span class="gigma-modal-dim-icon gigma-unchained-edit-icon"><i class="fa-solid fa-link-slash gigma-unchained-edit-main"></i><i class="fa-solid fa-pen-to-square gigma-unchained-edit-pen"></i></span></button>
                             <button id="gigma-budget-mode-parent" class="menu_button gigma-budget-mode-toggle" type="button">Order</button>
                             <span class="gigma-layout-preset-separator" aria-hidden="true"></span>
+                            <button id="gigma-parent-preset-undo" class="menu_button gigma-icon-btn" type="button" title="Undo" aria-label="Undo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-left"></i></span></button>
+                            <button id="gigma-parent-preset-redo" class="menu_button gigma-icon-btn" type="button" title="Redo" aria-label="Redo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-right"></i></span></button>
                             <button id="gigma-parent-preset-restore" class="menu_button gigma-icon-btn" type="button" title="Restore" aria-label="Restore"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-recycle"></i></span></button>
                                 <button id="gigma-parent-preset-new" class="menu_button gigma-icon-btn" type="button" title="New" aria-label="New"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-file"></i></span></button>
                                 <button id="gigma-parent-preset-quicksave" class="menu_button gigma-quicksave-btn" type="button" title="Quicksave" aria-label="Quicksave"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-bolt"></i></span></button>
@@ -20698,6 +20767,8 @@ try {
                                                         <button id="gigma-editable-unchained-child" class="menu_button gigma-icon-btn gigma-modal-dim-btn gigma-unchained-edit-toggle" type="button" title="Editable unchained lorebooks" aria-label="Editable unchained lorebooks" aria-pressed="true"><span class="gigma-modal-dim-icon gigma-unchained-edit-icon"><i class="fa-solid fa-link-slash gigma-unchained-edit-main"></i><i class="fa-solid fa-pen-to-square gigma-unchained-edit-pen"></i></span></button>
                             <button id="gigma-budget-mode-child" class="menu_button gigma-budget-mode-toggle" type="button">Order</button>
                             <span class="gigma-layout-preset-separator" aria-hidden="true"></span>
+                            <button id="gigma-child-preset-undo" class="menu_button gigma-icon-btn" type="button" title="Undo" aria-label="Undo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-left"></i></span></button>
+                            <button id="gigma-child-preset-redo" class="menu_button gigma-icon-btn" type="button" title="Redo" aria-label="Redo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-right"></i></span></button>
                             <button id="gigma-child-preset-restore" class="menu_button gigma-icon-btn" type="button" title="Restore" aria-label="Restore"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-recycle"></i></span></button>
                                 <button id="gigma-child-preset-new" class="menu_button gigma-icon-btn" type="button" title="New" aria-label="New"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-file"></i></span></button>
                                 <button id="gigma-child-preset-quicksave" class="menu_button gigma-quicksave-btn" type="button" title="Quicksave" aria-label="Quicksave"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-bolt"></i></span></button>
@@ -20734,6 +20805,8 @@ try {
                                 <select id="gigma-assignment-preset-select" class="text_pole textarea_compact" style="flex:1 1 auto; min-width:0;"></select>
                             </div>
                             <div id="gigma-assignment-preset-controls" class="gigma-layout-or-assignment-preset-controls" style="display:flex; flex-wrap:wrap; align-items:center; column-gap:0.375em; row-gap:0em; justify-content:center; margin-top:0.375em; margin-bottom:0.625em;">
+                                <button id="gigma-assignment-preset-undo" class="menu_button gigma-icon-btn" type="button" title="Undo" aria-label="Undo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-left"></i></span></button>
+                                <button id="gigma-assignment-preset-redo" class="menu_button gigma-icon-btn" type="button" title="Redo" aria-label="Redo"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-arrow-rotate-right"></i></span></button>
                                 <button id="gigma-assignment-preset-restore" class="menu_button gigma-icon-btn" type="button" title="Restore" aria-label="Restore"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-recycle"></i></span></button>
                                 <button id="gigma-assignment-preset-new" class="menu_button gigma-icon-btn" type="button" title="New" aria-label="New"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-file"></i></span></button>
                                 <button id="gigma-assignment-preset-quicksave" class="menu_button gigma-quicksave-btn" type="button" title="Quicksave" aria-label="Quicksave"><span class="gigma-modal-dim-icon"><i class="fa-solid fa-bolt"></i></span></button>
@@ -26705,6 +26778,7 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
       .gigma-layout-or-assignment-preset-controls{--gigma-btn-h:2.1em;}
       .gigma-layout-or-assignment-preset-controls>button.menu_button{height:var(--gigma-btn-h)!important;display:inline-flex;align-items:center;justify-content:center;}
       .gigma-layout-or-assignment-preset-controls>button.menu_button.gigma-icon-btn{width:var(--gigma-btn-h)!important;padding:0!important;}
+      html.gigma-hide-undo-redo-desktop #gigma-modal-root :is(#gigma-parent-preset-undo,#gigma-parent-preset-redo,#gigma-child-preset-undo,#gigma-child-preset-redo,#gigma-assignment-preset-undo,#gigma-assignment-preset-redo){display:none!important;}
       .gigma-modal-dim-btn{position:relative;width:var(--gigma-btn-h,2.1em)!important;height:var(--gigma-btn-h,2.1em)!important;box-sizing:border-box!important;padding:0!important;display:inline-flex;align-items:center;justify-content:center;}
       .gigma-modal-dim-icon{
         position:relative;
@@ -34035,20 +34109,17 @@ if (collapse && !isRight) {
             opacity:0.55;
           }
           .gigma-pane-distribution-input{
-            width:100%;
+            width:0;
             height:100%;
             box-sizing:border-box;
-            padding: 0 0.625em;
-            padding-right:22.5em !important;
+            padding: 0 0.625em !important;
             text-align:left;
             flex:1 1 auto;
             min-width:0;
           }
           .gigma-pane-distribution-unit{
-            position:absolute;
-            right:2.45em;
-            top:50%;
-            transform:translateY(-50%);
+            flex:0 0 auto;
+            min-width:0;
             max-width:none;
             overflow:visible;
             text-overflow:clip;
@@ -34057,14 +34128,16 @@ if (collapse && !isRight) {
             pointer-events:none;
             text-align:right;
           }
+          html.gigma-mobile-fullscreen .gigma-pane-distribution-unit{
+            flex:0 1 auto;
+            max-width:8em;
+            overflow:hidden;
+          }
           .gigma-pane-distribution-close{
-            position:absolute;
-            right:0.35em;
-            top:50%;
-            transform:translateY(-50%);
             width:1.7em;
             height:1.7em;
             min-width:1.7em;
+            flex:0 0 1.7em;
             padding:0 !important;
             margin:0;
             border-radius:0.25em;
@@ -35163,6 +35236,15 @@ function getBudgetDrawerLabel(mode){
   return String(mode || '');
 }
 
+function getBudgetDistributionLabel(mode){
+  try{
+    const opts = Array.isArray(GIGMA_LOREBOOK_BUDGET_MODE_OPTIONS) ? GIGMA_LOREBOOK_BUDGET_MODE_OPTIONS : [];
+    const hit = opts.find((opt)=>opt && opt.value === mode);
+    if (hit) return String((gigmaIsMobileFullscreenActive() ? hit.header : hit.drawer) || hit.header || mode || '');
+  }catch(_){ }
+  return String(mode || '');
+}
+
 function getDistributionRange(mode){
   if (mode === 'percentage_budget' || mode === 'percentage_context' || mode === 'percentage_lorebook' || mode === 'percentage_entries') return { min: 0, max: 100 };
   if (mode === 'fixed' || mode === 'entries') return { min: 0, max: 99999 };
@@ -35354,7 +35436,7 @@ function getDistributionModeInfo(){
     rows,
     sameMode,
     mode,
-    label: sameMode ? getBudgetDrawerLabel(mode) : '',
+    label: sameMode ? getBudgetDistributionLabel(mode) : '',
     decimalsAllowed: sameMode && gigmaIsPercentageBudgetMode(mode),
     min: range.min,
     max: range.max,
