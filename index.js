@@ -6725,13 +6725,8 @@ function debounce(fn, wait = 50) {
     };
 }
 
-function gigmaIsMobileDeviceRuntime() {
-    return typeof isMobile === 'function' && isMobile();
-}
-
 // Fire-and-forget background scheduler
 function scheduleBackground(fn) {
-    const mobile = gigmaIsMobileDeviceRuntime();
     const run = () => {
         try {
             const ret = fn();
@@ -6744,10 +6739,10 @@ function scheduleBackground(fn) {
     };
     try {
         if (typeof requestIdleCallback === 'function') {
-            return requestIdleCallback(run, { timeout: mobile ? 1200 : 120 });
+            return requestIdleCallback(run, { timeout: 120 });
         }
     } catch {}
-    return setTimeout(run, mobile ? 250 : 0);
+    return setTimeout(run, 0);
 }
 
 // Cross-event token count cache
@@ -7967,7 +7962,7 @@ function gigmaScheduleCurrentLorebookStatsIndexSync() {
         window.__gigmaCurrentLorebookStatsIndexSyncTimer = setTimeout(() => {
             window.__gigmaCurrentLorebookStatsIndexSyncTimer = null;
             gigmaEnsureLorebookStatsIndexForWorld(worldName).catch((_e) => {});
-        }, gigmaIsMobileDeviceRuntime() ? 350 : 60);
+        }, 60);
     } catch (_e) {}
 }
 
@@ -8031,8 +8026,7 @@ function gigmaInstallWorldInfoLorebookStatsIndexHooksOnce() {
             try {
                 const target = ev?.target;
                 if (!(target instanceof HTMLElement)) return;
-                const list = document.getElementById('world_popup_entries_list');
-                if (!list || !list.contains(target)) return;
+                if (!target.closest || !target.closest('#world_popup_entries_list')) return;
                 const entryEl = target.closest('.world_entry[uid]');
                 if (!entryEl) return;
 
@@ -8055,7 +8049,7 @@ function gigmaInstallWorldInfoLorebookStatsIndexHooksOnce() {
                     timers[key] = setTimeout(() => {
                         delete timers[key];
                         gigmaUpdateLorebookStatsIndexEntry(worldName, uid, { contentOverride: content }).catch((_e) => {});
-                    }, gigmaIsMobileDeviceRuntime() ? 350 : 70);
+                    }, 70);
                     return;
                 }
 
@@ -8117,7 +8111,6 @@ function gigmaStoreModalLorebookStatsToLocalStorage(worldName, stats) {
 
 async function gigmaPrecomputeAllModalLorebookStats() {
     try {
-        if (gigmaIsMobileDeviceRuntime()) return;
         const names = Array.isArray(world_names) ? world_names.slice() : [];
         for (const n of names) {
             if (!EXTENSION_STATE.modalLorebookStatsSessionActive) return;
@@ -12250,10 +12243,10 @@ function gigmaScheduleModalLorebookStatsBuildQueue() {
             gigmaDrainModalLorebookStatsBuildQueue();
         };
         if (window.requestIdleCallback) {
-            window.__gigmaModalLorebookStatsBuildIdle = window.requestIdleCallback(run, { timeout: gigmaIsMobileDeviceRuntime() ? 1000 : 250 });
+            window.__gigmaModalLorebookStatsBuildIdle = window.requestIdleCallback(run, { timeout: 250 });
             return;
         }
-        window.__gigmaModalLorebookStatsBuildTimer = setTimeout(run, gigmaIsMobileDeviceRuntime() ? 120 : 16);
+        window.__gigmaModalLorebookStatsBuildTimer = setTimeout(run, 16);
     } catch (_e) { }
 }
 
@@ -40516,6 +40509,47 @@ function gigmaMountDuplicateSentencePopup() {
     }
 }
 
+function gigmaInstallDuplicateSentenceEmptyPaneScrollBridge(overlay) {
+    if (!overlay || overlay.__gigmaDedupeEmptyScrollBridge) return;
+    overlay.__gigmaDedupeEmptyScrollBridge = true;
+
+    let lastTouchY = 0;
+
+    overlay.addEventListener('wheel', (event) => {
+        try {
+            const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+            if (!pane) return;
+            const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
+            if (!scroller) return;
+            scroller.scrollTop += event.deltaY;
+            event.preventDefault();
+        } catch (_eDuplicateSentenceEmptyWheel) { }
+    }, { capture: true, passive: false });
+
+    overlay.addEventListener('touchstart', (event) => {
+        try {
+            const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+            if (!pane) return;
+            const touch = event.touches && event.touches[0];
+            lastTouchY = touch ? touch.clientY : 0;
+        } catch (_eDuplicateSentenceEmptyTouchStart) { }
+    }, { capture: true, passive: true });
+
+    overlay.addEventListener('touchmove', (event) => {
+        try {
+            const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
+            if (!pane) return;
+            const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
+            if (!scroller) return;
+            const touch = event.touches && event.touches[0];
+            if (!touch || !lastTouchY) return;
+            scroller.scrollTop += lastTouchY - touch.clientY;
+            lastTouchY = touch.clientY;
+            event.preventDefault();
+        } catch (_eDuplicateSentenceEmptyTouchMove) { }
+    }, { capture: true, passive: false });
+}
+
 async function gigmaShowDuplicateSentencePopup() {
     gigmaInstallDuplicateSentenceStylesOnce();
     gigmaCloseDuplicateSentenceOverlay();
@@ -40529,6 +40563,7 @@ async function gigmaShowDuplicateSentencePopup() {
         </div>
     `;
     document.body.appendChild(overlay);
+    gigmaInstallDuplicateSentenceEmptyPaneScrollBridge(overlay);
 
     const handleKeydown = (event) => {
         try {
@@ -40749,40 +40784,6 @@ function gigmaDuplicateSentenceGetPopupScroller(pane) {
             } catch (_eDuplicateSentencePopupClick) { }
         }, true);
 
-        let gigmaDuplicateSentenceEmptyPaneLastTouchY = 0;
-        document.addEventListener('wheel', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
-                if (!scroller) return;
-                scroller.scrollTop += event.deltaY;
-                event.preventDefault();
-            } catch (_eDuplicateSentenceEmptyWheel) { }
-        }, { capture: true, passive: false });
-
-        document.addEventListener('touchstart', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const touch = event.touches && event.touches[0];
-                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch ? touch.clientY : 0;
-            } catch (_eDuplicateSentenceEmptyTouchStart) { }
-        }, { capture: true, passive: true });
-
-        document.addEventListener('touchmove', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
-                if (!scroller) return;
-                const touch = event.touches && event.touches[0];
-                if (!touch || !gigmaDuplicateSentenceEmptyPaneLastTouchY) return;
-                scroller.scrollTop += gigmaDuplicateSentenceEmptyPaneLastTouchY - touch.clientY;
-                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch.clientY;
-                event.preventDefault();
-            } catch (_eDuplicateSentenceEmptyTouchMove) { }
-        }, { capture: true, passive: false });
     } catch (_eDuplicateSentencePopupEventsOnce) { }
 })();
 
@@ -50430,9 +50431,7 @@ async function init() {
             gigmaInstallWorldInfoLorebookStatsIndexHooksOnce();
             gigmaInstallWorldInfoIdMutationHooksOnce();
             gigmaInstallTokenizerChangeHooksOnce();
-            if (!gigmaIsMobileDeviceRuntime()) {
-                scheduleBackground(() => gigmaSyncAllLorebookIdsAndStatsIndex());
-            }
+            scheduleBackground(() => gigmaSyncAllLorebookIdsAndStatsIndex());
 
         } catch (error) {
             console.error('Failed to load GIGMA extension:', error);
