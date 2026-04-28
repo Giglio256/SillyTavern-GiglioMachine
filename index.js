@@ -6725,8 +6725,13 @@ function debounce(fn, wait = 50) {
     };
 }
 
+function gigmaIsMobileDeviceRuntime() {
+    return typeof isMobile === 'function' && isMobile();
+}
+
 // Fire-and-forget background scheduler
 function scheduleBackground(fn) {
+    const mobile = gigmaIsMobileDeviceRuntime();
     const run = () => {
         try {
             const ret = fn();
@@ -6739,10 +6744,10 @@ function scheduleBackground(fn) {
     };
     try {
         if (typeof requestIdleCallback === 'function') {
-            return requestIdleCallback(run, { timeout: 120 });
+            return requestIdleCallback(run, { timeout: mobile ? 1200 : 120 });
         }
     } catch {}
-    return setTimeout(run, 0);
+    return setTimeout(run, mobile ? 250 : 0);
 }
 
 // Cross-event token count cache
@@ -7962,7 +7967,7 @@ function gigmaScheduleCurrentLorebookStatsIndexSync() {
         window.__gigmaCurrentLorebookStatsIndexSyncTimer = setTimeout(() => {
             window.__gigmaCurrentLorebookStatsIndexSyncTimer = null;
             gigmaEnsureLorebookStatsIndexForWorld(worldName).catch((_e) => {});
-        }, 60);
+        }, gigmaIsMobileDeviceRuntime() ? 350 : 60);
     } catch (_e) {}
 }
 
@@ -8026,7 +8031,8 @@ function gigmaInstallWorldInfoLorebookStatsIndexHooksOnce() {
             try {
                 const target = ev?.target;
                 if (!(target instanceof HTMLElement)) return;
-                if (!target.closest || !target.closest('#world_popup_entries_list')) return;
+                const list = document.getElementById('world_popup_entries_list');
+                if (!list || !list.contains(target)) return;
                 const entryEl = target.closest('.world_entry[uid]');
                 if (!entryEl) return;
 
@@ -8049,7 +8055,7 @@ function gigmaInstallWorldInfoLorebookStatsIndexHooksOnce() {
                     timers[key] = setTimeout(() => {
                         delete timers[key];
                         gigmaUpdateLorebookStatsIndexEntry(worldName, uid, { contentOverride: content }).catch((_e) => {});
-                    }, 70);
+                    }, gigmaIsMobileDeviceRuntime() ? 350 : 70);
                     return;
                 }
 
@@ -8111,6 +8117,7 @@ function gigmaStoreModalLorebookStatsToLocalStorage(worldName, stats) {
 
 async function gigmaPrecomputeAllModalLorebookStats() {
     try {
+        if (gigmaIsMobileDeviceRuntime()) return;
         const names = Array.isArray(world_names) ? world_names.slice() : [];
         for (const n of names) {
             if (!EXTENSION_STATE.modalLorebookStatsSessionActive) return;
@@ -12243,10 +12250,10 @@ function gigmaScheduleModalLorebookStatsBuildQueue() {
             gigmaDrainModalLorebookStatsBuildQueue();
         };
         if (window.requestIdleCallback) {
-            window.__gigmaModalLorebookStatsBuildIdle = window.requestIdleCallback(run, { timeout: 250 });
+            window.__gigmaModalLorebookStatsBuildIdle = window.requestIdleCallback(run, { timeout: gigmaIsMobileDeviceRuntime() ? 1000 : 250 });
             return;
         }
-        window.__gigmaModalLorebookStatsBuildTimer = setTimeout(run, 16);
+        window.__gigmaModalLorebookStatsBuildTimer = setTimeout(run, gigmaIsMobileDeviceRuntime() ? 120 : 16);
     } catch (_e) { }
 }
 
@@ -26739,13 +26746,6 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
       }catch(_){ }
     };
 
-    const shouldSkinNode = (node) => {
-      if (!(node instanceof Element)) return false;
-      if (node.matches(TARGET_SELECTOR)) return true;
-      if (node.closest && node.closest(TARGET_SELECTOR)) return true;
-      return !!(node.querySelector && node.querySelector(TARGET_SELECTOR));
-    };
-
     window.gigmaSkinPreviewAndFolderButtons = skinAll;
 
     let queued = false;
@@ -26753,7 +26753,7 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
       try{
         if (queued) return;
         queued = true;
-        requestAnimationFrame(() => {
+        queueMicrotask(() => {
           queued = false;
           try{ skinAll(document); }catch(_){ }
         });
@@ -26764,23 +26764,8 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
     };
 
     try{
-      const obs = new MutationObserver((muts) => {
-        try{
-          for (const m of muts) {
-            if (shouldSkinNode(m.target)) {
-              scheduleSkin();
-              return;
-            }
-            for (const n of m.addedNodes || []) {
-              if (shouldSkinNode(n)) {
-                scheduleSkin();
-                return;
-              }
-            }
-          }
-        }catch(_){ }
-      });
-      obs.observe(document.body || document.documentElement, { subtree:true, childList:true });
+      const obs = new MutationObserver(() => { scheduleSkin(); });
+      obs.observe(document.documentElement, { subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:['class','style'] });
       window.__gigmaIconizePreviewAndFolderButtonsObserver = obs;
     }catch(_){ }
 
@@ -50445,7 +50430,9 @@ async function init() {
             gigmaInstallWorldInfoLorebookStatsIndexHooksOnce();
             gigmaInstallWorldInfoIdMutationHooksOnce();
             gigmaInstallTokenizerChangeHooksOnce();
-            scheduleBackground(() => gigmaSyncAllLorebookIdsAndStatsIndex());
+            if (!gigmaIsMobileDeviceRuntime()) {
+                scheduleBackground(() => gigmaSyncAllLorebookIdsAndStatsIndex());
+            }
 
         } catch (error) {
             console.error('Failed to load GIGMA extension:', error);
