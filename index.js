@@ -34,77 +34,40 @@ const gigmaSyncMobileFullscreenClass = () => {
 
 
 // --- GIGMA: Lorebook usage icons (persona/chat/character) ---
-let __gigmaUsageFlagsCache = null;
-let __gigmaUsageFlagsCacheKey = null;
+let __gigmaWorldUsageFlagsFrameCache = null;
+let __gigmaWorldUsageFlagsFrameCacheTimer = 0;
 
-const __gigmaInvalidateUsageFlagsCache = () => {
-  __gigmaUsageFlagsCache = null;
-  __gigmaUsageFlagsCacheKey = null;
+const __gigmaClearWorldUsageFlagsFrameCache = () => {
+  __gigmaWorldUsageFlagsFrameCache = null;
+  __gigmaWorldUsageFlagsFrameCacheTimer = 0;
 };
 
-const __gigmaGetUsageFlagsCacheKey = () => {
-  const active = Array.isArray(selected_world_info) ? selected_world_info : null;
-  const charLore = Array.isArray(world_info?.charLore) ? world_info.charLore : null;
-  return {
-    personaWorld: power_user?.persona_description_lorebook || '',
-    chatWorld: chat_metadata?.[METADATA_KEY] || '',
-    baseWorld: characters?.[this_chid]?.data?.extensions?.world || '',
-    selectedGroup: selected_group || '',
-    chid: this_chid ?? '',
-    activeRef: active,
-    activeLen: active ? active.length : 0,
-    activeFirst: active && active.length ? active[0] : '',
-    activeLast: active && active.length ? active[active.length - 1] : '',
-    charLoreRef: charLore,
-    charLoreLen: charLore ? charLore.length : 0,
-    charactersLen: Array.isArray(characters) ? characters.length : 0,
-  };
-};
+const __gigmaGetWorldUsageFlagsFrameCache = () => {
+  if (__gigmaWorldUsageFlagsFrameCache) return __gigmaWorldUsageFlagsFrameCache;
 
-const __gigmaUsageFlagsCacheKeyMatches = (a, b) => !!(a && b
-  && a.personaWorld === b.personaWorld
-  && a.chatWorld === b.chatWorld
-  && a.baseWorld === b.baseWorld
-  && a.selectedGroup === b.selectedGroup
-  && a.chid === b.chid
-  && a.activeRef === b.activeRef
-  && a.activeLen === b.activeLen
-  && a.activeFirst === b.activeFirst
-  && a.activeLast === b.activeLast
-  && a.charLoreRef === b.charLoreRef
-  && a.charLoreLen === b.charLoreLen
-  && a.charactersLen === b.charactersLen);
-
-const __gigmaBuildUsageFlagsCache = () => {
-  const personaWorld = power_user?.persona_description_lorebook || '';
-  const chatWorld = chat_metadata?.[METADATA_KEY] || '';
-  const baseWorld = characters?.[this_chid]?.data?.extensions?.world || '';
+  const activeWorlds = new Set(Array.isArray(selected_world_info) ? selected_world_info : []);
+  const personaWorld = String(power_user?.persona_description_lorebook || '');
+  const chatWorld = String(chat_metadata?.[METADATA_KEY] || '');
   const isGroupChat = !!selected_group;
-  const activeWorlds = new Set((Array.isArray(selected_world_info) ? selected_world_info : []).map((name) => String(name || '')).filter(Boolean));
-  const characterWorldMap = new Map();
-  const charLoreByName = new Map();
+  const characterWorldNames = new Set();
+  const characterBoundNames = new Map();
   let chatBoundName = '';
-
-  try {
-    const charLore = Array.isArray(world_info?.charLore) ? world_info.charLore : [];
-    for (const entry of charLore) {
-      const name = String(entry?.name || '');
-      if (name) charLoreByName.set(name, entry);
-    }
-  } catch (_) { }
 
   try {
     if (chatWorld) {
       if (isGroupChat) {
         const ctx = (typeof getContext === 'function') ? (getContext() || {}) : {};
         const gid = (ctx && (ctx.groupId ?? selected_group)) ?? selected_group;
-        if (gid != null && Array.isArray(ctx.groups)) {
-          const g = ctx.groups.find(x => x && String(x.id) === String(gid));
-          if (g && typeof g.name === 'string' && g.name.trim()) chatBoundName = g.name.trim();
+        const groups = Array.isArray(ctx.groups) ? ctx.groups : [];
+        for (let i = 0; i < groups.length; i++) {
+          const g = groups[i];
+          if (g && String(g.id) === String(gid) && typeof g.name === 'string' && g.name.trim()) {
+            chatBoundName = g.name.trim();
+            break;
+          }
         }
         if (!chatBoundName && typeof getCurrentChatDetails === 'function') {
-          const cd = getCurrentChatDetails() || {};
-          const gg = cd && cd.group;
+          const gg = (getCurrentChatDetails() || {}).group;
           if (gg && typeof gg.name === 'string' && gg.name.trim()) chatBoundName = gg.name.trim();
         }
       } else if (this_chid !== null && this_chid !== undefined) {
@@ -114,80 +77,64 @@ const __gigmaBuildUsageFlagsCache = () => {
     }
   } catch (_) { }
 
-  const addCharacterWorld = (world, name) => {
-    const key = String(world || '').trim();
-    if (key && !characterWorldMap.has(key)) characterWorldMap.set(key, String(name || '').trim());
-  };
-
   try {
+    const markCharacterWorld = (worldName, boundName) => {
+      const key = String(worldName || '').trim();
+      if (!key) return;
+      characterWorldNames.add(key);
+      if (!characterBoundNames.has(key)) characterBoundNames.set(key, String(boundName || '').trim());
+    };
+    const extraByCharacterFile = new Map();
+    const charLore = Array.isArray(world_info?.charLore) ? world_info.charLore : [];
+    for (let i = 0; i < charLore.length; i++) {
+      const item = charLore[i];
+      if (item && item.name && Array.isArray(item.extraBooks)) extraByCharacterFile.set(String(item.name), item.extraBooks);
+    }
+
     if (isGroupChat) {
       const members = (typeof getGroupMembers === 'function') ? (getGroupMembers(selected_group) || []) : [];
-      for (const member of members) {
+      for (let i = 0; i < members.length; i++) {
+        const member = members[i];
         const chid = (member && Array.isArray(characters)) ? characters.indexOf(member) : -1;
         if (chid < 0) continue;
-        const characterName = String((characters?.[chid]?.name || characters?.[chid]?.data?.name || member?.name || member?.data?.name || '')).trim();
-        addCharacterWorld(characters?.[chid]?.data?.extensions?.world, characterName);
+        const c = characters?.[chid];
+        const boundName = String((c?.name || c?.data?.name || member?.name || member?.data?.name || '')).trim();
+        markCharacterWorld(c?.data?.extensions?.world, boundName);
         const fn = getCharaFilename(chid);
-        const extra = charLoreByName.get(fn);
-        if (Array.isArray(extra?.extraBooks)) {
-          for (const world of extra.extraBooks) addCharacterWorld(world, characterName);
+        const extraBooks = extraByCharacterFile.get(String(fn));
+        if (Array.isArray(extraBooks)) {
+          for (let j = 0; j < extraBooks.length; j++) markCharacterWorld(extraBooks[j], boundName);
         }
       }
     } else if (this_chid !== null && this_chid !== undefined) {
       const c = characters?.[this_chid];
-      const characterName = String((c && (c.name || c.data?.name)) || '').trim();
-      addCharacterWorld(baseWorld, characterName);
+      const boundName = String((c && (c.name || c.data?.name)) || '').trim();
+      markCharacterWorld(c?.data?.extensions?.world, boundName);
       const fn = getCharaFilename(this_chid);
-      const extra = charLoreByName.get(fn);
-      if (Array.isArray(extra?.extraBooks)) {
-        for (const world of extra.extraBooks) addCharacterWorld(world, characterName);
+      const extraBooks = extraByCharacterFile.get(String(fn));
+      if (Array.isArray(extraBooks)) {
+        for (let i = 0; i < extraBooks.length; i++) markCharacterWorld(extraBooks[i], boundName);
       }
     }
   } catch (_) { }
 
-  return { personaWorld, chatWorld, chatBoundName, activeWorlds, characterWorldMap };
+  __gigmaWorldUsageFlagsFrameCache = { activeWorlds, personaWorld, chatWorld, characterWorldNames, characterBoundNames, chatBoundName };
+  if (!__gigmaWorldUsageFlagsFrameCacheTimer) {
+    __gigmaWorldUsageFlagsFrameCacheTimer = setTimeout(__gigmaClearWorldUsageFlagsFrameCache, 0);
+  }
+  return __gigmaWorldUsageFlagsFrameCache;
 };
-
-const __gigmaGetUsageFlagsCache = () => {
-  const key = __gigmaGetUsageFlagsCacheKey();
-  if (__gigmaUsageFlagsCache && __gigmaUsageFlagsCacheKeyMatches(__gigmaUsageFlagsCacheKey, key)) return __gigmaUsageFlagsCache;
-  __gigmaUsageFlagsCacheKey = key;
-  __gigmaUsageFlagsCache = __gigmaBuildUsageFlagsCache();
-  return __gigmaUsageFlagsCache;
-};
-
-(function __gigmaUsageFlagsCacheInvalidationOnce(){
-  try {
-    if (window.__gigmaUsageFlagsCacheInvalidationInstalled) return;
-    window.__gigmaUsageFlagsCacheInvalidationInstalled = true;
-    const invalidate = () => __gigmaInvalidateUsageFlagsCache();
-    if (eventSource && event_types) {
-      if (event_types.WORLDINFO_UPDATED) eventSource.on(event_types.WORLDINFO_UPDATED, invalidate);
-      if (event_types.CHAT_CHANGED) eventSource.on(event_types.CHAT_CHANGED, invalidate);
-      if (event_types.GROUP_MEMBER_DRAFTED) eventSource.on(event_types.GROUP_MEMBER_DRAFTED, invalidate);
-    }
-    document.addEventListener('change', (ev) => {
-      const target = ev && ev.target;
-      if (target && target.closest && target.closest('#WIMultiSelector, #WorldInfo')) invalidate();
-    }, true);
-  } catch (_) { }
-})();
 
 const __gigmaGetWorldUsageFlags = (worldName) => {
-  const world = String(worldName || '');
-  const cache = __gigmaGetUsageFlagsCache();
-  const isActiveWorld = !!(world && cache.activeWorlds && cache.activeWorlds.has(world));
+  const world = String(worldName || '').trim();
+  const cache = __gigmaGetWorldUsageFlagsFrameCache();
+  const isActiveWorld = !!(world && cache.activeWorlds.has(world));
   const isPersonaWorld = !!(world && cache.personaWorld && cache.personaWorld === world);
   const isChatWorld = !!(world && cache.chatWorld && cache.chatWorld === world);
-  const characterBoundName = (world && cache.characterWorldMap) ? (cache.characterWorldMap.get(world) || '') : '';
-  return {
-    isActiveWorld,
-    isPersonaWorld,
-    isChatWorld,
-    isCharacterWorld: !!characterBoundName,
-    chatBoundName: isChatWorld ? (cache.chatBoundName || '') : '',
-    characterBoundName,
-  };
+  const isCharacterWorld = !!(world && cache.characterWorldNames.has(world));
+  const chatBoundName = isChatWorld ? cache.chatBoundName : '';
+  const characterBoundName = isCharacterWorld ? (cache.characterBoundNames.get(world) || '') : '';
+  return { isActiveWorld, isPersonaWorld, isChatWorld, isCharacterWorld, chatBoundName, characterBoundName };
 };
 
 const __gigmaMakeUsageIconEl = (faName, extraClass) => {
@@ -7986,7 +7933,6 @@ async function gigmaSyncAllLorebookIdsAndStatsIndex() {
                 return;
             }
 
-            const buildMissingStats = !gigmaIsMobileFullscreenActive();
             for (const name of names) {
                 let id = window.gigmaWorldIdByName[name];
                 if (!id) id = await gigmaEnsureLorebookId(name);
@@ -7998,10 +7944,8 @@ async function gigmaSyncAllLorebookIdsAndStatsIndex() {
 
                 const book = gigmaGetLorebookStatsIndexBookById(id);
                 if (!book || !book.stats || !book.entriesByUid) {
-                    if (buildMissingStats) {
-                        await gigmaEnsureLorebookStatsIndexForWorld(name, { forceRebuild: true });
-                        await new Promise(r => setTimeout(r, 0));
-                    }
+                    await gigmaEnsureLorebookStatsIndexForWorld(name, { forceRebuild: true });
+                    await new Promise(r => setTimeout(r, 0));
                 } else if (book.worldName !== name) {
                     book.worldName = name;
                 }
@@ -12190,6 +12134,25 @@ function gigmaGetModalLorebookStatsRows(forceRefresh = false) {
     return [];
 }
 
+function gigmaGetModalLorebookStatsRowsForWork(rows) {
+    const source = Array.isArray(rows) ? rows : [];
+    try {
+        if (!gigmaIsMobileFullscreenActive()) return source;
+        const visible = window.__gigmaVisibleModalLorebookStatsRows;
+        if (visible && typeof visible.forEach === 'function' && visible.size > 0) {
+            const out = [];
+            visible.forEach((row) => {
+                try {
+                    if (row && row.isConnected && row.dataset && row.dataset.world) out.push(row);
+                } catch (_eRow) { }
+            });
+            if (out.length) return out;
+        }
+        return source.slice(0, 48);
+    } catch (_e) { }
+    return source;
+}
+
 function gigmaObserveModalLorebookStatsRow(row) {
     try {
         if (!row || !row.isConnected || !row.dataset || !row.dataset.world) return;
@@ -12348,15 +12311,10 @@ function gigmaRefreshVisibleModalLorebookStats() {
             return;
         }
 
-        let rows = [];
-        const visibleRows = window.__gigmaVisibleModalLorebookStatsRows;
-        if (visibleRows && typeof visibleRows.forEach === 'function' && visibleRows.size > 0) {
-            visibleRows.forEach((row) => rows.push(row));
-        } else {
-            rows = gigmaGetModalLorebookStatsRows(false).slice(0, gigmaIsMobileFullscreenActive() ? 24 : 80);
-        }
-
-        for (const row of rows) {
+        const rows = gigmaGetModalLorebookStatsRows(false);
+        try { gigmaObserveModalLorebookStatsRows(false); } catch (_eObserve) { }
+        const workRows = gigmaGetModalLorebookStatsRowsForWork(rows);
+        for (const row of workRows) {
             try {
                 if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
                 gigmaUpdateModalLorebookRowStats(row);
@@ -12396,17 +12354,15 @@ function gigmaUpdateModalLorebookStatsColumnCountsAllRows() {
     try {
         if (!gigmaIsOrderingModalActive()) return;
         const root = gigmaGetOrderingModalStatsRoot() || document;
-        let hosts = root.querySelectorAll ? root.querySelectorAll('.gigma-row[data-world] > .gigma-row-header-grid > .gigma-row-stats') : [];
+        let hosts = [];
         if (gigmaIsMobileFullscreenActive()) {
-            const visibleRows = window.__gigmaVisibleModalLorebookStatsRows;
-            const visibleHosts = [];
-            if (visibleRows && typeof visibleRows.forEach === 'function') {
-                visibleRows.forEach((row) => {
-                    const host = row && row.querySelector ? row.querySelector(':scope > .gigma-row-header-grid > .gigma-row-stats') : null;
-                    if (host) visibleHosts.push(host);
-                });
+            const rows = gigmaGetModalLorebookStatsRowsForWork(gigmaGetModalLorebookStatsRows(false));
+            for (const row of rows) {
+                const host = row && row.querySelector ? row.querySelector(':scope > .gigma-row-header-grid > .gigma-row-stats') : null;
+                if (host) hosts.push(host);
             }
-            hosts = visibleHosts;
+        } else {
+            hosts = root.querySelectorAll ? Array.from(root.querySelectorAll('.gigma-row[data-world] > .gigma-row-header-grid > .gigma-row-stats')) : [];
         }
         const firstHost = (hosts && hosts.length) ? hosts[0] : root;
         gigmaRecomputeModalLorebookStatsTargetCountCache(firstHost);
@@ -12567,19 +12523,16 @@ function gigmaUpdateModalLorebookRowStats(row) {
 function gigmaUpdateModalLorebookStatsAllRows() {
     try {
         if (!gigmaIsOrderingModalActive()) return;
-        if (gigmaIsMobileFullscreenActive()) {
-            gigmaObserveModalLorebookStatsRows(true);
-            gigmaScheduleModalLorebookStatsRefresh(true);
-            return;
-        }
         const rows = gigmaGetModalLorebookStatsRows(true);
-        for (const row of rows) {
+        try { gigmaObserveModalLorebookStatsRows(false); } catch (_eObserve) { }
+        const workRows = gigmaGetModalLorebookStatsRowsForWork(rows);
+        for (const row of workRows) {
             try {
                 if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
                 gigmaEnsureModalRowStatsHost(row);
             } catch (_eHost) { }
         }
-        for (const row of rows) {
+        for (const row of workRows) {
             try {
                 if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
                 gigmaUpdateModalLorebookRowStats(row);
@@ -12597,10 +12550,10 @@ function gigmaMaybeAttachModalLorebookStats(labelEl, worldName) {
         if (!root) return;
         const row = labelEl.closest && labelEl.closest('.gigma-row');
         if (!row) return;
+        try { gigmaObserveModalLorebookStatsRow(row); } catch (_eObserve) { }
         if (gigmaIsMobileFullscreenActive()) {
-            gigmaObserveModalLorebookStatsRow(row);
-            gigmaScheduleModalLorebookStatsRefresh(false);
-            return;
+            const visible = window.__gigmaVisibleModalLorebookStatsRows;
+            if (visible && typeof visible.has === 'function' && visible.size > 0 && !visible.has(row)) return;
         }
         gigmaEnsureModalRowStatsHost(row);
         gigmaUpdateModalLorebookRowStats(row);
@@ -25519,14 +25472,25 @@ user-select: none;
         return makeRow(name, idx, __gigmaSkipBudgetInitForNewRows ? { skipBudgetInit: true } : null);
     };
     // === END GIGMA: Row reuse support ===
+    const namesByFolder = new Map();
+    for (const name of world_names) {
+        const folderId = (window.gigmaRowFolder && window.gigmaRowFolder[name]) || 'ROOT';
+        let bucket = namesByFolder.get(folderId);
+        if (!bucket) {
+            bucket = [];
+            namesByFolder.set(folderId, bucket);
+        }
+        bucket.push(name);
+    }
+
     // render root rows first (rows assigned to 'ROOT' appear above folders)
     let idx = 1;
-    for (const name of world_names) {
-        if (window.gigmaRowFolder[name] === 'ROOT') {
-            const r = __gigmaBuildRow(name, idx++);
-            listContainer.appendChild(r);
-        }
+    const rootNames = namesByFolder.get('ROOT') || [];
+    for (const name of rootNames) {
+        const r = __gigmaBuildRow(name, idx++);
+        listContainer.appendChild(r);
     }
+
     // render folders (root and nested) with their members
 const folderIndexById = new Map((window.gigmaFolders || []).map((f,i)=>[f.id, i]));
 const childrenByParent = {};
@@ -25542,12 +25506,10 @@ for (const k in childrenByParent) {
 const appendFolderTree = (folder, container, idxRef) => {
     const fb = makeFolder(folder);
     const inner = fb.querySelector('.gigma-folder-list');
-    // add member rows of this folder
-    for (const name of world_names) {
-        if (window.gigmaRowFolder[name] === folder.id) {
-            const r = __gigmaBuildRow(name, idxRef.i++);
-            inner.appendChild(r);
-        }
+    const folderNames = namesByFolder.get(folder.id) || [];
+    for (const name of folderNames) {
+        const r = __gigmaBuildRow(name, idxRef.i++);
+        inner.appendChild(r);
     }
     // add child folders
     const kids = (childrenByParent[folder.id] || []);
@@ -35888,7 +35850,7 @@ function getSearchResultItemElements(state){
   try{
     if (!state || !state.results) return [];
     const host = state.resultsList || state.results;
-    return Array.from(host.querySelectorAll('.gigma-pane-search-item') || []).filter((el) => !!(el && el.__gigmaToken));
+    return Array.from(host.querySelectorAll('.gigma-pane-search-item') || []);
   }catch(_){ return []; }
 }
 
@@ -36011,22 +35973,16 @@ function installPaneSearchKeyboardNav(){
 }
 
 
-
-function gigmaGetPaneSearchRenderLimit(){
-  return gigmaIsMobileFullscreenActive() ? 60 : 120;
-}
-
-function scheduleRenderResults(state){
+function schedulePaneSearchRender(state){
   try{
     if (!state) return;
-    if (state.__gigmaPaneSearchRenderRaf) return;
+    if (state.__gigmaPaneSearchRenderRaf) cancelAnimationFrame(state.__gigmaPaneSearchRenderRaf);
     state.__gigmaPaneSearchRenderRaf = requestAnimationFrame(()=>{
       state.__gigmaPaneSearchRenderRaf = 0;
-      renderResults(state);
+      try{ renderResults(state); }catch(_){ }
+      try{ syncSearchUiBits(state); }catch(_){ }
     });
-  }catch(_){
-    try{ renderResults(state); }catch(_e){ }
-  }
+  }catch(_){ }
 }
 
 function renderResults(state){
@@ -36049,8 +36005,7 @@ function renderResults(state){
     const parentAllowed = getParentUnchainedAllowedChildPresetSet();
     const doFilter = !!q;
     const qState = getQualifierState();
-    const maxResults = gigmaGetPaneSearchRenderLimit();
-    let totalMatches = 0;
+    const maxResults = gigmaIsMobileFullscreenActive() ? 80 : 180;
 
     for (const el of items){
       const label = isPreview ? getPreviewItemLabel(el) : getItemLabel(el);
@@ -36068,8 +36023,8 @@ function renderResults(state){
 
       const t = { token, label, isFolder, isRow, unch, origin, flags };
       if (!tokenPassesQualifierFilters(t, qState)) continue;
-      totalMatches += 1;
-      if (tokens.length < maxResults) tokens.push(t);
+      tokens.push(t);
+      if (tokens.length >= maxResults) break;
     }
 
     if (!tokens.length) {
@@ -36082,7 +36037,6 @@ function renderResults(state){
       return;
     }
 
-    const resultFrag = document.createDocumentFragment();
     for (const t of tokens){
       const div = document.createElement('div');
       div.className = 'gigma-pane-search-item';
@@ -36166,16 +36120,9 @@ function renderResults(state){
         try{ div.__gigmaSearchMouseDownActivated = false; }catch(_){ }
         activatePaneSearchResultItem(ev);
       });
-      resultFrag.appendChild(div);
+      if (listHost) listHost.appendChild(div);
+      else state.results.appendChild(div);
     }
-    if (totalMatches > tokens.length) {
-      const more = document.createElement('div');
-      more.className = 'gigma-pane-search-item gigma-pane-search-more';
-      more.textContent = `Showing ${tokens.length} of ${totalMatches}. Keep typing to narrow results.`;
-      resultFrag.appendChild(more);
-    }
-    if (listHost) listHost.appendChild(resultFrag);
-    else state.results.appendChild(resultFrag);
     state.results.style.display = 'block';
     try{ syncSearchKeyboardSelection(state); }catch(_){ }
     syncSearchUiBits(state);
@@ -36398,9 +36345,7 @@ function openSearch(state){
           if (inp && !inp.__gigmaPaneSearchInputWired) {
             inp.__gigmaPaneSearchInputWired = true;
             inp.addEventListener('input', ()=>{
-              try{ setLastQuery(inp.value || ''); }catch(_){ }
-              try{ scheduleRenderResults(STATES[which]); }catch(_){ }
-              try{ syncSearchUiBits(STATES[which]); }catch(_){ }
+              try{ schedulePaneSearchRender(STATES[which]); }catch(_){ }
             });
           }
         }catch(_){ }
@@ -36581,7 +36526,7 @@ function openSearch(state){
             inp.__gigmaPaneSearchInputWired = true;
             inp.addEventListener('input', ()=>{
               try{ setLastQuery(inp.value || ''); }catch(_){ }
-              try{ if (STATES.preview) scheduleRenderResults(STATES.preview); }catch(_){ }
+              try{ if (STATES.preview) renderResults(STATES.preview); }catch(_){ }
               try{ syncSearchUiBits(STATES.preview); }catch(_){ }
             });
           }
@@ -43088,12 +43033,18 @@ function gigmaUpdateInheritAreaVisibility(){
         try{ gigmaEnsureInheritAreaHeightLocked(); }catch(_){}
     }catch(_){}
 }
+const GIGMA_SOFT_HYPHEN_TEXT_CACHE = new Map();
 function gigmaInsertSoftHyphens(str) {
     try {
-        var s = String(str).replace(/ /g, '\u00A0');
-        // Make lorebook names behave like continuous text so line wrapping
-        // happens only at manual soft-hyphen points (visible hyphen on wrap).
-        return Array.from(s).join('\u00AD');
+        var raw = String(str);
+        var cached = GIGMA_SOFT_HYPHEN_TEXT_CACHE.get(raw);
+        if (cached !== undefined) return cached;
+        var s = raw.replace(/ /g, '\u00A0');
+        // Cache this per lorebook name; modal rebuilds reuse the same labels many times.
+        var out = Array.from(s).join('\u00AD');
+        if (GIGMA_SOFT_HYPHEN_TEXT_CACHE.size > 4096) GIGMA_SOFT_HYPHEN_TEXT_CACHE.clear();
+        GIGMA_SOFT_HYPHEN_TEXT_CACHE.set(raw, out);
+        return out;
     } catch (_) {
         return str;
     }
