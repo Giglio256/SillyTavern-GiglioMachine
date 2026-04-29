@@ -22,173 +22,96 @@ const GIGMA_MOBILE_FULLSCREEN_CLASS = 'gigma-mobile-fullscreen';
 
 const gigmaIsMobileFullscreenActive = () => isMobile();
 
-const gigmaPerfIsMobile = () => {
-  try {
-    return !!(isMobile() || (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 1000px)').matches));
-  } catch (_) {
-    return false;
-  }
-};
-
-const gigmaPerfBatchSize = (desktopSize, mobileSize) => gigmaPerfIsMobile() ? mobileSize : desktopSize;
-const gigmaPerfYield = () => new Promise((resolve) => setTimeout(resolve, gigmaPerfIsMobile() ? 16 : 0));
-const gigmaPerfVisibleRows = (setLike) => {
-  try {
-    if (!(setLike && typeof setLike.forEach === 'function')) return [];
-    const rows = [];
-    setLike.forEach((row) => {
-      if (row && row.isConnected) rows.push(row);
-    });
-    return rows;
-  } catch (_) {
-    return [];
-  }
-};
-
 const gigmaSyncMobileFullscreenClass = () => {
   document.documentElement.classList.toggle(GIGMA_MOBILE_FULLSCREEN_CLASS, gigmaIsMobileFullscreenActive());
 };
 
 (function gigmaMobileFullscreenClassOnce(){
-  let raf = 0;
-  const schedule = () => {
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0;
-      gigmaSyncMobileFullscreenClass();
-    });
-  };
   gigmaSyncMobileFullscreenClass();
-  window.addEventListener('resize', schedule, { passive: true });
-  window.addEventListener('orientationchange', schedule, { passive: true });
+  window.addEventListener('resize', gigmaSyncMobileFullscreenClass, { passive: true });
+  window.addEventListener('orientationchange', gigmaSyncMobileFullscreenClass, { passive: true });
 })();
 
 
 // --- GIGMA: Lorebook usage icons (persona/chat/character) ---
-const __gigmaUsageFlagsContext = { signature: '', flagsByWorld: new Map() };
+const __gigmaGetWorldUsageFlags = (worldName) => {
+  const personaWorld = power_user?.persona_description_lorebook;
+  const chatWorld = chat_metadata?.[METADATA_KEY];
+  const baseWorld = characters?.[this_chid]?.data?.extensions?.world;
+  const isGroupChat = !!selected_group;
 
-const __gigmaGetWorldUsageSignature = () => {
-  const selected = Array.isArray(selected_world_info) ? selected_world_info.join('\u0001') : '';
-  const persona = power_user?.persona_description_lorebook || '';
-  const chatWorld = chat_metadata?.[METADATA_KEY] || '';
-  const baseWorld = characters?.[this_chid]?.data?.extensions?.world || '';
-  const charLoreCount = Array.isArray(world_info?.charLore) ? world_info.charLore.length : 0;
-  return [selected_group || '', this_chid ?? '', selected, persona, chatWorld, baseWorld, charLoreCount, Array.isArray(characters) ? characters.length : 0].join('\u0002');
-};
+  const isActiveWorld = Array.isArray(selected_world_info) && selected_world_info.includes(worldName);
+  const isPersonaWorld = !!worldName && !!personaWorld && personaWorld === worldName;
+  const isChatWorld = !!worldName && !!chatWorld && chatWorld === worldName;
 
-const __gigmaBuildWorldUsageFlagsContext = () => {
-  const signature = __gigmaGetWorldUsageSignature();
-  if (__gigmaUsageFlagsContext.signature === signature) return __gigmaUsageFlagsContext;
+  let chatBoundName = '';
+  let characterBoundName = '';
 
-  const flagsByWorld = new Map();
-  const ensure = (worldName) => {
-    const key = String(worldName || '').trim();
-    if (!key) return null;
-    let rec = flagsByWorld.get(key);
-    if (!rec) {
-      rec = { isActiveWorld: false, isPersonaWorld: false, isChatWorld: false, isCharacterWorld: false, chatBoundName: '', characterBoundName: '' };
-      flagsByWorld.set(key, rec);
-    }
-    return rec;
-  };
-
-  try {
-    if (Array.isArray(selected_world_info)) {
-      for (const worldName of selected_world_info) {
-        const rec = ensure(worldName);
-        if (rec) rec.isActiveWorld = true;
-      }
-    }
-
-    const personaWorld = power_user?.persona_description_lorebook;
-    if (personaWorld) {
-      const rec = ensure(personaWorld);
-      if (rec) rec.isPersonaWorld = true;
-    }
-
-    const chatWorld = chat_metadata?.[METADATA_KEY];
-    if (chatWorld) {
-      const rec = ensure(chatWorld);
-      if (rec) {
-        rec.isChatWorld = true;
-        try {
-          if (selected_group) {
-            const ctx = (typeof getContext === 'function') ? (getContext() || {}) : {};
-            const gid = (ctx && (ctx.groupId ?? selected_group)) ?? selected_group;
-            if (gid != null && Array.isArray(ctx.groups)) {
-              const g = ctx.groups.find(x => x && String(x.id) === String(gid));
-              if (g && typeof g.name === 'string' && g.name.trim()) rec.chatBoundName = g.name.trim();
-            }
-            if (!rec.chatBoundName && typeof getCurrentChatDetails === 'function') {
-              const cd = getCurrentChatDetails() || {};
-              const gg = cd && cd.group;
-              if (gg && typeof gg.name === 'string' && gg.name.trim()) rec.chatBoundName = gg.name.trim();
-            }
-          } else if (this_chid !== null && this_chid !== undefined) {
-            const c = characters?.[this_chid];
-            rec.chatBoundName = String((c && (c.name || c.data?.name)) || '').trim();
-          }
-        } catch (_) { }
-      }
-    }
-
-    const markCharacterWorld = (worldName, characterName) => {
-      const rec = ensure(worldName);
-      if (!rec) return;
-      rec.isCharacterWorld = true;
-      if (!rec.characterBoundName) rec.characterBoundName = String(characterName || '').trim();
-    };
-
-    const charLoreByName = new Map();
-    if (Array.isArray(world_info?.charLore)) {
-      for (const item of world_info.charLore) {
-        if (item && typeof item.name === 'string') charLoreByName.set(item.name, item);
-      }
-    }
-
-    if (selected_group) {
-      const indexByCharacter = new Map();
-      if (Array.isArray(characters)) {
-        for (let i = 0; i < characters.length; i += 1) {
-          const c = characters[i];
-          if (c && typeof c === 'object') indexByCharacter.set(c, i);
+  if (isChatWorld) {
+    try{
+      if (isGroupChat) {
+        const ctx = (typeof getContext === 'function') ? (getContext() || {}) : {};
+        const gid = (ctx && (ctx.groupId ?? selected_group)) ?? selected_group;
+        if (gid != null && Array.isArray(ctx.groups)) {
+          const g = ctx.groups.find(x => x && String(x.id) === String(gid));
+          if (g && typeof g.name === 'string' && g.name.trim()) chatBoundName = g.name.trim();
         }
+        if (!chatBoundName && typeof getCurrentChatDetails === 'function') {
+          const cd = getCurrentChatDetails() || {};
+          const gg = cd && cd.group;
+          if (gg && typeof gg.name === 'string' && gg.name.trim()) chatBoundName = gg.name.trim();
+        }
+      } else if (this_chid !== null && this_chid !== undefined) {
+        const c = characters?.[this_chid];
+        chatBoundName = String((c && (c.name || c.data?.name)) || '').trim();
       }
+    }catch(_){ }
+  }
+
+  let isCharacterWorld = false;
+  if (worldName) {
+    // In group chats there is no single `this_chid` until a member is opened/peeked.
+    // The old logic only checked `this_chid`, so the icon appeared only after opening a member card.
+    // Fix: consider the lorebook character-bound if it is bound to ANY current group member.
+    if (isGroupChat) {
       const members = (typeof getGroupMembers === 'function') ? (getGroupMembers(selected_group) || []) : [];
       for (const member of members) {
-        const chid = (member && typeof member === 'object') ? (indexByCharacter.get(member) ?? -1) : -1;
+        const chid = (member && Array.isArray(characters)) ? characters.indexOf(member) : -1;
         if (chid < 0) continue;
-        const charName = String((characters?.[chid]?.name || characters?.[chid]?.data?.name || member?.name || member?.data?.name || '')).trim();
+
         const memberBaseWorld = characters?.[chid]?.data?.extensions?.world;
-        if (memberBaseWorld) markCharacterWorld(memberBaseWorld, charName);
+        if (memberBaseWorld && memberBaseWorld === worldName) {
+          isCharacterWorld = true;
+          characterBoundName = String((characters?.[chid]?.name || characters?.[chid]?.data?.name || member?.name || member?.data?.name || '')).trim();
+          break;
+        }
+
         const fn = getCharaFilename(chid);
-        const extra = charLoreByName.get(fn);
-        if (Array.isArray(extra?.extraBooks)) {
-          for (const worldName of extra.extraBooks) markCharacterWorld(worldName, charName);
+        const extra = world_info?.charLore?.find((e) => e?.name === fn);
+        if (extra?.extraBooks && extra.extraBooks.includes(worldName)) {
+          isCharacterWorld = true;
+          characterBoundName = String((characters?.[chid]?.name || characters?.[chid]?.data?.name || member?.name || member?.data?.name || '')).trim();
+          break;
         }
       }
-    } else if (this_chid !== null && this_chid !== undefined) {
-      const c = characters?.[this_chid];
-      const charName = String((c && (c.name || c.data?.name)) || '').trim();
-      const baseWorld = c?.data?.extensions?.world;
-      if (baseWorld) markCharacterWorld(baseWorld, charName);
-      const fn = getCharaFilename(this_chid);
-      const extra = charLoreByName.get(fn);
-      if (Array.isArray(extra?.extraBooks)) {
-        for (const worldName of extra.extraBooks) markCharacterWorld(worldName, charName);
+    } else {
+      if (baseWorld && baseWorld === worldName) {
+        isCharacterWorld = true;
+        const c = characters?.[this_chid];
+        characterBoundName = String((c && (c.name || c.data?.name)) || '').trim();
+      } else if (this_chid !== null && this_chid !== undefined) {
+        const fn = getCharaFilename(this_chid);
+        const extra = world_info?.charLore?.find((e) => e?.name === fn);
+        isCharacterWorld = !!(extra?.extraBooks && extra.extraBooks.includes(worldName));
+        if (isCharacterWorld) {
+          const c = characters?.[this_chid];
+          characterBoundName = String((c && (c.name || c.data?.name)) || '').trim();
+        }
       }
     }
-  } catch (_) { }
+  }
 
-  __gigmaUsageFlagsContext.signature = signature;
-  __gigmaUsageFlagsContext.flagsByWorld = flagsByWorld;
-  return __gigmaUsageFlagsContext;
-};
-
-const __gigmaGetWorldUsageFlags = (worldName) => {
-  const key = String(worldName || '').trim();
-  const ctx = __gigmaBuildWorldUsageFlagsContext();
-  return ctx.flagsByWorld.get(key) || { isActiveWorld: false, isPersonaWorld: false, isChatWorld: false, isCharacterWorld: false, chatBoundName: '', characterBoundName: '' };
+  return { isActiveWorld, isPersonaWorld, isChatWorld, isCharacterWorld, chatBoundName, characterBoundName };
 };
 
 const __gigmaMakeUsageIconEl = (faName, extraClass) => {
@@ -4032,6 +3955,320 @@ return;
     }catch(_){}
 })();
 // --- end disable scroll anchoring ---
+// --- GIGMA: Mobile ordering touch navigation ---
+(function gigmaMobileOrderingTouchNavigationOnce(){
+  try{
+    if (window.__gigmaMobileOrderingTouchNavigationInstalled) return;
+    window.__gigmaMobileOrderingTouchNavigationInstalled = true;
+
+    const isActive = () => !!(document.getElementById('gigma-modal-root') || document.getElementById('gigma-layout-preset-tree-preview-root'));
+
+    const isPopupTarget = (target) => {
+      try {
+        if (!target) return false;
+        if (target.closest && target.closest('#gigma-modal-root, #gigma-layout-preset-tree-preview-root')) return true;
+        const dialog = target.closest ? target.closest('dialog') : (target.tagName === 'DIALOG' ? target : null);
+        return !!(dialog && dialog.querySelector && dialog.querySelector('#gigma-modal-root, #gigma-layout-preset-tree-preview-root'));
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const isOrderingTarget = (target) => {
+      try {
+        return !!(target && target.closest && target.closest('#gigma-ordering-container, #gigma-ordering-list, .gigma-unsorted-pane, .gigma-unsorted-content, .gigma-focus-pane-list'));
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const isOrderingControlTarget = (target) => {
+      try {
+        return !!(target && target.closest && target.closest('button, input, select, textarea, a, label, .menu_button, .gigma-folder-toggle, .gigma-folder-remove, .gigma-show-right, .gigma-unsorted-title-button'));
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const isOrderingItemTarget = (target) => {
+      try {
+        return !!(target && target.closest && target.closest('.gigma-row, .gigma-folder-header, .gigma-pane-search-item'));
+      } catch (_) {
+        return false;
+      }
+    };
+    const isFolderTitleTarget = (target) => {
+      try {
+        return !!(target && target.closest && target.closest('.gigma-folder-title'));
+      } catch (_) {
+        return false;
+      }
+    };
+
+
+    const getOrderingListPane = (target) => {
+      try {
+        return target && target.closest ? target.closest('#gigma-ordering-list, .gigma-unsorted-content, .gigma-focus-pane-list') : null;
+      } catch (_) {
+        return null;
+      }
+    };
+
+    const isInsidePaneItemSpan = (target, y) => {
+      try {
+        if (typeof y !== 'number') return false;
+        const pane = getOrderingListPane(target);
+        if (!pane) return false;
+        const items = Array.from(pane.querySelectorAll('.gigma-row, .gigma-folder-header, .gigma-pane-search-item'));
+        let top = Infinity;
+        let bottom = -Infinity;
+        for (const item of items) {
+          const rect = item.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) continue;
+          top = Math.min(top, rect.top);
+          bottom = Math.max(bottom, rect.bottom);
+        }
+        return top !== Infinity && y >= top && y <= bottom;
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const isScrollableOverflow = (value) => value === 'auto' || value === 'scroll' || value === 'overlay';
+
+    const hasScrollableOverflow = (node, axis) => {
+      try {
+        if (!node) return false;
+        const style = window.getComputedStyle(node);
+        if (axis === 'x') return isScrollableOverflow(style.overflowX) && node.scrollWidth > node.clientWidth + 1;
+        return isScrollableOverflow(style.overflowY) && node.scrollHeight > node.clientHeight + 1;
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const hasScrollableListPane = (target) => hasScrollableOverflow(getOrderingListPane(target), 'y');
+
+    const getSearchResultsScrollHost = (target) => {
+      try {
+        return target && target.closest ? target.closest('.gigma-pane-search-results-list') : null;
+      } catch (_) {
+        return null;
+      }
+    };
+
+    const isOrderingItemlessTarget = (target, y) => {
+      if (!isPopupTarget(target)) return false;
+      const searchHost = getSearchResultsScrollHost(target);
+      if (searchHost) return !hasScrollableOverflow(searchHost, 'y');
+      if (!isOrderingTarget(target)) return true;
+      if (!hasScrollableListPane(target)) return true;
+      return !isOrderingItemTarget(target) && !isInsidePaneItemSpan(target, y);
+    };
+
+    const getScrollHost = (target) => {
+      try {
+        const searchHost = getSearchResultsScrollHost(target);
+        if (hasScrollableOverflow(searchHost, 'y') || hasScrollableOverflow(searchHost, 'x')) return searchHost;
+        let node = target && target.closest ? target.closest('#gigma-ordering-list, .gigma-unsorted-content, .gigma-focus-pane-list, #gigma-ordering-container, .gigma-unsorted-pane') : null;
+        while (node) {
+          if (hasScrollableOverflow(node, 'y') || hasScrollableOverflow(node, 'x')) return node;
+          node = node.parentElement && node.parentElement.closest ? node.parentElement.closest('#gigma-ordering-list, .gigma-unsorted-content, .gigma-focus-pane-list, #gigma-ordering-container, .gigma-unsorted-pane') : null;
+        }
+      } catch (_) {}
+      return null;
+    };
+
+    const getModalScrollHost = (target) => {
+      try {
+        const dialog = target && target.closest ? target.closest('dialog') : null;
+        const modalScroll = dialog && dialog.querySelector ? dialog.querySelector('#gigma-modal-scroll') : document.getElementById('gigma-modal-scroll');
+        return hasScrollableOverflow(modalScroll, 'y') ? modalScroll : null;
+      } catch (_) {
+        return null;
+      }
+    };
+
+    const canScrollYBy = (node, dy) => {
+      if (!dy || !hasScrollableOverflow(node, 'y')) return false;
+      if (dy < 0) return node.scrollTop > 0;
+      return node.scrollTop + node.clientHeight < node.scrollHeight - 1;
+    };
+
+    const canScrollXBy = (node, dx) => {
+      if (!dx || !hasScrollableOverflow(node, 'x')) return false;
+      if (dx < 0) return node.scrollLeft > 0;
+      return node.scrollLeft + node.clientWidth < node.scrollWidth - 1;
+    };
+
+    const scrollElementBy = (node, dx, dy) => {
+      try {
+        if (!node) return false;
+        const beforeLeft = node.scrollLeft || 0;
+        const beforeTop = node.scrollTop || 0;
+        if (dx) node.scrollLeft = beforeLeft + dx;
+        if (dy) node.scrollTop = beforeTop + dy;
+        return node.scrollLeft !== beforeLeft || node.scrollTop !== beforeTop;
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const isSearchResultsScrollHost = (node) => {
+      try {
+        return !!(node && node.classList && node.classList.contains('gigma-pane-search-results-list'));
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const scrollWithModalRoute = (host, modalHost, dx, dy, modalOnlyY) => {
+      let moved = false;
+      const xHost = canScrollXBy(host, dx) ? host : null;
+      const yHost = modalOnlyY ? (canScrollYBy(modalHost, dy) ? modalHost : null) : (canScrollYBy(host, dy) ? host : null);
+      if (xHost && xHost === yHost) return scrollElementBy(xHost, dx, dy);
+      if (xHost) moved = scrollElementBy(xHost, dx, 0) || moved;
+      if (yHost) moved = scrollElementBy(yHost, 0, dy) || moved;
+      if (!moved && dy && !modalOnlyY && isSearchResultsScrollHost(host) && hasScrollableOverflow(host, 'y')) return true;
+      return moved;
+    };
+
+    const midpoint = (touches) => {
+      const a = touches[0];
+      const b = touches[1];
+      return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+    };
+
+    const touchPoint = (touches) => {
+      if (touches && touches.length === 1) {
+        const a = touches[0];
+        return { x: a.clientX, y: a.clientY };
+      }
+      return midpoint(touches);
+    };
+
+    const isDraggingNow = () => {
+      try {
+        return !!(window.gigmaDragState && window.gigmaDragState.dragging);
+      } catch (_) {
+        return false;
+      }
+    };
+
+    try {
+      if (!document.getElementById('gigma-mobile-two-finger-scroll-style')) {
+        const css = document.createElement('style');
+        css.id = 'gigma-mobile-two-finger-scroll-style';
+        css.textContent = `
+          html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root),
+          html.gigma-mobile-fullscreen dialog:has(#gigma-layout-preset-tree-preview-root),
+          html.gigma-mobile-fullscreen #gigma-modal-root,
+          html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root,
+          html.gigma-mobile-fullscreen #gigma-modal-scroll,
+          html.gigma-mobile-fullscreen #gigma-ordering-container,
+          html.gigma-mobile-fullscreen #gigma-ordering-list,
+          html.gigma-mobile-fullscreen .gigma-unsorted-pane,
+          html.gigma-mobile-fullscreen .gigma-unsorted-content,
+          html.gigma-mobile-fullscreen .gigma-focus-pane-list{
+            touch-action:none !important;
+            overscroll-behavior:contain !important;
+          }
+          html.gigma-mobile-fullscreen :is(#gigma-modal-root, #gigma-layout-preset-tree-preview-root) :is(button, input, select, textarea, a, label, .menu_button){
+            touch-action:manipulation !important;
+          }
+        `;
+        document.head.appendChild(css);
+      }
+    } catch (_) {}
+
+    document.addEventListener('wheel', (ev) => {
+      if (!isActive() || !isPopupTarget(ev.target)) return;
+      const host = getScrollHost(ev.target);
+      const modalOnlyY = isOrderingItemlessTarget(ev.target, ev.clientY);
+      const modalHost = modalOnlyY ? getModalScrollHost(ev.target) : null;
+      if (!host && !modalHost) return;
+      const dx = ev && typeof ev.deltaX === 'number' ? ev.deltaX : 0;
+      const dy = ev && typeof ev.deltaY === 'number' ? ev.deltaY : 0;
+      if (!scrollWithModalRoute(host, modalHost, dx, dy, modalOnlyY)) return;
+      try { ev.preventDefault(); } catch (_) {}
+      try { ev.stopPropagation(); } catch (_) {}
+    }, { capture: true, passive: false });
+
+    const state = { active: false, host: null, modalHost: null, modalOnlyY: false, touchCount: 0, lastX: 0, lastY: 0 };
+    const clear = () => {
+      state.active = false;
+      state.host = null;
+      state.modalHost = null;
+      state.modalOnlyY = false;
+      state.touchCount = 0;
+      state.lastX = 0;
+      state.lastY = 0;
+    };
+
+    document.addEventListener('touchstart', (ev) => {
+      if (!isActive() || !isPopupTarget(ev.target)) return;
+      if (!ev.touches || ev.touches.length < 1 || ev.touches.length > 2) {
+        clear();
+        return;
+      }
+      if (isDraggingNow()) return;
+      const point = touchPoint(ev.touches);
+      const host = getScrollHost(ev.target);
+      const modalOnlyY = isOrderingItemlessTarget(ev.target, point.y);
+      const modalHost = modalOnlyY ? getModalScrollHost(ev.target) : null;
+      if (!host && !modalHost) return;
+      state.active = true;
+      state.host = host;
+      state.modalHost = modalHost;
+      state.modalOnlyY = modalOnlyY;
+      state.touchCount = ev.touches.length;
+      state.lastX = point.x;
+      state.lastY = point.y;
+      if (ev.touches.length === 2) {
+        try { ev.preventDefault(); } catch (_) {}
+        try { ev.stopPropagation(); } catch (_) {}
+      }
+    }, { capture: true, passive: false });
+
+    document.addEventListener('touchmove', (ev) => {
+      if (!isActive() || !isPopupTarget(ev.target)) return;
+      if (isDraggingNow()) return;
+      if (!ev.touches || ev.touches.length < 1 || ev.touches.length > 2) {
+        clear();
+        return;
+      }
+      const point = touchPoint(ev.touches);
+      const sameGesture = state.active && state.touchCount === ev.touches.length;
+      const host = sameGesture ? state.host : getScrollHost(ev.target);
+      const modalOnlyY = sameGesture ? state.modalOnlyY : isOrderingItemlessTarget(ev.target, point.y);
+      const modalHost = modalOnlyY ? ((sameGesture && state.modalHost) || getModalScrollHost(ev.target)) : null;
+      if (!host && !modalHost) return;
+      if (!sameGesture) {
+        state.active = true;
+        state.host = host;
+        state.modalHost = modalHost;
+        state.modalOnlyY = modalOnlyY;
+        state.touchCount = ev.touches.length;
+        state.lastX = point.x;
+        state.lastY = point.y;
+      }
+      const moved = scrollWithModalRoute(host, modalHost, point.x - state.lastX, point.y - state.lastY, modalOnlyY);
+      state.lastX = point.x;
+      state.lastY = point.y;
+      if (!moved) return;
+      try { ev.preventDefault(); } catch (_) {}
+      try { ev.stopPropagation(); } catch (_) {}
+    }, { capture: true, passive: false });
+
+    document.addEventListener('touchend', (ev) => {
+      if (!state.active) return;
+      if (!ev.touches || ev.touches.length < 1) clear();
+      else if (ev.touches.length !== state.touchCount) clear();
+    }, true);
+    document.addEventListener('touchcancel', clear, true);
+  }catch(_){ }
+})();
+// --- end GIGMA: Mobile ordering touch navigation ---
 /**
  * Ensure consistent post-multi-drop UX:
  * - Keep items selected for 2.0s
@@ -4104,6 +4341,9 @@ function gigmaAfterMultiDrop(groupEls) {
         if (window.gigmaCutMode) return;
         if (e.button !== 0) return; // left button only
         if (e.ctrlKey || e.shiftKey || e.metaKey) return; // modifiers mean multi-select gestures
+        try {
+            if (e.pointerType === 'touch' && gigmaIsMobileFullscreenActive()) return;
+        } catch (_) {}
 
         // GIGMA FIX: If pane search is open and the user clicks outside the search UI,
         // treat that click as a search-dismiss gesture (do not clear the current selection).
@@ -4213,6 +4453,10 @@ function gigmaAfterMultiDrop(groupEls) {
             if (!ev || typeof ev.button !== 'number') return;
             if (ev.button !== 0) return; // left button only
             if (ev.ctrlKey || ev.shiftKey || ev.metaKey) return; // modifier gestures keep selection
+            try {
+                const suppressUntil = Number(window.__gigmaMobileSuppressSyntheticClickUntil || 0);
+                if (gigmaIsMobileFullscreenActive() && (ev.pointerType === 'touch' || Date.now() < suppressUntil)) return;
+            } catch (_) {}
             const target = ev.target;
             if (!(target instanceof HTMLElement)) return;
             // Only care about clicks that happen inside the right pane container
@@ -5163,11 +5407,11 @@ function gigmaBuildWorldJsonFileInfoByName(fileList){
 }
 
 function gigmaGetLorebookIdBatchSize(){
-    return gigmaPerfBatchSize(256, 32);
+    return 256;
 }
 
 function gigmaGetLorebookIdRequestChunkSize(){
-    return gigmaPerfBatchSize(512, 64);
+    return 512;
 }
 
 function gigmaGenerateUniqueLorebookIdFromSet(usedIds){
@@ -5198,7 +5442,7 @@ async function gigmaRunLorebookIdBatchProcessing(targets, progress, worker){
         if (progress && lastTarget) {
             progress.setCurrentPath(lastTarget.displayPath);
             progress.setProcessed(processed);
-            await gigmaPerfYield();
+            await new Promise((resolve) => setTimeout(resolve, 0));
         }
     }
     return { aborted, processed };
@@ -5576,7 +5820,7 @@ async function gigmaEraseAllLorebookIdsFromWorldJsonFiles(){
                 progress.setCurrentPath(lastName ? gigmaBuildWorldJsonDisplayPath(lastName) : gigmaBuildWorldJsonDisplayPath(batchNames[batchNames.length - 1]));
                 progress.setProcessed(processed);
             }
-            await gigmaPerfYield();
+            await new Promise((resolve) => setTimeout(resolve, 0));
         }
 
         gigmaSetWorldIdMap(nameToId);
@@ -6161,7 +6405,7 @@ async function gigmaEnsureLorebookIdsForNamesBatched(worldNames, options = {}){
             progress.setCurrentPath(lastName ? gigmaBuildWorldJsonDisplayPath(lastName) : gigmaBuildWorldJsonDisplayPath(batchNames[batchNames.length - 1]));
             progress.setProcessed(processed);
         }
-        await gigmaPerfYield();
+        await new Promise((resolve) => setTimeout(resolve, 0));
     }
 
     gigmaSetWorldIdMap(nameToId);
@@ -6802,43 +7046,28 @@ function debounce(fn, wait = 50) {
     };
 }
 
-// Fire-and-forget background scheduler. Mobile drains one job per idle slice to avoid long main-thread stalls.
-const GIGMA_BACKGROUND_QUEUE = [];
-let GIGMA_BACKGROUND_RUNNING = false;
+// Fire-and-forget background scheduler
 function scheduleBackground(fn) {
-    if (typeof fn !== 'function') return 0;
-    GIGMA_BACKGROUND_QUEUE.push(fn);
-    if (GIGMA_BACKGROUND_RUNNING) return GIGMA_BACKGROUND_QUEUE.length;
-    GIGMA_BACKGROUND_RUNNING = true;
-
-    const drain = () => {
-        const job = GIGMA_BACKGROUND_QUEUE.shift();
-        if (!job) {
-            GIGMA_BACKGROUND_RUNNING = false;
-            return;
-        }
+    const run = () => {
         try {
-            const ret = job();
-            if (ret && typeof ret.then === 'function') ret.catch(e => console.warn('[GIGMA] scheduleBackground task error:', e));
+            const ret = fn();
+            if (ret && typeof ret.then === 'function') {
+                ret.catch(e => console.warn('[GIGMA] scheduleBackground task error:', e));
+            }
         } catch (e) {
             console.warn('[GIGMA] scheduleBackground task sync error:', e);
         }
-        if (GIGMA_BACKGROUND_QUEUE.length) {
-            if (typeof requestIdleCallback === 'function') requestIdleCallback(drain, { timeout: gigmaPerfIsMobile() ? 600 : 160 });
-            else setTimeout(drain, gigmaPerfIsMobile() ? 16 : 0);
-        } else {
-            GIGMA_BACKGROUND_RUNNING = false;
-        }
     };
-
-    if (typeof requestIdleCallback === 'function') return requestIdleCallback(drain, { timeout: gigmaPerfIsMobile() ? 600 : 160 });
-    return setTimeout(drain, gigmaPerfIsMobile() ? 16 : 0);
+    try {
+        if (typeof requestIdleCallback === 'function') {
+            return requestIdleCallback(run, { timeout: 120 });
+        }
+    } catch {}
+    return setTimeout(run, 0);
 }
 
 // Cross-event token count cache
 const TOKEN_COUNT_CACHE = new Map();
-const GIGMA_TOKEN_COUNT_CACHE_LIMIT_DESKTOP = 50000;
-const GIGMA_TOKEN_COUNT_CACHE_LIMIT_MOBILE = 9000;
 function gigmaHash32(str) {
     let h = 2166136261;
     const s = String(str || '');
@@ -6848,15 +7077,6 @@ function gigmaHash32(str) {
     }
     return (h >>> 0);
 }
-function gigmaSetTokenCacheValue(key, tokens) {
-    if (TOKEN_COUNT_CACHE.has(key)) TOKEN_COUNT_CACHE.delete(key);
-    TOKEN_COUNT_CACHE.set(key, tokens);
-    const limit = gigmaPerfIsMobile() ? GIGMA_TOKEN_COUNT_CACHE_LIMIT_MOBILE : GIGMA_TOKEN_COUNT_CACHE_LIMIT_DESKTOP;
-    while (TOKEN_COUNT_CACHE.size > limit) {
-        const first = TOKEN_COUNT_CACHE.keys().next().value;
-        TOKEN_COUNT_CACHE.delete(first);
-    }
-}
 function getEntryTokenCountCached(entry, leadingNewline = false, contentHash = null) {
     try {
         if (!gigmaGetCountLeadingNewlinePref()) leadingNewline = false;
@@ -6864,6 +7084,8 @@ function getEntryTokenCountCached(entry, leadingNewline = false, contentHash = n
         const content = typeof entry?.content === 'string' ? entry.content : '';
         const nl = leadingNewline ? 1 : 0;
         const h = (typeof contentHash === 'number' && Number.isFinite(contentHash)) ? (contentHash >>> 0) : gigmaHash32(content || '');
+        const key = `${uid}:${nl}:${h}`;
+        if (TOKEN_COUNT_CACHE.has(key)) return TOKEN_COUNT_CACHE.get(key);
         const tokenizerId = (() => {
             try {
                 const info = (typeof getFriendlyTokenizerName === 'function') ? getFriendlyTokenizerName() : null;
@@ -6872,18 +7094,10 @@ function getEntryTokenCountCached(entry, leadingNewline = false, contentHash = n
             } catch (_) {}
             return tokenizers.OPENAI;
         })();
-        const key = `${tokenizerId}:${uid}:${nl}:${h}`;
-        if (TOKEN_COUNT_CACHE.has(key)) {
-            const tokens = TOKEN_COUNT_CACHE.get(key);
-            TOKEN_COUNT_CACHE.delete(key);
-            TOKEN_COUNT_CACHE.set(key, tokens);
-            return tokens;
-        }
-        const text = leadingNewline ? `
-${content || ''}` : (content || '');
+        const text = leadingNewline ? `\n${content || ''}` : (content || '');
         const ids = (typeof getTextTokens === 'function') ? getTextTokens(tokenizerId, text) : [];
         const tokens = (ids && typeof ids.length === 'number') ? ids.length : 0;
-        gigmaSetTokenCacheValue(key, tokens);
+        TOKEN_COUNT_CACHE.set(key, tokens);
         return tokens;
     } catch {
         return 0;
@@ -7657,12 +7871,10 @@ function gigmaCreateLorebookStatsIndexBook(lorebookId, worldName) {
 }
 
 
-async function gigmaRebuildLorebookStatsIndexBook(lorebookId, worldName, entriesObj) {
+function gigmaRebuildLorebookStatsIndexBook(lorebookId, worldName, entriesObj) {
     const book = gigmaCreateLorebookStatsIndexBook(lorebookId, worldName);
     const values = (entriesObj && typeof entriesObj === 'object') ? Object.values(entriesObj) : [];
     const nlInfo = gigmaComputeLorebookLeadingNewlineInfo(entriesObj);
-    const yieldEvery = gigmaPerfBatchSize(80, 12);
-    let processed = 0;
     book.enabledNonEmptyCount = nlInfo.count;
     book.minEnabledUid = nlInfo.minUid;
 
@@ -7673,12 +7885,9 @@ async function gigmaRebuildLorebookStatsIndexBook(lorebookId, worldName, entries
         const enabledNonEmpty = raw.disable !== true && !!content;
         const leadingNewline = (nlInfo.count > 1) && enabledNonEmpty && uid && (uid !== nlInfo.minUid);
         const rec = gigmaBuildLorebookEntryStatsIndexRecord(raw, leadingNewline);
-        if (rec) {
-            book.entriesByUid[uid] = rec;
-            gigmaApplyLorebookEntryStatsIndexRecordToBook(book, rec, +1);
-        }
-        processed += 1;
-        if ((processed % yieldEvery) === 0) await gigmaPerfYield();
+        if (!rec) continue;
+        book.entriesByUid[uid] = rec;
+        gigmaApplyLorebookEntryStatsIndexRecordToBook(book, rec, +1);
     }
     gigmaFinalizeLorebookStatsIndexBookStats(book);
     gigmaUpdateLorebookStatsIndexBookDominance(book);
@@ -7804,7 +8013,7 @@ async function gigmaEnsureLorebookStatsIndexForWorld(worldName, options = {}) {
         ? options.worldData
         : (worldInfoCache?.has?.(name) ? worldInfoCache.get(name) : await loadWorldInfo(name));
 
-    const rebuilt = await gigmaRebuildLorebookStatsIndexBook(lorebookId, name, worldData && worldData.entries ? worldData.entries : null);
+    const rebuilt = gigmaRebuildLorebookStatsIndexBook(lorebookId, name, worldData && worldData.entries ? worldData.entries : null);
     store.booksById[lorebookId] = rebuilt;
     gigmaPersigigmarebookStatsIndexStore();
     gigmaRefreshLorebookStatsUiFromIndex(name);
@@ -8011,7 +8220,7 @@ async function gigmaSyncAllLorebookIdsAndStatsIndex() {
             const names = Array.isArray(world_names) ? world_names.filter(n => typeof n === 'string' && n.trim()) : [];
             const currentNames = new Set(names);
             const currentIds = new Set();
-            const ensureResult = await gigmaEnsureLorebookIdsForNamesBatched(names, { popupThreshold: gigmaPerfIsMobile() ? 200 : 10 });
+            const ensureResult = await gigmaEnsureLorebookIdsForNamesBatched(names, { popupThreshold: 10 });
 
             if (ensureResult.aborted) {
                 try {
@@ -8022,9 +8231,6 @@ async function gigmaSyncAllLorebookIdsAndStatsIndex() {
                 return;
             }
 
-            const shouldBuildMissingStats = !gigmaPerfIsMobile();
-            const yieldEvery = gigmaPerfBatchSize(96, 16);
-            let i = 0;
             for (const name of names) {
                 let id = window.gigmaWorldIdByName[name];
                 if (!id) id = await gigmaEnsureLorebookId(name);
@@ -8035,14 +8241,12 @@ async function gigmaSyncAllLorebookIdsAndStatsIndex() {
                 window.gigmaNameByWorldId[id] = name;
 
                 const book = gigmaGetLorebookStatsIndexBookById(id);
-                if (shouldBuildMissingStats && (!book || !book.stats || !book.entriesByUid)) {
+                if (!book || !book.stats || !book.entriesByUid) {
                     await gigmaEnsureLorebookStatsIndexForWorld(name, { forceRebuild: true });
-                } else if (book && book.worldName !== name) {
+                    await new Promise(r => setTimeout(r, 0));
+                } else if (book.worldName !== name) {
                     book.worldName = name;
                 }
-
-                i += 1;
-                if ((i % yieldEvery) === 0) await gigmaPerfYield();
             }
 
             for (const name of Object.keys(window.gigmaWorldIdByName || {})) {
@@ -8228,18 +8432,13 @@ function gigmaStoreModalLorebookStatsToLocalStorage(worldName, stats) {
 
 async function gigmaPrecomputeAllModalLorebookStats() {
     try {
-        const visible = gigmaPerfVisibleRows(window.__gigmaVisibleModalLorebookStatsRows);
-        const names = gigmaPerfIsMobile()
-            ? visible.map(row => String(row?.dataset?.world || '').trim()).filter(Boolean)
-            : (Array.isArray(world_names) ? world_names.slice() : []);
-        const seen = new Set();
+        const names = Array.isArray(world_names) ? world_names.slice() : [];
         for (const n of names) {
             if (!EXTENSION_STATE.modalLorebookStatsSessionActive) return;
             const key = String(n || '').trim();
-            if (!key || seen.has(key)) continue;
-            seen.add(key);
+            if (!key) continue;
             await gigmaGetLorebookStats(key);
-            await gigmaPerfYield();
+            await new Promise(r => setTimeout(r, 0));
         }
     } catch (_e) {}
 }
@@ -11972,8 +12171,8 @@ async function gigmaComputeLorebookStats(entriesObj) {
             }
 
             i += 1;
-            if ((i % gigmaPerfBatchSize(40, 8)) === 0) {
-                await gigmaPerfYield();
+            if ((i % 25) === 0) {
+                await new Promise(r => setTimeout(r, 0));
             }
         }
     } catch (_e) { }
@@ -12254,7 +12453,7 @@ function gigmaObserveModalLorebookStatsRows(forceRefresh = false) {
         const rows = gigmaGetModalLorebookStatsRows(!!forceRefresh);
         if (!rows.length) return;
         let index = 0;
-        const batchSize = gigmaPerfBatchSize(180, 32);
+        const batchSize = 200;
         const step = () => {
             try {
                 if (!gigmaIsOrderingModalActive()) return;
@@ -12389,8 +12588,7 @@ function gigmaRefreshVisibleModalLorebookStats() {
             return;
         }
 
-        const visible = gigmaPerfVisibleRows(window.__gigmaVisibleModalLorebookStatsRows);
-        const rows = visible.length ? visible : gigmaGetModalLorebookStatsRows(false).slice(0, gigmaPerfBatchSize(120, 24));
+        const rows = gigmaGetModalLorebookStatsRows(false);
         for (const row of rows) {
             try {
                 if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
@@ -12431,11 +12629,8 @@ function gigmaUpdateModalLorebookStatsColumnCountsAllRows() {
     try {
         if (!gigmaIsOrderingModalActive()) return;
         const root = gigmaGetOrderingModalStatsRoot() || document;
-        const sourceRows = gigmaPerfIsMobile() ? gigmaPerfVisibleRows(window.__gigmaVisibleModalLorebookStatsRows) : [];
-        const hosts = sourceRows.length
-            ? sourceRows.map(row => row.querySelector ? row.querySelector(':scope > .gigma-row-header-grid > .gigma-row-stats') : null).filter(Boolean)
-            : (root.querySelectorAll ? Array.from(root.querySelectorAll('.gigma-row[data-world] > .gigma-row-header-grid > .gigma-row-stats')) : []);
-        const firstHost = hosts.length ? hosts[0] : root;
+        const hosts = root.querySelectorAll ? root.querySelectorAll('.gigma-row[data-world] > .gigma-row-header-grid > .gigma-row-stats') : [];
+        const firstHost = (hosts && hosts.length) ? hosts[0] : root;
         gigmaRecomputeModalLorebookStatsTargetCountCache(firstHost);
         hosts.forEach((el) => gigmaApplyModalLorebookStatsColumnCount(el));
     } catch (_e) { }
@@ -12445,18 +12640,13 @@ function gigmaUpdateModalLorebookStatsColumnCountsAllRows() {
     try {
         if (window.__gigmaModalLorebookStatsColsResizeBound) return;
         window.__gigmaModalLorebookStatsColsResizeBound = true;
-        let resizeRaf = 0;
         window.addEventListener('resize', () => {
-            if (resizeRaf) return;
-            resizeRaf = requestAnimationFrame(() => {
-                resizeRaf = 0;
-                try { window.__gigmaModalLorebookStatsTargetCountCache = null; } catch (_e) { }
-                try { gigmaUpdateModalLorebookStatsColumnCountsAllRows(); } catch (_e) { }
-                try {
-                    const container = document.getElementById('gigma-global-wi-stats-display-modal');
-                    if (container) gigmaApplyGlobalWiStatsColumnCount(container);
-                } catch (_e) { }
-            });
+            try { window.__gigmaModalLorebookStatsTargetCountCache = null; } catch (_e) { }
+            try { gigmaUpdateModalLorebookStatsColumnCountsAllRows(); } catch (_e) { }
+            try {
+                const container = document.getElementById('gigma-global-wi-stats-display-modal');
+                if (container) gigmaApplyGlobalWiStatsColumnCount(container);
+            } catch (_e) { }
         }, { passive: true });
     } catch (_e) { }
 })();
@@ -12599,17 +12789,19 @@ function gigmaUpdateModalLorebookRowStats(row) {
 function gigmaUpdateModalLorebookStatsAllRows() {
     try {
         if (!gigmaIsOrderingModalActive()) return;
-        const allRows = gigmaGetModalLorebookStatsRows(true);
-        const visible = gigmaPerfVisibleRows(window.__gigmaVisibleModalLorebookStatsRows);
-        const rows = gigmaPerfIsMobile() && visible.length ? visible : allRows.slice(0, gigmaPerfIsMobile() ? 32 : allRows.length);
+        const rows = gigmaGetModalLorebookStatsRows(true);
         for (const row of rows) {
             try {
                 if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
                 gigmaEnsureModalRowStatsHost(row);
+            } catch (_eHost) { }
+        }
+        for (const row of rows) {
+            try {
+                if (!row || !row.isConnected || !row.dataset || !row.dataset.world) continue;
                 gigmaUpdateModalLorebookRowStats(row);
             } catch (_eRow) { }
         }
-        try { gigmaObserveModalLorebookStatsRows(true); } catch (_eObs) { }
         try { gigmaUpdateModalLorebookStatsColumnCountsAllRows(); } catch (_eCols) { }
     } catch (_e) { }
 }
@@ -12622,9 +12814,6 @@ function gigmaMaybeAttachModalLorebookStats(labelEl, worldName) {
         if (!root) return;
         const row = labelEl.closest && labelEl.closest('.gigma-row');
         if (!row) return;
-        gigmaObserveModalLorebookStatsRow(row);
-        const visible = window.__gigmaVisibleModalLorebookStatsRows;
-        if (gigmaPerfIsMobile() && !(visible && typeof visible.has === 'function' && visible.has(row))) return;
         gigmaEnsureModalRowStatsHost(row);
         gigmaUpdateModalLorebookRowStats(row);
     } catch (_e) { }
@@ -14466,21 +14655,13 @@ function gigmaPrimeLayoutPresetTreePreviewLorebookStatsRows(rootOverride) {
     try {
         const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
-        const rows = root.querySelectorAll ? Array.from(root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name], .gigma-layout-preset-tree-row[data-world]')) : [];
-        let index = 0;
-        const batchSize = gigmaPerfBatchSize(120, 24);
-        const step = () => {
-            const end = Math.min(index + batchSize, rows.length);
-            for (; index < end; index += 1) {
-                const row = rows[index];
-                try {
-                    gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row);
-                    gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row);
-                } catch (_eRow) { }
-            }
-            if (index < rows.length) setTimeout(step, gigmaPerfIsMobile() ? 16 : 0);
-        };
-        step();
+        const rows = root.querySelectorAll ? root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name], .gigma-layout-preset-tree-row[data-world]') : [];
+        rows.forEach((row) => {
+            try {
+                gigmaEnsureLayoutPresetTreePreviewRowStatsHost(row);
+                gigmaUpdateLayoutPresetTreePreviewLorebookRowStats(row);
+            } catch (_eRow) { }
+        });
     } catch (_e) { }
 }
 
@@ -14545,17 +14726,10 @@ function gigmaUpdateLayoutPresetTreePreviewLorebookStatsColumnCountsAllRows(root
     try {
         const root = rootOverride || gigmaGetLatestLayoutPresetTreePreviewRoot();
         if (!root) return;
-        const hosts = root.querySelectorAll ? Array.from(root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name] > .gigma-layout-preset-tree-row-stats')) : [];
-        const firstHost = hosts.length ? hosts[0] : null;
+        const hosts = root.querySelectorAll ? root.querySelectorAll('.gigma-layout-preset-tree-row[data-world-name] > .gigma-layout-preset-tree-row-stats') : [];
+        const firstHost = (hosts && hosts.length) ? hosts[0] : null;
         gigmaRecomputeLayoutPresetTreePreviewLorebookStatsTargetCountCache(firstHost || root);
-        let index = 0;
-        const batchSize = gigmaPerfBatchSize(180, 40);
-        const step = () => {
-            const end = Math.min(index + batchSize, hosts.length);
-            for (; index < end; index += 1) gigmaApplyLayoutPresetTreePreviewLorebookStatsColumnCount(hosts[index]);
-            if (index < hosts.length) setTimeout(step, gigmaPerfIsMobile() ? 16 : 0);
-        };
-        step();
+        hosts.forEach((el) => gigmaApplyLayoutPresetTreePreviewLorebookStatsColumnCount(el));
     } catch (_e) { }
 }
 
@@ -14563,19 +14737,14 @@ function gigmaUpdateLayoutPresetTreePreviewLorebookStatsColumnCountsAllRows(root
     try {
         if (window.__gigmaLayoutPresetTreePreviewLorebookStatsColsResizeBound) return;
         window.__gigmaLayoutPresetTreePreviewLorebookStatsColsResizeBound = true;
-        let resizeRaf = 0;
         window.addEventListener('resize', () => {
-            if (resizeRaf) return;
-            resizeRaf = requestAnimationFrame(() => {
-                resizeRaf = 0;
-                try { window.__gigmaLayoutPresetTreePreviewLorebookStatsTargetCountCache = null; } catch (_e) { }
-                try { gigmaUpdateLayoutPresetTreePreviewLorebookStatsColumnCountsAllRows(); } catch (_e) { }
-                try {
-                    const root = gigmaGetLatestLayoutPresetTreePreviewRoot();
-                    const container = root ? root.querySelector('#gigma-global-wi-stats-display-preview') : null;
-                    if (container) gigmaApplyGlobalWiStatsColumnCount(container);
-                } catch (_e) { }
-            });
+            try { window.__gigmaLayoutPresetTreePreviewLorebookStatsTargetCountCache = null; } catch (_e) { }
+            try { gigmaUpdateLayoutPresetTreePreviewLorebookStatsColumnCountsAllRows(); } catch (_e) { }
+            try {
+                const root = gigmaGetLatestLayoutPresetTreePreviewRoot();
+                const container = root ? root.querySelector('#gigma-global-wi-stats-display-preview') : null;
+                if (container) gigmaApplyGlobalWiStatsColumnCount(container);
+            } catch (_e) { }
         }, { passive: true });
     } catch (_e) { }
 })();
@@ -24851,6 +25020,10 @@ async function populateOrderingList(opts = {}) {
             // press so the drag starts immediately with no rename affordance.
             try {
                 if (f && f.classList && f.classList.contains('gigma-selected')) {
+                    if (gigmaIsMobileFullscreenActive() || (typeof isMobile === 'function' && isMobile())) {
+                        ev._gigmaTitlePress = true;
+                        title._gigmaDownAt = performance.now();
+                    }
                     return;
                 }
             } catch (_) {}
@@ -24859,6 +25032,16 @@ async function populateOrderingList(opts = {}) {
             title._gigmaDownAt = performance.now();
         });
         title.addEventListener('click', (ev) => {
+            // A mobile double-tap selection may still emit a synthetic click on the folder title.
+            // Ignore only that confirmed second-tap click so one-tap rename still works.
+            try {
+                const guard = window.__gigmaSuppressFolderRenameClick;
+                if (guard && guard.folderEl === f && Date.now() < guard.until) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    return;
+                }
+            } catch (_) {}
             // While Retrospective Order Adjustment mode is active, disable inline folder rename.
             try {
                 if (typeof gigmaIsAnyRetroOrderEnabled === 'function' && gigmaIsAnyRetroOrderEnabled()) {
@@ -24886,11 +25069,16 @@ async function populateOrderingList(opts = {}) {
                 window.gigmaJustCutOrCopied = false; // consume once
                 return;
             }
-            // GIGMA: When this folder is already selected, clicking the title should
-            // act only as a drag/selection gesture, not enter inline rename. Swallow
-            // the click so the global selection handler doesn't clear the selection.
+            // On mobile, a single tap on the folder name must enter rename immediately.
+            // A second tap on that freshly opened textarea is handled by the mobile
+            // double-tap selector below, which cancels rename and selects the folder.
+            const isMobileFolderTitleClick = (() => {
+                try { return !!(gigmaIsMobileFullscreenActive() || (typeof isMobile === 'function' && isMobile())); } catch (_) { return false; }
+            })();
+            // GIGMA: On desktop, a selected folder title remains a drag/selection handle.
+            // Mobile keeps the requested one-tap rename behavior for the title field.
             try {
-                if (f && f.classList && f.classList.contains('gigma-selected')) {
+                if (!isMobileFolderTitleClick && f && f.classList && f.classList.contains('gigma-selected')) {
                     ev.stopPropagation();
                     return;
                 }
@@ -24919,6 +25107,11 @@ async function populateOrderingList(opts = {}) {
             title.replaceChildren(textarea);
             textarea.focus();
             textarea.select();
+            try {
+                if (isMobileFolderTitleClick) {
+                    window.__gigmaMobileFolderRenameTap = { folderEl: f, textarea, time: Date.now() };
+                }
+            } catch (_) {}
             const autoResize = () => {
                 textarea.rows = 1;
                 textarea.style.minHeight = '0';
@@ -24986,6 +25179,7 @@ async function populateOrderingList(opts = {}) {
                 title.textContent = old;
                 try { gigmaAdjustFolderHeaderHeights(); } catch (_e) {}
             };
+            try { textarea._gigmaCancelFolderRenameForSelection = cancel; } catch (_) {}
             // Keyboard behavior:
             //  - Enter (no Shift) commits
             //  - Escape cancels
@@ -26894,39 +27088,28 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
     window.gigmaSkinPreviewAndFolderButtons = skinAll;
 
     let queued = false;
-    let queuedScopes = [];
-    const scheduleSkin = (scope) => {
+    const scheduleSkin = () => {
       try{
-        if (scope) queuedScopes.push(scope);
         if (queued) return;
         queued = true;
-        requestAnimationFrame(() => {
+        queueMicrotask(() => {
           queued = false;
-          const scopes = queuedScopes.length ? queuedScopes.splice(0, queuedScopes.length) : [document];
-          for (const item of scopes) {
-            try{ skinAll(item); }catch(_){ }
-          }
+          try{ skinAll(document); }catch(_){ }
         });
       }catch(_){
         queued = false;
-        try{ skinAll(scope || document); }catch(__){ }
+        try{ skinAll(document); }catch(__){ }
       }
     };
 
     try{
-      const obs = new MutationObserver((muts) => {
-        for (const m of muts || []) {
-          for (const n of m.addedNodes || []) {
-            if (n && n.nodeType === 1) scheduleSkin(n);
-          }
-        }
-      });
-      obs.observe(document.documentElement, { subtree:true, childList:true });
+      const obs = new MutationObserver(() => { scheduleSkin(); });
+      obs.observe(document.documentElement, { subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:['class','style'] });
       window.__gigmaIconizePreviewAndFolderButtonsObserver = obs;
     }catch(_){ }
 
-    try{ window.addEventListener('resize', () => scheduleSkin(document), { passive:true }); }catch(_){ }
-    scheduleSkin(document);
+    try{ window.addEventListener('resize', scheduleSkin, { passive:true }); }catch(_){ }
+    scheduleSkin();
   }catch(_){ }
 })();
 
@@ -33062,40 +33245,98 @@ inside.parentElement.removeChild(inside);
                     document.addEventListener('pointerdown', onDropPointerDown, true);
                 }
             };
-            if (scope === 'row' && ev.pointerType === 'touch' && ev.button === 0) {
+            if (ev.pointerType === 'touch' && ev.button === 0 && fromTitle) {
+                if (ev.isPrimary === false) return;
                 let pressed = true;
                 let moved = false;
+                let timer = null;
                 const startX = ev.clientX || 0;
                 const startY = ev.clientY || 0;
-                const dragThreshold = 10; // Finger movement above this is scrolling, not dragging.
-                let timer = null;
-                const cleanupTouchRowDragGate = () => {
+                const dragThreshold = 10; // Finger movement before the hold means this is scrolling, not dragging.
+                const cleanupTouchTitleDragGate = () => {
                     pressed = false;
-                    document.removeEventListener('pointermove', onTouchRowMove, true);
-                    document.removeEventListener('pointerup', cleanupTouchRowDragGate, true);
-                    document.removeEventListener('pointercancel', cleanupTouchRowDragGate, true);
                     if (timer !== null) clearTimeout(timer);
+                    timer = null;
+                    document.removeEventListener('pointermove', onTouchTitleMoveBeforeHold, true);
+                    document.removeEventListener('pointerdown', onOtherTitleTouchDown, true);
+                    document.removeEventListener('pointerup', cleanupTouchTitleDragGate, true);
+                    document.removeEventListener('pointercancel', cleanupTouchTitleDragGate, true);
                 };
-                const startTouchRowDrag = () => {
+                const startTouchTitleDrag = () => {
                     if (!pressed || moved) return;
-                    cleanupTouchRowDragGate();
+                    cleanupTouchTitleDragGate();
                     startDrag();
                 };
-                const onTouchRowMove = (eMove) => {
-                    if (!pressed) return;
+                const onTouchTitleMoveBeforeHold = (eMove) => {
+                    if (!pressed || eMove.pointerId !== ev.pointerId) return;
                     const mx = (typeof eMove.clientX === 'number') ? eMove.clientX : startX;
                     const my = (typeof eMove.clientY === 'number') ? eMove.clientY : startY;
                     const dx = mx - startX;
                     const dy = my - startY;
                     if ((dx * dx + dy * dy) >= (dragThreshold * dragThreshold)) {
                         moved = true;
-                        cleanupTouchRowDragGate();
+                        cleanupTouchTitleDragGate();
                     }
                 };
-                timer = setTimeout(startTouchRowDrag, 250);
-                document.addEventListener('pointermove', onTouchRowMove, true);
-                document.addEventListener('pointerup', cleanupTouchRowDragGate, true);
-                document.addEventListener('pointercancel', cleanupTouchRowDragGate, true);
+                const onOtherTitleTouchDown = (eDown) => {
+                    if (!pressed) return;
+                    if (eDown.pointerType === 'touch' && eDown.pointerId !== ev.pointerId) {
+                        moved = true;
+                        cleanupTouchTitleDragGate();
+                    }
+                };
+                timer = setTimeout(startTouchTitleDrag, 500);
+                document.addEventListener('pointermove', onTouchTitleMoveBeforeHold, true);
+                document.addEventListener('pointerdown', onOtherTitleTouchDown, true);
+                document.addEventListener('pointerup', cleanupTouchTitleDragGate, true);
+                document.addEventListener('pointercancel', cleanupTouchTitleDragGate, true);
+                return;
+            }
+            if (ev.pointerType === 'touch' && ev.button === 0) {
+                if (ev.isPrimary === false) return;
+                let pressed = true;
+                let moved = false;
+                let timer = null;
+                const startX = ev.clientX || 0;
+                const startY = ev.clientY || 0;
+                const dragThreshold = 10; // Finger movement before the hold means this is scrolling, not dragging.
+                const cleanupTouchDragGate = () => {
+                    pressed = false;
+                    if (timer !== null) clearTimeout(timer);
+                    timer = null;
+                    document.removeEventListener('pointermove', onTouchMoveBeforeHold, true);
+                    document.removeEventListener('pointerdown', onOtherTouchDown, true);
+                    document.removeEventListener('pointerup', cleanupTouchDragGate, true);
+                    document.removeEventListener('pointercancel', cleanupTouchDragGate, true);
+                };
+                const startTouchDrag = () => {
+                    if (!pressed || moved) return;
+                    cleanupTouchDragGate();
+                    startDrag();
+                };
+                const onTouchMoveBeforeHold = (eMove) => {
+                    if (!pressed || eMove.pointerId !== ev.pointerId) return;
+                    const mx = (typeof eMove.clientX === 'number') ? eMove.clientX : startX;
+                    const my = (typeof eMove.clientY === 'number') ? eMove.clientY : startY;
+                    const dx = mx - startX;
+                    const dy = my - startY;
+                    if ((dx * dx + dy * dy) >= (dragThreshold * dragThreshold)) {
+                        moved = true;
+                        cleanupTouchDragGate();
+                    }
+                };
+                const onOtherTouchDown = (eDown) => {
+                    if (!pressed) return;
+                    if (eDown.pointerType === 'touch' && eDown.pointerId !== ev.pointerId) {
+                        moved = true;
+                        cleanupTouchDragGate();
+                    }
+                };
+                timer = setTimeout(startTouchDrag, 500);
+                document.addEventListener('pointermove', onTouchMoveBeforeHold, true);
+                document.addEventListener('pointerdown', onOtherTouchDown, true);
+                document.addEventListener('pointerup', cleanupTouchDragGate, true);
+                document.addEventListener('pointercancel', cleanupTouchDragGate, true);
                 return;
             }
             if (fromTitle && ev.button === 0) {
@@ -34001,6 +34242,15 @@ if (collapse && !isRight) {
             flex:1 1 auto;
             min-width:0;
           }
+          #gigma-layout-preset-tree-preview-root .gigma-pane-search-row{
+            height:2.25em !important;
+            min-height:2.25em !important;
+          }
+          #gigma-layout-preset-tree-preview-root .gigma-pane-search-input{
+            max-width:calc(100% - 0.125em);
+            margin-left:0.0625em;
+            margin-right:0.0625em;
+          }
           .gigma-pane-search-clear{
             position:absolute;
             right:0.35em;
@@ -34027,13 +34277,15 @@ if (collapse && !isRight) {
             border: 0.0625em solid rgba(255,255,255,0.12);
             border-radius: 0.375em;
             background: rgba(0,0,0,0.18);
-            height: 12.25em; /* 7 items @ 1.75em */
-            overflow-y: auto;
-            overflow-x: hidden;
+            height: var(--gigma-pane-search-results-height);
+            overflow:hidden;
             position:relative;
           }
           .gigma-pane-search-results-list{
-            min-height:100%;
+            height:100%;
+            min-height:0;
+            overflow-y:auto;
+            overflow-x:hidden;
           }
           .gigma-pane-search-controls-row,
           .gigma-pane-search-qualifiers-row{
@@ -34054,6 +34306,21 @@ if (collapse && !isRight) {
           }
           .gigma-pane-search-qualifiers-row{
             bottom:0.25em;
+          }
+          html.gigma-mobile-fullscreen #gigma-modal-root .gigma-pane-search-controls-row,
+          html.gigma-mobile-fullscreen #gigma-modal-root .gigma-pane-search-qualifiers-row{
+            inset:0;
+            right:auto;
+            bottom:auto;
+            width:100%;
+            height:100%;
+            overflow:hidden;
+            pointer-events:none;
+          }
+          html.gigma-mobile-fullscreen #gigma-modal-root .gigma-pane-search-controls-row .gigma-pane-search-qualifier,
+          html.gigma-mobile-fullscreen #gigma-modal-root .gigma-pane-search-qualifiers-row .gigma-pane-search-qualifier{
+            position:absolute;
+            pointer-events:auto;
           }
           .gigma-pane-search-qualifier{
             width:2em;
@@ -35272,7 +35539,9 @@ function ensureSearchUiBits(state){
           btn.innerHTML = '<span class="gigma-pane-search-icon" aria-hidden="true"></span>';
           controlRow.appendChild(btn);
         }
-        state.host.appendChild(controlRow);
+        state.results.appendChild(controlRow);
+      } else if (controlRow.parentNode !== state.results) {
+        state.results.appendChild(controlRow);
       }
       state.controlRow = controlRow;
       wirePaneSearchButtonRow(state, controlRow);
@@ -35303,13 +35572,97 @@ function ensureSearchUiBits(state){
         toggleBtn.setAttribute('aria-label', toggleDef.title);
         toggleBtn.innerHTML = '<span class="gigma-pane-search-icon" aria-hidden="true">' + toggleDef.iconHtml + '</span>';
         row.appendChild(toggleBtn);
-        state.host.appendChild(row);
+        state.results.appendChild(row);
+      } else if (row.parentNode !== state.results) {
+        state.results.appendChild(row);
       }
       state.qualifierRow = row;
       wirePaneSearchButtonRow(state, row);
     }
 
     syncSearchUiBits(state);
+  }catch(_){ }
+}
+
+
+function resetMobileSearchQualifierLayout(state){
+  try{
+    const rows = [state && state.controlRow, state && state.qualifierRow];
+    for (const row of rows){
+      if (!row) continue;
+      row.style.position = '';
+      row.style.inset = '';
+      row.style.right = '';
+      row.style.bottom = '';
+      row.style.width = '';
+      row.style.height = '';
+      row.style.overflow = '';
+      row.style.pointerEvents = '';
+      row.querySelectorAll('.gigma-pane-search-qualifier').forEach((btn)=>{
+        try{
+          btn.style.position = '';
+          btn.style.right = '';
+          btn.style.bottom = '';
+          btn.style.display = '';
+        }catch(_){ }
+      });
+    }
+  }catch(_){ }
+}
+
+function syncMobileSearchQualifierLayout(state){
+  try{
+    if (!state || !state.results || !state.qualifierRow) return;
+    if (!gigmaIsMobileFullscreenActive()) {
+      resetMobileSearchQualifierLayout(state);
+      return;
+    }
+    const rect = state.results.getBoundingClientRect();
+    if (!(rect.width > 0 && rect.height > 0)) return;
+    const showQualifiers = !!getQualifierButtonsVisible();
+    const em = Math.max(1, parseFloat(window.getComputedStyle(state.results).fontSize) || 16);
+    const size = 2 * em;
+    const gap = 0.25 * em;
+    const rightMargin = 0.25 * em;
+    const bottomMargin = 0.25 * em;
+    const topMargin = (state.which === 'preview') ? (0.6 * em) : (0.25 * em);
+    const step = size + gap;
+    const rowsPerColumn = Math.max(1, Math.floor((rect.height - bottomMargin - topMargin + gap) / step));
+
+    const placeButton = (btn, slot) => {
+      try{
+        const col = Math.floor(slot / rowsPerColumn);
+        const row = slot % rowsPerColumn;
+        const right = rightMargin + (col * step);
+        const bottom = bottomMargin + (row * step);
+        btn.style.position = 'absolute';
+        btn.style.right = right + 'px';
+        btn.style.bottom = bottom + 'px';
+        btn.style.display = (right + size <= rect.width - rightMargin && bottom + size <= rect.height - topMargin) ? 'inline-flex' : 'none';
+      }catch(_){ }
+    };
+
+    const rows = [state.controlRow, state.qualifierRow];
+    for (const row of rows){
+      if (!row) continue;
+      row.style.position = 'absolute';
+      row.style.inset = '0';
+      row.style.width = '100%';
+      row.style.height = '100%';
+      row.style.overflow = 'hidden';
+      row.style.pointerEvents = 'none';
+    }
+
+    const toggle = state.qualifierRow.querySelector('.gigma-pane-search-qualifier-toggle[data-gigma-q-toggle]');
+    if (toggle) placeButton(toggle, 0);
+
+    const flow = [];
+    if (state.controlRow) flow.push(...Array.from(state.controlRow.querySelectorAll('.gigma-pane-search-qualifier[data-gigma-q-control]')));
+    flow.push(...Array.from(state.qualifierRow.querySelectorAll('.gigma-pane-search-qualifier[data-gigma-q]')));
+    flow.forEach((btn, index)=>{
+      if (showQualifiers) placeButton(btn, index + 1);
+      else btn.style.display = 'none';
+    });
   }catch(_){ }
 }
 
@@ -35371,12 +35724,54 @@ function syncSearchUiBits(state){
         toggleBtn.setAttribute('aria-disabled', 'false');
       }
     }
+    syncMobileSearchQualifierLayout(state);
   }catch(_){ }
 }
 
 function syncSearchUiBitsAll(){
   try{
     Object.values(STATES).forEach((s)=>{ try{ ensureSearchUiBits(s); }catch(_){ } });
+  }catch(_){ }
+}
+
+function getPaneSearchHeightSource(state){
+  try{
+    if (!state) return null;
+    if (state.which === 'left') return document.getElementById('gigma-ordering-container');
+    if (state.which === 'right') return document.querySelector('.gigma-unsorted-pane');
+    if (state.which === 'preview') return state.previewRoot?.querySelector('.gigma-layout-preset-tree-display-wrap') || state.previewRoot?.querySelector('.gigma-layout-preset-tree') || state.previewRoot;
+  }catch(_){ }
+  return null;
+}
+
+function capturePreviewSearchPaneHeight(state){
+  try{
+    if (!state || state.which !== 'preview') return;
+    const pane = getPaneSearchHeightSource(state);
+    if (!pane || !pane.getBoundingClientRect) return;
+    const rect = pane.getBoundingClientRect();
+    if (rect.height > 0) state.__gigmaPaneSearchBaseHeight = rect.height;
+  }catch(_){ }
+}
+
+function syncPaneSearchResultsHeight(state){
+  try{
+    if (!state || !state.results) return;
+    const pane = getPaneSearchHeightSource(state);
+    if (!pane || !pane.getBoundingClientRect) return;
+    const rect = pane.getBoundingClientRect();
+    if (!(rect.height > 0)) return;
+    const height = (state.which === 'preview' && state.__gigmaPaneSearchBaseHeight > rect.height) ? state.__gigmaPaneSearchBaseHeight : rect.height;
+    state.results.style.setProperty('--gigma-pane-search-results-height', Math.max(1, Math.floor(height * 0.3)) + 'px');
+    syncMobileSearchQualifierLayout(state);
+  }catch(_){ }
+}
+
+function syncOpenSearchResultHeights(){
+  try{
+    Object.values(STATES).forEach((state)=>{
+      try{ if (state && state.open) syncPaneSearchResultsHeight(state); }catch(_){ }
+    });
   }catch(_){ }
 }
 
@@ -36064,11 +36459,20 @@ function installPaneSearchKeyboardNav(){
   }catch(_){ }
 }
 
+(function gigmaPaneSearchHeightSyncOnce(){
+  try{
+    if (window.__gigmaPaneSearchHeightSyncInstalled) return;
+    window.__gigmaPaneSearchHeightSyncInstalled = true;
+    window.addEventListener('resize', syncOpenSearchResultHeights, { passive:true });
+    window.addEventListener('orientationchange', syncOpenSearchResultHeights, { passive:true });
+  }catch(_){ }
+})();
 
 function renderResults(state){
   try{
     if (!state || !state.results || !state.input) return;
     ensureSearchUiBits(state);
+    syncPaneSearchResultsHeight(state);
     try{ syncSearchKeyboardSelection(state); }catch(_){ }
 
     const qRaw = (state.input.value || '');
@@ -36111,6 +36515,7 @@ function renderResults(state){
         else syncSearchKeyboardSelection(state);
       }catch(_){ }
       state.results.style.display = state.open ? 'block' : 'none';
+      syncPaneSearchResultsHeight(state);
       syncSearchUiBits(state);
       return;
     }
@@ -36202,6 +36607,7 @@ function renderResults(state){
       else state.results.appendChild(div);
     }
     state.results.style.display = 'block';
+    syncPaneSearchResultsHeight(state);
     try{ syncSearchKeyboardSelection(state); }catch(_){ }
     syncSearchUiBits(state);
   }catch(_){ }
@@ -36212,14 +36618,18 @@ function openSearch(state){
       try{
         if (!state || !state.group || !state.host || !state.input) return;
         try{ closeDistribution(state); }catch(_){ }
-        // Fix row height to match the button row height.
+        // In preview vertical view, the button group can wrap to multiple rows.
+        // Match the single search button height so the search input stays one line.
         try{
-          const h = state.group.getBoundingClientRect ? state.group.getBoundingClientRect().height : state.group.offsetHeight;
+          const heightSource = (state.which === 'preview' && state.searchBtn) ? state.searchBtn : state.group;
+          const h = heightSource.getBoundingClientRect ? heightSource.getBoundingClientRect().height : heightSource.offsetHeight;
           if (h) state.row.style.height = h + 'px';
         }catch(_){ }
+        capturePreviewSearchPaneHeight(state);
         state.group.style.display = 'none';
         state.host.style.display = 'block';
         state.open = true;
+        syncPaneSearchResultsHeight(state);
         try{ clearSearchKeyboardSelection(state); }catch(_){ }
 
         try{ ensureSearchUiBits(state); }catch(_){ }
@@ -36703,20 +37113,7 @@ function openSearch(state){
         if (raf) return;
         raf = requestAnimationFrame(()=>{ raf = 0; ensureAll(); });
       };
-      const obs = new MutationObserver((muts)=>{
-        try{
-          for (const m of muts || []) {
-            for (const n of m.addedNodes || []) {
-              if (!(n && n.nodeType === 1)) continue;
-              if (n.id === 'gigma-ordering-container' || n.id === 'gigma-ordering-list' || n.id === 'gigma-layout-preset-tree-preview-root' ||
-                  (n.querySelector && n.querySelector('#gigma-ordering-container, #gigma-ordering-list, #gigma-layout-preset-tree-preview-root'))) {
-                schedule();
-                return;
-              }
-            }
-          }
-        }catch(_){ }
-      });
+      const obs = new MutationObserver(()=>schedule());
       obs.observe(document.documentElement, {subtree:true, childList:true});
       window.__gigmaPaneSearchObs = obs;
     }
@@ -41034,18 +41431,7 @@ function gigmaEnsureDuplicateSentenceToolbarButton() {
             schedule();
         }
 
-        const observer = new MutationObserver((muts) => {
-            for (const m of muts || []) {
-                for (const n of m.addedNodes || []) {
-                    if (!(n && n.nodeType === 1)) continue;
-                    if (n.id === 'world_refresh' || n.id === 'world_editor_select' || n.id === 'WorldInfo' ||
-                        (n.querySelector && n.querySelector('#world_refresh, #world_editor_select, #WorldInfo'))) {
-                        schedule();
-                        return;
-                    }
-                }
-            }
-        });
+        const observer = new MutationObserver(() => schedule());
         observer.observe(document.documentElement || document.body, { childList: true, subtree: true });
     } catch (_eDuplicateSentenceToolbarButtonOnce) { }
 })();
@@ -50160,17 +50546,9 @@ function gigmaInstallPromptManagerGlobalTokenRefreshButton() {
         gigmaInjectPromptManagerGlobalTokenRefreshStyles();
         gigmaInjectPromptManagerGlobalTokenRefreshButton();
 
-        const obs = new MutationObserver((muts) => {
+        const obs = new MutationObserver(() => {
             try {
-                for (const m of muts || []) {
-                    for (const n of m.addedNodes || []) {
-                        if (!(n && n.nodeType === 1)) continue;
-                        if (n.classList?.contains('completion_prompt_manager_header') || n.querySelector?.('.completion_prompt_manager_header')) {
-                            gigmaInjectPromptManagerGlobalTokenRefreshButton();
-                            return;
-                        }
-                    }
-                }
+                gigmaInjectPromptManagerGlobalTokenRefreshButton();
             } catch (_e) {}
         });
         obs.observe(root, { childList: true, subtree: true });
@@ -50618,7 +50996,7 @@ async function init() {
             gigmaInstallWorldInfoLorebookStatsIndexHooksOnce();
             gigmaInstallWorldInfoIdMutationHooksOnce();
             gigmaInstallTokenizerChangeHooksOnce();
-            setTimeout(() => scheduleBackground(() => gigmaSyncAllLorebookIdsAndStatsIndex()), gigmaPerfIsMobile() ? 1200 : 0);
+            scheduleBackground(() => gigmaSyncAllLorebookIdsAndStatsIndex());
 
         } catch (error) {
             console.error('Failed to load GIGMA extension:', error);
@@ -52178,6 +52556,279 @@ function gigmaBindSelectionHandlers() {
     // or applying a preset). We tag the DOM node once and skip rebinding on reuse
     // of the same container element.
     if (clickRoot.__gigmaSelectionHandlerBound) return;
+    // Mobile selection is touch-only: double-tap selects/toggles, single-tap outside selection clears like desktop.
+    if (!clickRoot.__gigmaMobileDoubleTapSelectionBound) {
+        const tapState = { active: null, last: null, tripleCandidate: null, rangeAnchor: null, pendingClear: null, pendingToggle: null };
+        const isMobileTouch = () => {
+            try { return !!gigmaIsMobileFullscreenActive(); } catch (_) {}
+            try { return !!isMobile(); } catch (_) {}
+            return false;
+        };
+        const getTouchedSelectable = (target) => {
+            if (!(target instanceof HTMLElement)) return null;
+            const freshRename = (() => {
+                try {
+                    if (!target.matches('textarea.gigma-rename-input')) return null;
+                    const info = window.__gigmaMobileFolderRenameTap;
+                    if (!info || info.textarea !== target || (Date.now() - info.time) > 500) return null;
+                    const folderEl = target.closest('.gigma-folder');
+                    return (folderEl && folderEl === info.folderEl) ? folderEl : null;
+                } catch (_) { return null; }
+            })();
+            if (freshRename) return freshRename;
+            const tag = target.tagName.toLowerCase();
+            if (['input','select','textarea','button','label'].includes(tag)) return null;
+            let el = target.closest('.gigma-row');
+            if (!el) {
+                const header = target.closest('.gigma-folder-header');
+                if (header) el = header.closest('.gigma-folder');
+            }
+            if (!el || !(el.classList.contains('gigma-row') || el.classList.contains('gigma-folder'))) return null;
+            if (typeof gigmaIsSelectableItem === 'function' && !gigmaIsSelectableItem(el)) return null;
+            try {
+                if (typeof gigmaIsAnyRetroOrderEnabled === 'function' && gigmaIsAnyRetroOrderEnabled() && el.classList.contains('gigma-folder')) return null;
+            } catch (_) {}
+            return el;
+        };
+        const getSelectedElsForMobileDeselect = () => {
+            try {
+                const sel = window.gigmaSelection;
+                if (sel && sel.items && sel.items.size) return Array.from(sel.items);
+            } catch (_) {}
+            try {
+                return Array.from(document.querySelectorAll('.gigma-selected'));
+            } catch (_) {}
+            return [];
+        };
+        const isMobileEventInsideAny = (evt, elements) => {
+            if (!evt || !elements || !elements.length) return false;
+            const target = evt.target;
+            const path = typeof evt.composedPath === 'function' ? evt.composedPath() : null;
+            return elements.some(el => {
+                if (!el) return false;
+                if (el === target) return true;
+                try { if (path && path.includes(el)) return true; } catch (_) {}
+                try { return !!(el.contains && el.contains(target)); } catch (_) { return false; }
+            });
+        };
+        const getMobileDeselectHost = (target) => {
+            if (!(target instanceof HTMLElement)) return null;
+            const tag = target.tagName.toLowerCase();
+            if (['input','select','textarea','button','label'].includes(tag)) return null;
+            if (target.closest('button, input, select, textarea, a, label')) return null;
+            if (target.closest('.gigma-pane-search-host, #gigma-search-folders, #gigma-search-folders-right')) return null;
+            try {
+                if (document.documentElement && document.documentElement.classList && document.documentElement.classList.contains('gigma-budget-mode-active')) {
+                    if (target.closest('.gigma-folder-header')) return null;
+                }
+            } catch (_) {}
+            try {
+                if (typeof window.gigmaIsDistributionUiTarget === 'function' && window.gigmaIsDistributionUiTarget(target)) return null;
+            } catch (_) {}
+            return target.closest('#gigma-ordering-container, #gigma-ordering-list, .gigma-unsorted-pane, .gigma-unsorted-content, .gigma-focus-pane-list, .gigma-folder-list');
+        };
+        const cancelPendingClear = () => {
+            try {
+                if (tapState.pendingClear && tapState.pendingClear.timer) clearTimeout(tapState.pendingClear.timer);
+            } catch (_) {}
+            tapState.pendingClear = null;
+        };
+        const cancelPendingToggle = () => {
+            try {
+                if (tapState.pendingToggle && tapState.pendingToggle.timer) clearTimeout(tapState.pendingToggle.timer);
+            } catch (_) {}
+            tapState.pendingToggle = null;
+        };
+        const runMobileClearSelection = () => {
+            const selectedEls = getSelectedElsForMobileDeselect();
+            if (!selectedEls.length) return;
+            try {
+                if (typeof window.gigmaClearSelection === 'function') {
+                    window.gigmaClearSelection();
+                } else if (typeof gigmaClearSelection === 'function') {
+                    gigmaClearSelection();
+                }
+            } catch (_) {}
+            try {
+                selectedEls.forEach(el => el && el.classList && el.classList.remove('gigma-selected'));
+            } catch (_) {}
+            try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
+        };
+        const scheduleMobileClearSelection = (delay) => {
+            cancelPendingClear();
+            if (delay > 0) {
+                tapState.pendingClear = {
+                    timer: setTimeout(() => {
+                        tapState.pendingClear = null;
+                        tapState.last = null;
+                        runMobileClearSelection();
+                    }, delay),
+                };
+            } else {
+                tapState.last = null;
+                runMobileClearSelection();
+            }
+        };
+        const suppressMobileFolderRenameForSelection = (el) => {
+            try {
+                if (el && el.classList && el.classList.contains('gigma-folder')) {
+                    window.__gigmaSuppressFolderRenameClick = { folderEl: el, until: Date.now() + 700 };
+                    const edit = el.querySelector('textarea.gigma-rename-input');
+                    if (edit && typeof edit._gigmaCancelFolderRenameForSelection === 'function') {
+                        edit._gigmaCancelFolderRenameForSelection();
+                    }
+                    if (window.__gigmaMobileFolderRenameTap && window.__gigmaMobileFolderRenameTap.folderEl === el) {
+                        window.__gigmaMobileFolderRenameTap = null;
+                    }
+                }
+            } catch (_) {}
+        };
+        const isMobileSelected = (el) => {
+            try {
+                const sel = window.gigmaSelection;
+                if (sel && sel.items && sel.items.has(el)) return true;
+            } catch (_) {}
+            try { return !!(el && el.classList && el.classList.contains('gigma-selected')); } catch (_) {}
+            return false;
+        };
+        const addMobileSelectionOnly = (els, anchorEl) => {
+            const sel = window.gigmaSelection || (window.gigmaSelection = { items: new Set(), anchor: null });
+            try {
+                gigmaCollectWithDescendants(els).forEach(node => {
+                    if (!node || !node.classList) return;
+                    node.classList.add('gigma-selected');
+                    sel.items.add(node);
+                });
+            } catch (_) {}
+            sel.anchor = anchorEl || sel.anchor || (els && els[0]) || null;
+        };
+        const applyMobileSelection = (el) => {
+            cancelPendingClear();
+            suppressMobileFolderRenameForSelection(el);
+            // Double-tap on mobile behaves like Ctrl-click: toggle this item without wiping the current selection.
+            gigmaToggleSelection(el);
+            try { gigmaPruneSelectedParentUnchainedLorebooksFromModifierSelection(); } catch (_) {}
+            try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
+        };
+        const scheduleMobileSelectionToggle = (el, delay) => {
+            cancelPendingToggle();
+            if (delay > 0) {
+                tapState.pendingToggle = {
+                    timer: setTimeout(() => {
+                        tapState.pendingToggle = null;
+                        applyMobileSelection(el);
+                    }, delay),
+                };
+            } else {
+                applyMobileSelection(el);
+            }
+        };
+        const applyMobileRangeSelection = (el) => {
+            cancelPendingClear();
+            cancelPendingToggle();
+            suppressMobileFolderRenameForSelection(el);
+            const anchor = tapState.rangeAnchor;
+            if (anchor && anchor.isConnected && anchor !== el) {
+                const keepSelected = getSelectedElsForMobileDeselect();
+                window.gigmaSelection.anchor = anchor;
+                gigmaRangeSelect(el);
+                addMobileSelectionOnly(keepSelected, anchor);
+                window.gigmaSelection.anchor = anchor;
+                tapState.rangeAnchor = null;
+            } else {
+                addMobileSelectionOnly([el], el);
+                tapState.rangeAnchor = el;
+            }
+            try { gigmaPruneSelectedParentUnchainedLorebooksFromModifierSelection(); } catch (_) {}
+            try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
+        };
+        clickRoot.addEventListener('pointerdown', (ev) => {
+            if (!isMobileTouch() || ev.pointerType !== 'touch' || ev.button !== 0) return;
+            if (ev.isPrimary === false) {
+                if (tapState.active) tapState.active.multi = true;
+                return;
+            }
+            const el = getTouchedSelectable(ev.target);
+            const clearHost = getMobileDeselectHost(ev.target);
+            if (!el && !clearHost) return;
+            const selectedEls = getSelectedElsForMobileDeselect();
+            const insideSelected = selectedEls.length ? isMobileEventInsideAny(ev, selectedEls) : false;
+            if (el && tapState.last && tapState.last.el === el && (Date.now() - tapState.last.time) <= 500) {
+                cancelPendingClear();
+            }
+            tapState.active = {
+                pointerId: ev.pointerId,
+                el,
+                clearAll: !!(selectedEls.length && !insideSelected && clearHost),
+                clearCanBecomeDoubleTap: !!el,
+                x: ev.clientX || 0,
+                y: ev.clientY || 0,
+                time: Date.now(),
+                moved: false,
+                multi: false,
+            };
+        }, true);
+        clickRoot.addEventListener('pointermove', (ev) => {
+            const active = tapState.active;
+            if (!active || ev.pointerId !== active.pointerId) return;
+            const dx = (ev.clientX || 0) - active.x;
+            const dy = (ev.clientY || 0) - active.y;
+            if ((dx * dx + dy * dy) >= 100) active.moved = true;
+        }, true);
+        const clearActiveTap = (ev) => {
+            const active = tapState.active;
+            if (!active || (ev && ev.pointerId !== active.pointerId)) return;
+            tapState.active = null;
+        };
+        clickRoot.addEventListener('pointercancel', clearActiveTap, true);
+        clickRoot.addEventListener('pointerup', (ev) => {
+            const active = tapState.active;
+            if (!active || ev.pointerId !== active.pointerId) return;
+            tapState.active = null;
+            const now = Date.now();
+            window.__gigmaMobileSuppressSyntheticClickUntil = now + 700;
+            if (active.moved || active.multi || (now - active.time) > 500) return;
+            if (active.clearAll && !active.clearCanBecomeDoubleTap) {
+                try { ev.preventDefault(); } catch (_) {}
+                try { ev.stopPropagation(); } catch (_) {}
+                try { if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); } catch (_) {}
+                scheduleMobileClearSelection(0);
+                return;
+            }
+            if (!active.el) return;
+            const triple = tapState.tripleCandidate;
+            if (triple && triple.el === active.el && (now - triple.time) <= 500) {
+                try { ev.preventDefault(); } catch (_) {}
+                try { ev.stopPropagation(); } catch (_) {}
+                try { if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); } catch (_) {}
+                applyMobileRangeSelection(active.el);
+                tapState.tripleCandidate = null;
+                tapState.last = null;
+                return;
+            }
+            if (triple && (now - triple.time) > 500) tapState.tripleCandidate = null;
+            const prev = tapState.last;
+            if (prev && prev.el === active.el && (now - prev.time) <= 500) {
+                try { ev.preventDefault(); } catch (_) {}
+                try { ev.stopPropagation(); } catch (_) {}
+                try { if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); } catch (_) {}
+                scheduleMobileSelectionToggle(active.el, isMobileSelected(active.el) ? 520 : 0);
+                tapState.tripleCandidate = { el: active.el, time: now };
+                tapState.last = null;
+                return;
+            }
+            tapState.last = { el: active.el, time: now };
+            if (active.clearAll) {
+                try { ev.preventDefault(); } catch (_) {}
+                try { ev.stopPropagation(); } catch (_) {}
+                try { if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); } catch (_) {}
+                // A tap on an unselected item matches desktop plain-click deselect.
+                // It is delayed only long enough to let a second tap become the mobile Ctrl-click equivalent.
+                scheduleMobileClearSelection(520);
+            }
+        }, true);
+        clickRoot.__gigmaMobileDoubleTapSelectionBound = true;
+    }
     // Delegate clicks: rows select on self; folders select when header clicked
     const handler = (ev) => {
         // If the immediately preceding action was a paste, swallow this click
@@ -52188,6 +52839,15 @@ function gigmaBindSelectionHandlers() {
             try { window.__gigmaSuppressNextClick = false; } catch (_) {}
             return;
         }
+        try {
+            const suppressUntil = Number(window.__gigmaMobileSuppressSyntheticClickUntil || 0);
+            if (gigmaIsMobileFullscreenActive() && (ev.pointerType === 'touch' || Date.now() < suppressUntil)) {
+                try { ev.preventDefault(); } catch (_) {}
+                try { ev.stopPropagation(); } catch (_) {}
+                try { if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); } catch (_) {}
+                return;
+            }
+        } catch (_) {}
         const t = ev.target;
         if (!(t instanceof HTMLElement)) return;
         // Ignore clicks on inputs or buttons to avoid conflict with rename/toggles
