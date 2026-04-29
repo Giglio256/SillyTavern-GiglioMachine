@@ -34209,6 +34209,15 @@ if (collapse && !isRight) {
             flex:1 1 auto;
             min-width:0;
           }
+          #gigma-layout-preset-tree-preview-root .gigma-pane-search-row{
+            height:2.25em !important;
+            min-height:2.25em !important;
+          }
+          #gigma-layout-preset-tree-preview-root .gigma-pane-search-input{
+            max-width:calc(100% - 0.125em);
+            margin-left:0.0625em;
+            margin-right:0.0625em;
+          }
           .gigma-pane-search-clear{
             position:absolute;
             right:0.35em;
@@ -35581,20 +35590,22 @@ function syncMobileSearchQualifierLayout(state){
     const em = Math.max(1, parseFloat(window.getComputedStyle(state.results).fontSize) || 16);
     const size = 2 * em;
     const gap = 0.25 * em;
-    const margin = 0.25 * em;
+    const rightMargin = 0.25 * em;
+    const bottomMargin = 0.25 * em;
+    const topMargin = (state.which === 'preview') ? (0.6 * em) : (0.25 * em);
     const step = size + gap;
-    const rowsPerColumn = Math.max(1, Math.floor((rect.height - (2 * margin) + gap) / step));
+    const rowsPerColumn = Math.max(1, Math.floor((rect.height - bottomMargin - topMargin + gap) / step));
 
     const placeButton = (btn, slot) => {
       try{
         const col = Math.floor(slot / rowsPerColumn);
         const row = slot % rowsPerColumn;
-        const right = margin + (col * step);
-        const bottom = margin + (row * step);
+        const right = rightMargin + (col * step);
+        const bottom = bottomMargin + (row * step);
         btn.style.position = 'absolute';
         btn.style.right = right + 'px';
         btn.style.bottom = bottom + 'px';
-        btn.style.display = (right + size <= rect.width - margin && bottom + size <= rect.height - margin) ? 'inline-flex' : 'none';
+        btn.style.display = (right + size <= rect.width - rightMargin && bottom + size <= rect.height - topMargin) ? 'inline-flex' : 'none';
       }catch(_){ }
     };
 
@@ -36574,9 +36585,11 @@ function openSearch(state){
       try{
         if (!state || !state.group || !state.host || !state.input) return;
         try{ closeDistribution(state); }catch(_){ }
-        // Fix row height to match the button row height.
+        // In preview vertical view, the button group can wrap to multiple rows.
+        // Match the single search button height so the search input stays one line.
         try{
-          const h = state.group.getBoundingClientRect ? state.group.getBoundingClientRect().height : state.group.offsetHeight;
+          const heightSource = (state.which === 'preview' && state.searchBtn) ? state.searchBtn : state.group;
+          const h = heightSource.getBoundingClientRect ? heightSource.getBoundingClientRect().height : heightSource.offsetHeight;
           if (h) state.row.style.height = h + 'px';
         }catch(_){ }
         capturePreviewSearchPaneHeight(state);
