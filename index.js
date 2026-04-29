@@ -31691,7 +31691,7 @@ try {
                     }
                 } catch (_) {}
                 ev.preventDefault();
-                handle.setPointerCapture(ev.pointerId);
+                try { handle.setPointerCapture(ev.pointerId); } catch (_) {}
                 // start drag state tracking =====
                 window.gigmaDragState.dragging = true;
                 delete window.gigmaDragState._gigmaAutoUnchainOrderDone;
@@ -32748,6 +32748,36 @@ if (nextKey && nextKey === perf._lastInsertKey) {
                         } catch (_e) {}
                     });
                 };
+                let lastTouchDragPoint = null;
+                const makeTouchDragEvent = (touchEvent) => {
+                    const touch = (touchEvent.changedTouches && touchEvent.changedTouches[0]) || (touchEvent.touches && touchEvent.touches[0]) || null;
+                    if (!touch) return lastTouchDragPoint || ev;
+                    lastTouchDragPoint = {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        pointerId: ev.pointerId,
+                        target: touchEvent.target || ev.target
+                    };
+                    return lastTouchDragPoint;
+                };
+                const onTouchDragMove = (touchEvent) => {
+                    try {
+                        if (ev.pointerType !== 'touch') return;
+                        if (!(window.gigmaDragState && window.gigmaDragState.dragging)) return;
+                        touchEvent.preventDefault();
+                        touchEvent.stopPropagation();
+                        onMove(makeTouchDragEvent(touchEvent));
+                    } catch (_) {}
+                };
+                const onTouchDragEnd = (touchEvent) => {
+                    try {
+                        if (ev.pointerType !== 'touch') return;
+                        if (!(window.gigmaDragState && window.gigmaDragState.dragging)) return;
+                        touchEvent.preventDefault();
+                        touchEvent.stopPropagation();
+                        onUp(makeTouchDragEvent(touchEvent));
+                    } catch (_) {}
+                };
                 const onUp = (e) => {
                     if (gigmaDragButtonsFolder && gigmaDragButtonsFolder.classList) { gigmaDragButtonsFolder.classList.remove('gigma-drag-hide-buttons'); }
                     document.documentElement.classList.remove('gigma-dragging-global');
@@ -32758,6 +32788,9 @@ if (nextKey && nextKey === perf._lastInsertKey) {
                     } catch (_) {}
                     document.removeEventListener('pointermove', onMove);
                     document.removeEventListener('pointerup', onUp);
+                    document.removeEventListener('touchmove', onTouchDragMove, true);
+                    document.removeEventListener('touchend', onTouchDragEnd, true);
+                    document.removeEventListener('touchcancel', onTouchDragEnd, true);
                     // GIGMA: Finalize temporary focus-from-empty behavior on drop.
                     // If the mouse button is released on the right half, keep the folder focused.
                     // Otherwise defocus again so the right pane remains empty.
@@ -33180,6 +33213,11 @@ inside.parentElement.removeChild(inside);
                     gigmaRefreshEmptyFoldersUI();
 };
                 document.addEventListener('pointermove', onMove, { passive: true });
+                if (ev.pointerType === 'touch') {
+                    document.addEventListener('touchmove', onTouchDragMove, { capture: true, passive: false });
+                    document.addEventListener('touchend', onTouchDragEnd, { capture: true, passive: false });
+                    document.addEventListener('touchcancel', onTouchDragEnd, { capture: true, passive: false });
+                }
                 // GIGMA: separate drag behaviour by mouse button.
                 //  - Left button (0): classic hold-and-drag, drop on release.
                 //  - Right button (2): click-lock drag, drop on next right-click inside the ordering UI.
