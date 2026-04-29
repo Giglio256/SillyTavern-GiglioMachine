@@ -4262,6 +4262,65 @@ return;
   }catch(_){ }
 })();
 // --- end GIGMA: Block native touch scrolling only during active mobile drag ---
+// --- GIGMA: Suppress browser-native mobile drag/select on draggable items ---
+(function gigmaMobileNativeDragSuppressOnce(){
+  try{
+    if (window.__gigmaMobileNativeDragSuppressInstalled) return;
+    window.__gigmaMobileNativeDragSuppressInstalled = true;
+
+    try {
+      if (!document.getElementById('gigma-mobile-native-drag-suppress-style')) {
+        const css = document.createElement('style');
+        css.id = 'gigma-mobile-native-drag-suppress-style';
+        css.textContent = `
+          html.gigma-mobile-fullscreen #gigma-modal-root :is(.gigma-row, .gigma-folder-header, .gigma-folder-title){
+            -webkit-user-drag:none !important;
+            -webkit-touch-callout:none !important;
+            -webkit-tap-highlight-color:transparent !important;
+            user-select:none !important;
+            outline:none !important;
+          }
+          html.gigma-mobile-fullscreen #gigma-modal-root :is(.gigma-row, .gigma-folder-header, .gigma-folder-title):focus{
+            outline:none !important;
+          }
+        `;
+        document.head.appendChild(css);
+      }
+    } catch (_) {}
+
+    const isEditableTarget = (target) => {
+      try {
+        return !!(target && target.closest && target.closest('input, textarea, select, [contenteditable="true"], .gigma-rename-input'));
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const getDraggableTouchTarget = (target) => {
+      try {
+        if (!(document.documentElement && document.documentElement.classList && document.documentElement.classList.contains('gigma-mobile-fullscreen'))) return null;
+        if (!target || !target.closest || isEditableTarget(target)) return null;
+        return target.closest('#gigma-modal-root .gigma-row, #gigma-modal-root .gigma-folder-header, #gigma-modal-root .gigma-folder-title');
+      } catch (_) {
+        return null;
+      }
+    };
+
+    const blockNativeMobileDrag = (ev) => {
+      try {
+        if (!getDraggableTouchTarget(ev.target)) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation();
+      } catch (_) {}
+    };
+
+    document.addEventListener('dragstart', blockNativeMobileDrag, true);
+    document.addEventListener('selectstart', blockNativeMobileDrag, true);
+    document.addEventListener('contextmenu', blockNativeMobileDrag, true);
+  }catch(_){ }
+})();
+// --- end GIGMA: Suppress browser-native mobile drag/select on draggable items ---
 /**
  * Ensure consistent post-multi-drop UX:
  * - Keep items selected for 2.0s
