@@ -3955,6 +3955,296 @@ return;
     }catch(_){}
 })();
 // --- end disable scroll anchoring ---
+// --- GIGMA: Mobile ordering touch navigation ---
+(function gigmaMobileOrderingTouchNavigationOnce(){
+  try{
+    if (window.__gigmaMobileOrderingTouchNavigationInstalled) return;
+    window.__gigmaMobileOrderingTouchNavigationInstalled = true;
+
+    const isActive = () => !!(document.getElementById('gigma-modal-root') || document.getElementById('gigma-layout-preset-tree-preview-root'));
+
+    const isPopupTarget = (target) => {
+      try {
+        if (!target) return false;
+        if (target.closest && target.closest('#gigma-modal-root, #gigma-layout-preset-tree-preview-root')) return true;
+        const dialog = target.closest ? target.closest('dialog') : (target.tagName === 'DIALOG' ? target : null);
+        return !!(dialog && dialog.querySelector && dialog.querySelector('#gigma-modal-root, #gigma-layout-preset-tree-preview-root'));
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const isOrderingTarget = (target) => {
+      try {
+        return !!(target && target.closest && target.closest('#gigma-ordering-container, #gigma-ordering-list, .gigma-unsorted-pane, .gigma-unsorted-content, .gigma-focus-pane-list'));
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const isOrderingControlTarget = (target) => {
+      try {
+        return !!(target && target.closest && target.closest('button, input, select, textarea, a, label, .menu_button, .gigma-folder-toggle, .gigma-folder-remove, .gigma-show-right, .gigma-unsorted-title-button'));
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const isOrderingItemTarget = (target) => {
+      try {
+        return !!(target && target.closest && target.closest('.gigma-row, .gigma-folder-header, .gigma-pane-search-item'));
+      } catch (_) {
+        return false;
+      }
+    };
+    const isFolderTitleTarget = (target) => {
+      try {
+        return !!(target && target.closest && target.closest('.gigma-folder-title'));
+      } catch (_) {
+        return false;
+      }
+    };
+
+
+    const getOrderingListPane = (target) => {
+      try {
+        return target && target.closest ? target.closest('#gigma-ordering-list, .gigma-unsorted-content, .gigma-focus-pane-list') : null;
+      } catch (_) {
+        return null;
+      }
+    };
+
+    const isInsidePaneItemSpan = (target, y) => {
+      try {
+        if (typeof y !== 'number') return false;
+        const pane = getOrderingListPane(target);
+        if (!pane) return false;
+        const items = Array.from(pane.querySelectorAll('.gigma-row, .gigma-folder-header, .gigma-pane-search-item'));
+        let top = Infinity;
+        let bottom = -Infinity;
+        for (const item of items) {
+          const rect = item.getBoundingClientRect();
+          if (rect.width <= 0 || rect.height <= 0) continue;
+          top = Math.min(top, rect.top);
+          bottom = Math.max(bottom, rect.bottom);
+        }
+        return top !== Infinity && y >= top && y <= bottom;
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const isScrollableOverflow = (value) => value === 'auto' || value === 'scroll' || value === 'overlay';
+
+    const hasScrollableOverflow = (node, axis) => {
+      try {
+        if (!node) return false;
+        const style = window.getComputedStyle(node);
+        if (axis === 'x') return isScrollableOverflow(style.overflowX) && node.scrollWidth > node.clientWidth + 1;
+        return isScrollableOverflow(style.overflowY) && node.scrollHeight > node.clientHeight + 1;
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const hasScrollableListPane = (target) => hasScrollableOverflow(getOrderingListPane(target), 'y');
+
+    const getSearchResultsScrollHost = (target) => {
+      try {
+        return target && target.closest ? target.closest('.gigma-pane-search-results-list') : null;
+      } catch (_) {
+        return null;
+      }
+    };
+
+    const isOrderingItemlessTarget = (target, y) => {
+      if (!isPopupTarget(target)) return false;
+      const searchHost = getSearchResultsScrollHost(target);
+      if (searchHost) return !hasScrollableOverflow(searchHost, 'y');
+      if (!isOrderingTarget(target)) return true;
+      if (!hasScrollableListPane(target)) return true;
+      return !isOrderingItemTarget(target) && !isInsidePaneItemSpan(target, y);
+    };
+
+    const getScrollHost = (target) => {
+      try {
+        const searchHost = getSearchResultsScrollHost(target);
+        if (hasScrollableOverflow(searchHost, 'y') || hasScrollableOverflow(searchHost, 'x')) return searchHost;
+        let node = target && target.closest ? target.closest('#gigma-ordering-list, .gigma-unsorted-content, .gigma-focus-pane-list, #gigma-ordering-container, .gigma-unsorted-pane') : null;
+        while (node) {
+          if (hasScrollableOverflow(node, 'y') || hasScrollableOverflow(node, 'x')) return node;
+          node = node.parentElement && node.parentElement.closest ? node.parentElement.closest('#gigma-ordering-list, .gigma-unsorted-content, .gigma-focus-pane-list, #gigma-ordering-container, .gigma-unsorted-pane') : null;
+        }
+      } catch (_) {}
+      return null;
+    };
+
+    const getModalScrollHost = (target) => {
+      try {
+        const dialog = target && target.closest ? target.closest('dialog') : null;
+        const modalScroll = dialog && dialog.querySelector ? dialog.querySelector('#gigma-modal-scroll') : document.getElementById('gigma-modal-scroll');
+        return hasScrollableOverflow(modalScroll, 'y') ? modalScroll : null;
+      } catch (_) {
+        return null;
+      }
+    };
+
+    const canScrollYBy = (node, dy) => {
+      if (!dy || !hasScrollableOverflow(node, 'y')) return false;
+      if (dy < 0) return node.scrollTop > 0;
+      return node.scrollTop + node.clientHeight < node.scrollHeight - 1;
+    };
+
+    const canScrollXBy = (node, dx) => {
+      if (!dx || !hasScrollableOverflow(node, 'x')) return false;
+      if (dx < 0) return node.scrollLeft > 0;
+      return node.scrollLeft + node.clientWidth < node.scrollWidth - 1;
+    };
+
+    const scrollElementBy = (node, dx, dy) => {
+      try {
+        if (!node) return false;
+        const beforeLeft = node.scrollLeft || 0;
+        const beforeTop = node.scrollTop || 0;
+        if (dx) node.scrollLeft = beforeLeft + dx;
+        if (dy) node.scrollTop = beforeTop + dy;
+        return node.scrollLeft !== beforeLeft || node.scrollTop !== beforeTop;
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const isSearchResultsScrollHost = (node) => {
+      try {
+        return !!(node && node.classList && node.classList.contains('gigma-pane-search-results-list'));
+      } catch (_) {
+        return false;
+      }
+    };
+
+    const scrollWithModalRoute = (host, modalHost, dx, dy, modalOnlyY) => {
+      let moved = false;
+      const xHost = canScrollXBy(host, dx) ? host : null;
+      const yHost = modalOnlyY ? (canScrollYBy(modalHost, dy) ? modalHost : null) : (canScrollYBy(host, dy) ? host : null);
+      if (xHost && xHost === yHost) return scrollElementBy(xHost, dx, dy);
+      if (xHost) moved = scrollElementBy(xHost, dx, 0) || moved;
+      if (yHost) moved = scrollElementBy(yHost, 0, dy) || moved;
+      if (!moved && dy && !modalOnlyY && isSearchResultsScrollHost(host) && hasScrollableOverflow(host, 'y')) return true;
+      return moved;
+    };
+
+    const midpoint = (touches) => {
+      const a = touches[0];
+      const b = touches[1];
+      return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+    };
+
+    try {
+      if (!document.getElementById('gigma-mobile-two-finger-scroll-style')) {
+        const css = document.createElement('style');
+        css.id = 'gigma-mobile-two-finger-scroll-style';
+        css.textContent = `
+          html.gigma-mobile-fullscreen dialog:has(#gigma-modal-root),
+          html.gigma-mobile-fullscreen dialog:has(#gigma-layout-preset-tree-preview-root),
+          html.gigma-mobile-fullscreen #gigma-modal-root,
+          html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root,
+          html.gigma-mobile-fullscreen #gigma-modal-scroll,
+          html.gigma-mobile-fullscreen #gigma-ordering-container,
+          html.gigma-mobile-fullscreen #gigma-ordering-list,
+          html.gigma-mobile-fullscreen .gigma-unsorted-pane,
+          html.gigma-mobile-fullscreen .gigma-unsorted-content,
+          html.gigma-mobile-fullscreen .gigma-focus-pane-list{
+            touch-action:none !important;
+            overscroll-behavior:contain !important;
+          }
+          html.gigma-mobile-fullscreen :is(#gigma-modal-root, #gigma-layout-preset-tree-preview-root) :is(button, input, select, textarea, a, label, .menu_button){
+            touch-action:manipulation !important;
+          }
+        `;
+        document.head.appendChild(css);
+      }
+    } catch (_) {}
+
+    document.addEventListener('wheel', (ev) => {
+      if (!isActive() || !isPopupTarget(ev.target)) return;
+      const host = getScrollHost(ev.target);
+      const modalOnlyY = isOrderingItemlessTarget(ev.target, ev.clientY);
+      const modalHost = modalOnlyY ? getModalScrollHost(ev.target) : null;
+      if (!host && !modalHost) return;
+      const dx = ev && typeof ev.deltaX === 'number' ? ev.deltaX : 0;
+      const dy = ev && typeof ev.deltaY === 'number' ? ev.deltaY : 0;
+      if (!scrollWithModalRoute(host, modalHost, dx, dy, modalOnlyY)) return;
+      try { ev.preventDefault(); } catch (_) {}
+      try { ev.stopPropagation(); } catch (_) {}
+    }, { capture: true, passive: false });
+
+    const state = { active: false, host: null, modalHost: null, modalOnlyY: false, lastX: 0, lastY: 0 };
+    const clear = () => {
+      state.active = false;
+      state.host = null;
+      state.modalHost = null;
+      state.modalOnlyY = false;
+      state.lastX = 0;
+      state.lastY = 0;
+    };
+
+    document.addEventListener('touchstart', (ev) => {
+      if (!isActive() || !isPopupTarget(ev.target)) return;
+      const host = getScrollHost(ev.target);
+      if (!ev.touches || ev.touches.length < 2) {
+        if (host && !isOrderingControlTarget(ev.target) && !isFolderTitleTarget(ev.target)) try { ev.preventDefault(); } catch (_) {}
+        return;
+      }
+      if (ev.touches.length === 2) {
+        const mid = midpoint(ev.touches);
+        const modalOnlyY = isOrderingItemlessTarget(ev.target, mid.y);
+        const modalHost = modalOnlyY ? getModalScrollHost(ev.target) : null;
+        if (!host && !modalHost) return;
+        state.active = true;
+        state.host = host;
+        state.modalHost = modalHost;
+        state.modalOnlyY = modalOnlyY;
+        state.lastX = mid.x;
+        state.lastY = mid.y;
+        try { ev.preventDefault(); } catch (_) {}
+        try { ev.stopPropagation(); } catch (_) {}
+      }
+    }, { capture: true, passive: false });
+
+    document.addEventListener('touchmove', (ev) => {
+      if (!isActive() || !isPopupTarget(ev.target)) return;
+      if (!ev.touches || ev.touches.length !== 2) {
+        if (isOrderingTarget(ev.target) && !isOrderingControlTarget(ev.target) && !isFolderTitleTarget(ev.target)) try { ev.preventDefault(); } catch (_) {}
+        return;
+      }
+      const host = state.host || getScrollHost(ev.target);
+      const mid = midpoint(ev.touches);
+      const modalOnlyY = state.active ? state.modalOnlyY : isOrderingItemlessTarget(ev.target, mid.y);
+      const modalHost = modalOnlyY ? (state.modalHost || getModalScrollHost(ev.target)) : null;
+      if (!host && !modalHost) return;
+      if (!state.active) {
+        state.active = true;
+        state.host = host;
+        state.modalHost = modalHost;
+        state.modalOnlyY = modalOnlyY;
+        state.lastX = mid.x;
+        state.lastY = mid.y;
+      }
+      scrollWithModalRoute(host, modalHost, mid.x - state.lastX, mid.y - state.lastY, modalOnlyY);
+      state.lastX = mid.x;
+      state.lastY = mid.y;
+      try { ev.preventDefault(); } catch (_) {}
+      try { ev.stopPropagation(); } catch (_) {}
+    }, { capture: true, passive: false });
+
+    document.addEventListener('touchend', (ev) => {
+      if (!state.active) return;
+      if (!ev.touches || ev.touches.length < 2) clear();
+    }, true);
+    document.addEventListener('touchcancel', clear, true);
+  }catch(_){ }
+})();
+// --- end GIGMA: Mobile ordering touch navigation ---
 /**
  * Ensure consistent post-multi-drop UX:
  * - Keep items selected for 2.0s
@@ -4027,6 +4317,9 @@ function gigmaAfterMultiDrop(groupEls) {
         if (window.gigmaCutMode) return;
         if (e.button !== 0) return; // left button only
         if (e.ctrlKey || e.shiftKey || e.metaKey) return; // modifiers mean multi-select gestures
+        try {
+            if (e.pointerType === 'touch' && gigmaIsMobileFullscreenActive()) return;
+        } catch (_) {}
 
         // GIGMA FIX: If pane search is open and the user clicks outside the search UI,
         // treat that click as a search-dismiss gesture (do not clear the current selection).
@@ -4136,6 +4429,10 @@ function gigmaAfterMultiDrop(groupEls) {
             if (!ev || typeof ev.button !== 'number') return;
             if (ev.button !== 0) return; // left button only
             if (ev.ctrlKey || ev.shiftKey || ev.metaKey) return; // modifier gestures keep selection
+            try {
+                const suppressUntil = Number(window.__gigmaMobileSuppressSyntheticClickUntil || 0);
+                if (gigmaIsMobileFullscreenActive() && (ev.pointerType === 'touch' || Date.now() < suppressUntil)) return;
+            } catch (_) {}
             const target = ev.target;
             if (!(target instanceof HTMLElement)) return;
             // Only care about clicks that happen inside the right pane container
@@ -24699,6 +24996,10 @@ async function populateOrderingList(opts = {}) {
             // press so the drag starts immediately with no rename affordance.
             try {
                 if (f && f.classList && f.classList.contains('gigma-selected')) {
+                    if (gigmaIsMobileFullscreenActive() || (typeof isMobile === 'function' && isMobile())) {
+                        ev._gigmaTitlePress = true;
+                        title._gigmaDownAt = performance.now();
+                    }
                     return;
                 }
             } catch (_) {}
@@ -24707,6 +25008,16 @@ async function populateOrderingList(opts = {}) {
             title._gigmaDownAt = performance.now();
         });
         title.addEventListener('click', (ev) => {
+            // A mobile double-tap selection may still emit a synthetic click on the folder title.
+            // Ignore only that confirmed second-tap click so one-tap rename still works.
+            try {
+                const guard = window.__gigmaSuppressFolderRenameClick;
+                if (guard && guard.folderEl === f && Date.now() < guard.until) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    return;
+                }
+            } catch (_) {}
             // While Retrospective Order Adjustment mode is active, disable inline folder rename.
             try {
                 if (typeof gigmaIsAnyRetroOrderEnabled === 'function' && gigmaIsAnyRetroOrderEnabled()) {
@@ -24734,11 +25045,16 @@ async function populateOrderingList(opts = {}) {
                 window.gigmaJustCutOrCopied = false; // consume once
                 return;
             }
-            // GIGMA: When this folder is already selected, clicking the title should
-            // act only as a drag/selection gesture, not enter inline rename. Swallow
-            // the click so the global selection handler doesn't clear the selection.
+            // On mobile, a single tap on the folder name must enter rename immediately.
+            // A second tap on that freshly opened textarea is handled by the mobile
+            // double-tap selector below, which cancels rename and selects the folder.
+            const isMobileFolderTitleClick = (() => {
+                try { return !!(gigmaIsMobileFullscreenActive() || (typeof isMobile === 'function' && isMobile())); } catch (_) { return false; }
+            })();
+            // GIGMA: On desktop, a selected folder title remains a drag/selection handle.
+            // Mobile keeps the requested one-tap rename behavior for the title field.
             try {
-                if (f && f.classList && f.classList.contains('gigma-selected')) {
+                if (!isMobileFolderTitleClick && f && f.classList && f.classList.contains('gigma-selected')) {
                     ev.stopPropagation();
                     return;
                 }
@@ -24767,6 +25083,11 @@ async function populateOrderingList(opts = {}) {
             title.replaceChildren(textarea);
             textarea.focus();
             textarea.select();
+            try {
+                if (isMobileFolderTitleClick) {
+                    window.__gigmaMobileFolderRenameTap = { folderEl: f, textarea, time: Date.now() };
+                }
+            } catch (_) {}
             const autoResize = () => {
                 textarea.rows = 1;
                 textarea.style.minHeight = '0';
@@ -24834,6 +25155,7 @@ async function populateOrderingList(opts = {}) {
                 title.textContent = old;
                 try { gigmaAdjustFolderHeaderHeights(); } catch (_e) {}
             };
+            try { textarea._gigmaCancelFolderRenameForSelection = cancel; } catch (_) {}
             // Keyboard behavior:
             //  - Enter (no Shift) commits
             //  - Escape cancels
@@ -32899,40 +33221,89 @@ inside.parentElement.removeChild(inside);
                     document.addEventListener('pointerdown', onDropPointerDown, true);
                 }
             };
-            if (scope === 'row' && ev.pointerType === 'touch' && ev.button === 0) {
+            if (ev.pointerType === 'touch' && ev.button === 0 && fromTitle) {
+                if (ev.isPrimary === false) return;
                 let pressed = true;
                 let moved = false;
                 const startX = ev.clientX || 0;
                 const startY = ev.clientY || 0;
-                const dragThreshold = 10; // Finger movement above this is scrolling, not dragging.
-                let timer = null;
-                const cleanupTouchRowDragGate = () => {
+                const dragThreshold = 10; // Finger movement required before starting a touch drag.
+                const cleanupTouchTitleDragGate = () => {
                     pressed = false;
-                    document.removeEventListener('pointermove', onTouchRowMove, true);
-                    document.removeEventListener('pointerup', cleanupTouchRowDragGate, true);
-                    document.removeEventListener('pointercancel', cleanupTouchRowDragGate, true);
-                    if (timer !== null) clearTimeout(timer);
+                    document.removeEventListener('pointermove', onTouchTitleMoveBeforeHold, true);
+                    document.removeEventListener('pointerdown', onOtherTitleTouchDown, true);
+                    document.removeEventListener('pointerup', cleanupTouchTitleDragGate, true);
+                    document.removeEventListener('pointercancel', cleanupTouchTitleDragGate, true);
                 };
-                const startTouchRowDrag = () => {
+                const startTouchTitleDrag = () => {
                     if (!pressed || moved) return;
-                    cleanupTouchRowDragGate();
+                    cleanupTouchTitleDragGate();
                     startDrag();
                 };
-                const onTouchRowMove = (eMove) => {
-                    if (!pressed) return;
+                const onTouchTitleMoveBeforeHold = (eMove) => {
+                    if (!pressed || eMove.pointerId !== ev.pointerId) return;
                     const mx = (typeof eMove.clientX === 'number') ? eMove.clientX : startX;
                     const my = (typeof eMove.clientY === 'number') ? eMove.clientY : startY;
                     const dx = mx - startX;
                     const dy = my - startY;
                     if ((dx * dx + dy * dy) >= (dragThreshold * dragThreshold)) {
-                        moved = true;
-                        cleanupTouchRowDragGate();
+                        startTouchTitleDrag();
                     }
                 };
-                timer = setTimeout(startTouchRowDrag, 250);
-                document.addEventListener('pointermove', onTouchRowMove, true);
-                document.addEventListener('pointerup', cleanupTouchRowDragGate, true);
-                document.addEventListener('pointercancel', cleanupTouchRowDragGate, true);
+                const onOtherTitleTouchDown = (eDown) => {
+                    if (!pressed) return;
+                    if (eDown.pointerType === 'touch' && eDown.pointerId !== ev.pointerId) {
+                        moved = true;
+                        cleanupTouchTitleDragGate();
+                    }
+                };
+                document.addEventListener('pointermove', onTouchTitleMoveBeforeHold, true);
+                document.addEventListener('pointerdown', onOtherTitleTouchDown, true);
+                document.addEventListener('pointerup', cleanupTouchTitleDragGate, true);
+                document.addEventListener('pointercancel', cleanupTouchTitleDragGate, true);
+                return;
+            }
+            if (ev.pointerType === 'touch' && ev.button === 0) {
+                if (ev.isPrimary === false) return;
+                let pressed = true;
+                let moved = false;
+                const startX = ev.clientX || 0;
+                const startY = ev.clientY || 0;
+                const dragThreshold = 10; // Finger movement required before starting a touch drag.
+                try { ev.preventDefault(); } catch (_) {}
+                const cleanupTouchDragGate = () => {
+                    pressed = false;
+                    document.removeEventListener('pointermove', onTouchMoveBeforeHold, true);
+                    document.removeEventListener('pointerdown', onOtherTouchDown, true);
+                    document.removeEventListener('pointerup', cleanupTouchDragGate, true);
+                    document.removeEventListener('pointercancel', cleanupTouchDragGate, true);
+                };
+                const startTouchDrag = () => {
+                    if (!pressed || moved) return;
+                    cleanupTouchDragGate();
+                    startDrag();
+                };
+                const onTouchMoveBeforeHold = (eMove) => {
+                    if (!pressed || eMove.pointerId !== ev.pointerId) return;
+                    const mx = (typeof eMove.clientX === 'number') ? eMove.clientX : startX;
+                    const my = (typeof eMove.clientY === 'number') ? eMove.clientY : startY;
+                    const dx = mx - startX;
+                    const dy = my - startY;
+                    if ((dx * dx + dy * dy) >= (dragThreshold * dragThreshold)) {
+                        startTouchDrag();
+                    }
+                };
+                const onOtherTouchDown = (eDown) => {
+                    if (!pressed) return;
+                    if (eDown.pointerType === 'touch' && eDown.pointerId !== ev.pointerId) {
+                        moved = true;
+                        cleanupTouchDragGate();
+                    }
+                };
+                document.addEventListener('pointermove', onTouchMoveBeforeHold, true);
+                document.addEventListener('pointerdown', onOtherTouchDown, true);
+                document.addEventListener('pointerup', cleanupTouchDragGate, true);
+                document.addEventListener('pointercancel', cleanupTouchDragGate, true);
                 return;
             }
             if (fromTitle && ev.button === 0) {
@@ -33864,13 +34235,15 @@ if (collapse && !isRight) {
             border: 0.0625em solid rgba(255,255,255,0.12);
             border-radius: 0.375em;
             background: rgba(0,0,0,0.18);
-            height: 12.25em; /* 7 items @ 1.75em */
-            overflow-y: auto;
-            overflow-x: hidden;
+            height: var(--gigma-pane-search-results-height);
+            overflow:hidden;
             position:relative;
           }
           .gigma-pane-search-results-list{
-            min-height:100%;
+            height:100%;
+            min-height:0;
+            overflow-y:auto;
+            overflow-x:hidden;
           }
           .gigma-pane-search-controls-row,
           .gigma-pane-search-qualifiers-row{
@@ -33891,6 +34264,21 @@ if (collapse && !isRight) {
           }
           .gigma-pane-search-qualifiers-row{
             bottom:0.25em;
+          }
+          html.gigma-mobile-fullscreen #gigma-modal-root .gigma-pane-search-controls-row,
+          html.gigma-mobile-fullscreen #gigma-modal-root .gigma-pane-search-qualifiers-row{
+            inset:0;
+            right:auto;
+            bottom:auto;
+            width:100%;
+            height:100%;
+            overflow:hidden;
+            pointer-events:none;
+          }
+          html.gigma-mobile-fullscreen #gigma-modal-root .gigma-pane-search-controls-row .gigma-pane-search-qualifier,
+          html.gigma-mobile-fullscreen #gigma-modal-root .gigma-pane-search-qualifiers-row .gigma-pane-search-qualifier{
+            position:absolute;
+            pointer-events:auto;
           }
           .gigma-pane-search-qualifier{
             width:2em;
@@ -35109,7 +35497,9 @@ function ensureSearchUiBits(state){
           btn.innerHTML = '<span class="gigma-pane-search-icon" aria-hidden="true"></span>';
           controlRow.appendChild(btn);
         }
-        state.host.appendChild(controlRow);
+        state.results.appendChild(controlRow);
+      } else if (controlRow.parentNode !== state.results) {
+        state.results.appendChild(controlRow);
       }
       state.controlRow = controlRow;
       wirePaneSearchButtonRow(state, controlRow);
@@ -35140,13 +35530,95 @@ function ensureSearchUiBits(state){
         toggleBtn.setAttribute('aria-label', toggleDef.title);
         toggleBtn.innerHTML = '<span class="gigma-pane-search-icon" aria-hidden="true">' + toggleDef.iconHtml + '</span>';
         row.appendChild(toggleBtn);
-        state.host.appendChild(row);
+        state.results.appendChild(row);
+      } else if (row.parentNode !== state.results) {
+        state.results.appendChild(row);
       }
       state.qualifierRow = row;
       wirePaneSearchButtonRow(state, row);
     }
 
     syncSearchUiBits(state);
+  }catch(_){ }
+}
+
+
+function resetMobileSearchQualifierLayout(state){
+  try{
+    const rows = [state && state.controlRow, state && state.qualifierRow];
+    for (const row of rows){
+      if (!row) continue;
+      row.style.position = '';
+      row.style.inset = '';
+      row.style.right = '';
+      row.style.bottom = '';
+      row.style.width = '';
+      row.style.height = '';
+      row.style.overflow = '';
+      row.style.pointerEvents = '';
+      row.querySelectorAll('.gigma-pane-search-qualifier').forEach((btn)=>{
+        try{
+          btn.style.position = '';
+          btn.style.right = '';
+          btn.style.bottom = '';
+          btn.style.display = '';
+        }catch(_){ }
+      });
+    }
+  }catch(_){ }
+}
+
+function syncMobileSearchQualifierLayout(state){
+  try{
+    if (!state || !state.results || !state.qualifierRow) return;
+    if (!gigmaIsMobileFullscreenActive()) {
+      resetMobileSearchQualifierLayout(state);
+      return;
+    }
+    const rect = state.results.getBoundingClientRect();
+    if (!(rect.width > 0 && rect.height > 0)) return;
+    const showQualifiers = !!getQualifierButtonsVisible();
+    const em = Math.max(1, parseFloat(window.getComputedStyle(state.results).fontSize) || 16);
+    const size = 2 * em;
+    const gap = 0.25 * em;
+    const margin = 0.25 * em;
+    const step = size + gap;
+    const rowsPerColumn = Math.max(1, Math.floor((rect.height - (2 * margin) + gap) / step));
+
+    const placeButton = (btn, slot) => {
+      try{
+        const col = Math.floor(slot / rowsPerColumn);
+        const row = slot % rowsPerColumn;
+        const right = margin + (col * step);
+        const bottom = margin + (row * step);
+        btn.style.position = 'absolute';
+        btn.style.right = right + 'px';
+        btn.style.bottom = bottom + 'px';
+        btn.style.display = (right + size <= rect.width - margin && bottom + size <= rect.height - margin) ? 'inline-flex' : 'none';
+      }catch(_){ }
+    };
+
+    const rows = [state.controlRow, state.qualifierRow];
+    for (const row of rows){
+      if (!row) continue;
+      row.style.position = 'absolute';
+      row.style.inset = '0';
+      row.style.width = '100%';
+      row.style.height = '100%';
+      row.style.overflow = 'hidden';
+      row.style.pointerEvents = 'none';
+    }
+
+    const toggle = state.qualifierRow.querySelector('.gigma-pane-search-qualifier-toggle[data-gigma-q-toggle]');
+    if (toggle) placeButton(toggle, 0);
+
+    const flow = [];
+    if (state.controlRow) flow.push(...Array.from(state.controlRow.querySelectorAll('.gigma-pane-search-qualifier[data-gigma-q-control]')));
+    flow.push(...Array.from(state.qualifierRow.querySelectorAll('.gigma-pane-search-qualifier[data-gigma-q]')));
+    flow.forEach((btn, index)=>{
+      if (showQualifiers) placeButton(btn, index + 1);
+      else btn.style.display = 'none';
+    });
   }catch(_){ }
 }
 
@@ -35208,12 +35680,54 @@ function syncSearchUiBits(state){
         toggleBtn.setAttribute('aria-disabled', 'false');
       }
     }
+    syncMobileSearchQualifierLayout(state);
   }catch(_){ }
 }
 
 function syncSearchUiBitsAll(){
   try{
     Object.values(STATES).forEach((s)=>{ try{ ensureSearchUiBits(s); }catch(_){ } });
+  }catch(_){ }
+}
+
+function getPaneSearchHeightSource(state){
+  try{
+    if (!state) return null;
+    if (state.which === 'left') return document.getElementById('gigma-ordering-container');
+    if (state.which === 'right') return document.querySelector('.gigma-unsorted-pane');
+    if (state.which === 'preview') return state.previewRoot?.querySelector('.gigma-layout-preset-tree-display-wrap') || state.previewRoot?.querySelector('.gigma-layout-preset-tree') || state.previewRoot;
+  }catch(_){ }
+  return null;
+}
+
+function capturePreviewSearchPaneHeight(state){
+  try{
+    if (!state || state.which !== 'preview') return;
+    const pane = getPaneSearchHeightSource(state);
+    if (!pane || !pane.getBoundingClientRect) return;
+    const rect = pane.getBoundingClientRect();
+    if (rect.height > 0) state.__gigmaPaneSearchBaseHeight = rect.height;
+  }catch(_){ }
+}
+
+function syncPaneSearchResultsHeight(state){
+  try{
+    if (!state || !state.results) return;
+    const pane = getPaneSearchHeightSource(state);
+    if (!pane || !pane.getBoundingClientRect) return;
+    const rect = pane.getBoundingClientRect();
+    if (!(rect.height > 0)) return;
+    const height = (state.which === 'preview' && state.__gigmaPaneSearchBaseHeight > rect.height) ? state.__gigmaPaneSearchBaseHeight : rect.height;
+    state.results.style.setProperty('--gigma-pane-search-results-height', Math.max(1, Math.floor(height * 0.3)) + 'px');
+    syncMobileSearchQualifierLayout(state);
+  }catch(_){ }
+}
+
+function syncOpenSearchResultHeights(){
+  try{
+    Object.values(STATES).forEach((state)=>{
+      try{ if (state && state.open) syncPaneSearchResultsHeight(state); }catch(_){ }
+    });
   }catch(_){ }
 }
 
@@ -35901,11 +36415,20 @@ function installPaneSearchKeyboardNav(){
   }catch(_){ }
 }
 
+(function gigmaPaneSearchHeightSyncOnce(){
+  try{
+    if (window.__gigmaPaneSearchHeightSyncInstalled) return;
+    window.__gigmaPaneSearchHeightSyncInstalled = true;
+    window.addEventListener('resize', syncOpenSearchResultHeights, { passive:true });
+    window.addEventListener('orientationchange', syncOpenSearchResultHeights, { passive:true });
+  }catch(_){ }
+})();
 
 function renderResults(state){
   try{
     if (!state || !state.results || !state.input) return;
     ensureSearchUiBits(state);
+    syncPaneSearchResultsHeight(state);
     try{ syncSearchKeyboardSelection(state); }catch(_){ }
 
     const qRaw = (state.input.value || '');
@@ -35948,6 +36471,7 @@ function renderResults(state){
         else syncSearchKeyboardSelection(state);
       }catch(_){ }
       state.results.style.display = state.open ? 'block' : 'none';
+      syncPaneSearchResultsHeight(state);
       syncSearchUiBits(state);
       return;
     }
@@ -36039,6 +36563,7 @@ function renderResults(state){
       else state.results.appendChild(div);
     }
     state.results.style.display = 'block';
+    syncPaneSearchResultsHeight(state);
     try{ syncSearchKeyboardSelection(state); }catch(_){ }
     syncSearchUiBits(state);
   }catch(_){ }
@@ -36054,9 +36579,11 @@ function openSearch(state){
           const h = state.group.getBoundingClientRect ? state.group.getBoundingClientRect().height : state.group.offsetHeight;
           if (h) state.row.style.height = h + 'px';
         }catch(_){ }
+        capturePreviewSearchPaneHeight(state);
         state.group.style.display = 'none';
         state.host.style.display = 'block';
         state.open = true;
+        syncPaneSearchResultsHeight(state);
         try{ clearSearchKeyboardSelection(state); }catch(_){ }
 
         try{ ensureSearchUiBits(state); }catch(_){ }
@@ -51983,6 +52510,279 @@ function gigmaBindSelectionHandlers() {
     // or applying a preset). We tag the DOM node once and skip rebinding on reuse
     // of the same container element.
     if (clickRoot.__gigmaSelectionHandlerBound) return;
+    // Mobile selection is touch-only: double-tap selects/toggles, single-tap outside selection clears like desktop.
+    if (!clickRoot.__gigmaMobileDoubleTapSelectionBound) {
+        const tapState = { active: null, last: null, tripleCandidate: null, rangeAnchor: null, pendingClear: null, pendingToggle: null };
+        const isMobileTouch = () => {
+            try { return !!gigmaIsMobileFullscreenActive(); } catch (_) {}
+            try { return !!isMobile(); } catch (_) {}
+            return false;
+        };
+        const getTouchedSelectable = (target) => {
+            if (!(target instanceof HTMLElement)) return null;
+            const freshRename = (() => {
+                try {
+                    if (!target.matches('textarea.gigma-rename-input')) return null;
+                    const info = window.__gigmaMobileFolderRenameTap;
+                    if (!info || info.textarea !== target || (Date.now() - info.time) > 500) return null;
+                    const folderEl = target.closest('.gigma-folder');
+                    return (folderEl && folderEl === info.folderEl) ? folderEl : null;
+                } catch (_) { return null; }
+            })();
+            if (freshRename) return freshRename;
+            const tag = target.tagName.toLowerCase();
+            if (['input','select','textarea','button','label'].includes(tag)) return null;
+            let el = target.closest('.gigma-row');
+            if (!el) {
+                const header = target.closest('.gigma-folder-header');
+                if (header) el = header.closest('.gigma-folder');
+            }
+            if (!el || !(el.classList.contains('gigma-row') || el.classList.contains('gigma-folder'))) return null;
+            if (typeof gigmaIsSelectableItem === 'function' && !gigmaIsSelectableItem(el)) return null;
+            try {
+                if (typeof gigmaIsAnyRetroOrderEnabled === 'function' && gigmaIsAnyRetroOrderEnabled() && el.classList.contains('gigma-folder')) return null;
+            } catch (_) {}
+            return el;
+        };
+        const getSelectedElsForMobileDeselect = () => {
+            try {
+                const sel = window.gigmaSelection;
+                if (sel && sel.items && sel.items.size) return Array.from(sel.items);
+            } catch (_) {}
+            try {
+                return Array.from(document.querySelectorAll('.gigma-selected'));
+            } catch (_) {}
+            return [];
+        };
+        const isMobileEventInsideAny = (evt, elements) => {
+            if (!evt || !elements || !elements.length) return false;
+            const target = evt.target;
+            const path = typeof evt.composedPath === 'function' ? evt.composedPath() : null;
+            return elements.some(el => {
+                if (!el) return false;
+                if (el === target) return true;
+                try { if (path && path.includes(el)) return true; } catch (_) {}
+                try { return !!(el.contains && el.contains(target)); } catch (_) { return false; }
+            });
+        };
+        const getMobileDeselectHost = (target) => {
+            if (!(target instanceof HTMLElement)) return null;
+            const tag = target.tagName.toLowerCase();
+            if (['input','select','textarea','button','label'].includes(tag)) return null;
+            if (target.closest('button, input, select, textarea, a, label')) return null;
+            if (target.closest('.gigma-pane-search-host, #gigma-search-folders, #gigma-search-folders-right')) return null;
+            try {
+                if (document.documentElement && document.documentElement.classList && document.documentElement.classList.contains('gigma-budget-mode-active')) {
+                    if (target.closest('.gigma-folder-header')) return null;
+                }
+            } catch (_) {}
+            try {
+                if (typeof window.gigmaIsDistributionUiTarget === 'function' && window.gigmaIsDistributionUiTarget(target)) return null;
+            } catch (_) {}
+            return target.closest('#gigma-ordering-container, #gigma-ordering-list, .gigma-unsorted-pane, .gigma-unsorted-content, .gigma-focus-pane-list, .gigma-folder-list');
+        };
+        const cancelPendingClear = () => {
+            try {
+                if (tapState.pendingClear && tapState.pendingClear.timer) clearTimeout(tapState.pendingClear.timer);
+            } catch (_) {}
+            tapState.pendingClear = null;
+        };
+        const cancelPendingToggle = () => {
+            try {
+                if (tapState.pendingToggle && tapState.pendingToggle.timer) clearTimeout(tapState.pendingToggle.timer);
+            } catch (_) {}
+            tapState.pendingToggle = null;
+        };
+        const runMobileClearSelection = () => {
+            const selectedEls = getSelectedElsForMobileDeselect();
+            if (!selectedEls.length) return;
+            try {
+                if (typeof window.gigmaClearSelection === 'function') {
+                    window.gigmaClearSelection();
+                } else if (typeof gigmaClearSelection === 'function') {
+                    gigmaClearSelection();
+                }
+            } catch (_) {}
+            try {
+                selectedEls.forEach(el => el && el.classList && el.classList.remove('gigma-selected'));
+            } catch (_) {}
+            try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
+        };
+        const scheduleMobileClearSelection = (delay) => {
+            cancelPendingClear();
+            if (delay > 0) {
+                tapState.pendingClear = {
+                    timer: setTimeout(() => {
+                        tapState.pendingClear = null;
+                        tapState.last = null;
+                        runMobileClearSelection();
+                    }, delay),
+                };
+            } else {
+                tapState.last = null;
+                runMobileClearSelection();
+            }
+        };
+        const suppressMobileFolderRenameForSelection = (el) => {
+            try {
+                if (el && el.classList && el.classList.contains('gigma-folder')) {
+                    window.__gigmaSuppressFolderRenameClick = { folderEl: el, until: Date.now() + 700 };
+                    const edit = el.querySelector('textarea.gigma-rename-input');
+                    if (edit && typeof edit._gigmaCancelFolderRenameForSelection === 'function') {
+                        edit._gigmaCancelFolderRenameForSelection();
+                    }
+                    if (window.__gigmaMobileFolderRenameTap && window.__gigmaMobileFolderRenameTap.folderEl === el) {
+                        window.__gigmaMobileFolderRenameTap = null;
+                    }
+                }
+            } catch (_) {}
+        };
+        const isMobileSelected = (el) => {
+            try {
+                const sel = window.gigmaSelection;
+                if (sel && sel.items && sel.items.has(el)) return true;
+            } catch (_) {}
+            try { return !!(el && el.classList && el.classList.contains('gigma-selected')); } catch (_) {}
+            return false;
+        };
+        const addMobileSelectionOnly = (els, anchorEl) => {
+            const sel = window.gigmaSelection || (window.gigmaSelection = { items: new Set(), anchor: null });
+            try {
+                gigmaCollectWithDescendants(els).forEach(node => {
+                    if (!node || !node.classList) return;
+                    node.classList.add('gigma-selected');
+                    sel.items.add(node);
+                });
+            } catch (_) {}
+            sel.anchor = anchorEl || sel.anchor || (els && els[0]) || null;
+        };
+        const applyMobileSelection = (el) => {
+            cancelPendingClear();
+            suppressMobileFolderRenameForSelection(el);
+            // Double-tap on mobile behaves like Ctrl-click: toggle this item without wiping the current selection.
+            gigmaToggleSelection(el);
+            try { gigmaPruneSelectedParentUnchainedLorebooksFromModifierSelection(); } catch (_) {}
+            try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
+        };
+        const scheduleMobileSelectionToggle = (el, delay) => {
+            cancelPendingToggle();
+            if (delay > 0) {
+                tapState.pendingToggle = {
+                    timer: setTimeout(() => {
+                        tapState.pendingToggle = null;
+                        applyMobileSelection(el);
+                    }, delay),
+                };
+            } else {
+                applyMobileSelection(el);
+            }
+        };
+        const applyMobileRangeSelection = (el) => {
+            cancelPendingClear();
+            cancelPendingToggle();
+            suppressMobileFolderRenameForSelection(el);
+            const anchor = tapState.rangeAnchor;
+            if (anchor && anchor.isConnected && anchor !== el) {
+                const keepSelected = getSelectedElsForMobileDeselect();
+                window.gigmaSelection.anchor = anchor;
+                gigmaRangeSelect(el);
+                addMobileSelectionOnly(keepSelected, anchor);
+                window.gigmaSelection.anchor = anchor;
+                tapState.rangeAnchor = null;
+            } else {
+                addMobileSelectionOnly([el], el);
+                tapState.rangeAnchor = el;
+            }
+            try { gigmaPruneSelectedParentUnchainedLorebooksFromModifierSelection(); } catch (_) {}
+            try { if (typeof window.gigmaScheduleBudgetDistributionRefresh === 'function') window.gigmaScheduleBudgetDistributionRefresh(); } catch (_) {}
+        };
+        clickRoot.addEventListener('pointerdown', (ev) => {
+            if (!isMobileTouch() || ev.pointerType !== 'touch' || ev.button !== 0) return;
+            if (ev.isPrimary === false) {
+                if (tapState.active) tapState.active.multi = true;
+                return;
+            }
+            const el = getTouchedSelectable(ev.target);
+            const clearHost = getMobileDeselectHost(ev.target);
+            if (!el && !clearHost) return;
+            const selectedEls = getSelectedElsForMobileDeselect();
+            const insideSelected = selectedEls.length ? isMobileEventInsideAny(ev, selectedEls) : false;
+            if (el && tapState.last && tapState.last.el === el && (Date.now() - tapState.last.time) <= 500) {
+                cancelPendingClear();
+            }
+            tapState.active = {
+                pointerId: ev.pointerId,
+                el,
+                clearAll: !!(selectedEls.length && !insideSelected && clearHost),
+                clearCanBecomeDoubleTap: !!el,
+                x: ev.clientX || 0,
+                y: ev.clientY || 0,
+                time: Date.now(),
+                moved: false,
+                multi: false,
+            };
+        }, true);
+        clickRoot.addEventListener('pointermove', (ev) => {
+            const active = tapState.active;
+            if (!active || ev.pointerId !== active.pointerId) return;
+            const dx = (ev.clientX || 0) - active.x;
+            const dy = (ev.clientY || 0) - active.y;
+            if ((dx * dx + dy * dy) >= 100) active.moved = true;
+        }, true);
+        const clearActiveTap = (ev) => {
+            const active = tapState.active;
+            if (!active || (ev && ev.pointerId !== active.pointerId)) return;
+            tapState.active = null;
+        };
+        clickRoot.addEventListener('pointercancel', clearActiveTap, true);
+        clickRoot.addEventListener('pointerup', (ev) => {
+            const active = tapState.active;
+            if (!active || ev.pointerId !== active.pointerId) return;
+            tapState.active = null;
+            const now = Date.now();
+            window.__gigmaMobileSuppressSyntheticClickUntil = now + 700;
+            if (active.moved || active.multi || (now - active.time) > 500) return;
+            if (active.clearAll && !active.clearCanBecomeDoubleTap) {
+                try { ev.preventDefault(); } catch (_) {}
+                try { ev.stopPropagation(); } catch (_) {}
+                try { if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); } catch (_) {}
+                scheduleMobileClearSelection(0);
+                return;
+            }
+            if (!active.el) return;
+            const triple = tapState.tripleCandidate;
+            if (triple && triple.el === active.el && (now - triple.time) <= 500) {
+                try { ev.preventDefault(); } catch (_) {}
+                try { ev.stopPropagation(); } catch (_) {}
+                try { if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); } catch (_) {}
+                applyMobileRangeSelection(active.el);
+                tapState.tripleCandidate = null;
+                tapState.last = null;
+                return;
+            }
+            if (triple && (now - triple.time) > 500) tapState.tripleCandidate = null;
+            const prev = tapState.last;
+            if (prev && prev.el === active.el && (now - prev.time) <= 500) {
+                try { ev.preventDefault(); } catch (_) {}
+                try { ev.stopPropagation(); } catch (_) {}
+                try { if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); } catch (_) {}
+                scheduleMobileSelectionToggle(active.el, isMobileSelected(active.el) ? 520 : 0);
+                tapState.tripleCandidate = { el: active.el, time: now };
+                tapState.last = null;
+                return;
+            }
+            tapState.last = { el: active.el, time: now };
+            if (active.clearAll) {
+                try { ev.preventDefault(); } catch (_) {}
+                try { ev.stopPropagation(); } catch (_) {}
+                try { if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); } catch (_) {}
+                // A tap on an unselected item matches desktop plain-click deselect.
+                // It is delayed only long enough to let a second tap become the mobile Ctrl-click equivalent.
+                scheduleMobileClearSelection(520);
+            }
+        }, true);
+        clickRoot.__gigmaMobileDoubleTapSelectionBound = true;
+    }
     // Delegate clicks: rows select on self; folders select when header clicked
     const handler = (ev) => {
         // If the immediately preceding action was a paste, swallow this click
@@ -51993,6 +52793,15 @@ function gigmaBindSelectionHandlers() {
             try { window.__gigmaSuppressNextClick = false; } catch (_) {}
             return;
         }
+        try {
+            const suppressUntil = Number(window.__gigmaMobileSuppressSyntheticClickUntil || 0);
+            if (gigmaIsMobileFullscreenActive() && (ev.pointerType === 'touch' || Date.now() < suppressUntil)) {
+                try { ev.preventDefault(); } catch (_) {}
+                try { ev.stopPropagation(); } catch (_) {}
+                try { if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation(); } catch (_) {}
+                return;
+            }
+        } catch (_) {}
         const t = ev.target;
         if (!(t instanceof HTMLElement)) return;
         // Ignore clicks on inputs or buttons to avoid conflict with rename/toggles
