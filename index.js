@@ -4139,22 +4139,6 @@ return;
       return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
     };
 
-    const touchPoint = (touches) => {
-      if (touches && touches.length === 1) {
-        const a = touches[0];
-        return { x: a.clientX, y: a.clientY };
-      }
-      return midpoint(touches);
-    };
-
-    const isDraggingNow = () => {
-      try {
-        return !!(window.gigmaDragState && window.gigmaDragState.dragging);
-      } catch (_) {
-        return false;
-      }
-    };
-
     try {
       if (!document.getElementById('gigma-mobile-two-finger-scroll-style')) {
         const css = document.createElement('style');
@@ -4169,9 +4153,12 @@ return;
           html.gigma-mobile-fullscreen #gigma-ordering-list,
           html.gigma-mobile-fullscreen .gigma-unsorted-pane,
           html.gigma-mobile-fullscreen .gigma-unsorted-content,
-          html.gigma-mobile-fullscreen .gigma-focus-pane-list{
-            touch-action:none !important;
+          html.gigma-mobile-fullscreen .gigma-focus-pane-list,
+          html.gigma-mobile-fullscreen .gigma-pane-search-results-list,
+          html.gigma-mobile-fullscreen .gigma-layout-preset-tree-display-wrap > .gigma-layout-preset-tree{
+            touch-action:pan-y pinch-zoom !important;
             overscroll-behavior:contain !important;
+            -webkit-overflow-scrolling:touch;
           }
           html.gigma-mobile-fullscreen :is(#gigma-modal-root, #gigma-layout-preset-tree-preview-root) :is(button, input, select, textarea, a, label, .menu_button){
             touch-action:manipulation !important;
@@ -4194,81 +4181,87 @@ return;
       try { ev.stopPropagation(); } catch (_) {}
     }, { capture: true, passive: false });
 
-    const state = { active: false, host: null, modalHost: null, modalOnlyY: false, touchCount: 0, lastX: 0, lastY: 0 };
+    const state = { active: false, host: null, modalHost: null, modalOnlyY: false, lastX: 0, lastY: 0 };
     const clear = () => {
       state.active = false;
       state.host = null;
       state.modalHost = null;
       state.modalOnlyY = false;
-      state.touchCount = 0;
       state.lastX = 0;
       state.lastY = 0;
     };
 
     document.addEventListener('touchstart', (ev) => {
       if (!isActive() || !isPopupTarget(ev.target)) return;
-      if (!ev.touches || ev.touches.length < 1 || ev.touches.length > 2) {
+      if (!ev.touches || ev.touches.length !== 2) {
         clear();
         return;
       }
-      if (isDraggingNow()) return;
-      const point = touchPoint(ev.touches);
       const host = getScrollHost(ev.target);
-      const modalOnlyY = isOrderingItemlessTarget(ev.target, point.y);
+      const mid = midpoint(ev.touches);
+      const modalOnlyY = isOrderingItemlessTarget(ev.target, mid.y);
       const modalHost = modalOnlyY ? getModalScrollHost(ev.target) : null;
       if (!host && !modalHost) return;
       state.active = true;
       state.host = host;
       state.modalHost = modalHost;
       state.modalOnlyY = modalOnlyY;
-      state.touchCount = ev.touches.length;
-      state.lastX = point.x;
-      state.lastY = point.y;
-      if (ev.touches.length === 2) {
-        try { ev.preventDefault(); } catch (_) {}
-        try { ev.stopPropagation(); } catch (_) {}
-      }
+      state.lastX = mid.x;
+      state.lastY = mid.y;
+      try { ev.preventDefault(); } catch (_) {}
+      try { ev.stopPropagation(); } catch (_) {}
     }, { capture: true, passive: false });
 
     document.addEventListener('touchmove', (ev) => {
       if (!isActive() || !isPopupTarget(ev.target)) return;
-      if (isDraggingNow()) return;
-      if (!ev.touches || ev.touches.length < 1 || ev.touches.length > 2) {
+      if (!ev.touches || ev.touches.length !== 2) {
         clear();
         return;
       }
-      const point = touchPoint(ev.touches);
-      const sameGesture = state.active && state.touchCount === ev.touches.length;
-      const host = sameGesture ? state.host : getScrollHost(ev.target);
-      const modalOnlyY = sameGesture ? state.modalOnlyY : isOrderingItemlessTarget(ev.target, point.y);
-      const modalHost = modalOnlyY ? ((sameGesture && state.modalHost) || getModalScrollHost(ev.target)) : null;
+      const host = state.host || getScrollHost(ev.target);
+      const mid = midpoint(ev.touches);
+      const modalOnlyY = state.active ? state.modalOnlyY : isOrderingItemlessTarget(ev.target, mid.y);
+      const modalHost = modalOnlyY ? (state.modalHost || getModalScrollHost(ev.target)) : null;
       if (!host && !modalHost) return;
-      if (!sameGesture) {
+      if (!state.active) {
         state.active = true;
         state.host = host;
         state.modalHost = modalHost;
         state.modalOnlyY = modalOnlyY;
-        state.touchCount = ev.touches.length;
-        state.lastX = point.x;
-        state.lastY = point.y;
+        state.lastX = mid.x;
+        state.lastY = mid.y;
       }
-      const moved = scrollWithModalRoute(host, modalHost, point.x - state.lastX, point.y - state.lastY, modalOnlyY);
-      state.lastX = point.x;
-      state.lastY = point.y;
-      if (!moved) return;
+      if (!scrollWithModalRoute(host, modalHost, mid.x - state.lastX, mid.y - state.lastY, modalOnlyY)) return;
+      state.lastX = mid.x;
+      state.lastY = mid.y;
       try { ev.preventDefault(); } catch (_) {}
       try { ev.stopPropagation(); } catch (_) {}
     }, { capture: true, passive: false });
 
     document.addEventListener('touchend', (ev) => {
       if (!state.active) return;
-      if (!ev.touches || ev.touches.length < 1) clear();
-      else if (ev.touches.length !== state.touchCount) clear();
+      if (!ev.touches || ev.touches.length < 2) clear();
     }, true);
     document.addEventListener('touchcancel', clear, true);
   }catch(_){ }
 })();
 // --- end GIGMA: Mobile ordering touch navigation ---
+// --- GIGMA: Block native touch scrolling only during active mobile drag ---
+(function gigmaMobileDragScrollGuardOnce(){
+  try{
+    if (window.__gigmaMobileDragScrollGuardInstalled) return;
+    window.__gigmaMobileDragScrollGuardInstalled = true;
+    document.addEventListener('touchmove', (ev) => {
+      try {
+        if (!(window.gigmaDragState && window.gigmaDragState.dragging)) return;
+        if (!(document.documentElement && document.documentElement.classList && document.documentElement.classList.contains('gigma-dragging-global'))) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+      } catch (_) {}
+    }, { capture: true, passive: false });
+  }catch(_){ }
+})();
+// --- end GIGMA: Block native touch scrolling only during active mobile drag ---
 /**
  * Ensure consistent post-multi-drop UX:
  * - Keep items selected for 2.0s
@@ -38605,6 +38598,9 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 height:100dvh;
                 padding:1em;
                 overflow:auto;
+                -webkit-overflow-scrolling:touch;
+                touch-action:pan-y pinch-zoom;
+                overscroll-behavior:contain;
                 background:rgba(0,0,0,0.8);
                 backdrop-filter:none;
                 -webkit-backdrop-filter:none;
@@ -38884,6 +38880,9 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 flex:1 1 auto;
                 min-height:0;
                 overflow:auto;
+                -webkit-overflow-scrolling:touch;
+                touch-action:pan-y pinch-zoom;
+                overscroll-behavior:contain;
             }
             #gigma-dedupe-root .gigma-dedupe-list{
                 padding:0.42em;
@@ -38903,10 +38902,6 @@ function gigmaInstallDuplicateSentenceStylesOnce() {
                 line-height:1.35;
                 opacity:0.76;
                 white-space:normal;
-            }
-            #gigma-dedupe-root .gigma-dedupe-list.is-empty,
-            #gigma-dedupe-root .gigma-dedupe-detail.is-empty{
-                overscroll-behavior:auto;
             }
             #gigma-dedupe-root .gigma-dedupe-row{
                 display:grid;
@@ -41115,20 +41110,6 @@ async function gigmaShowDuplicateSentencePopup() {
     gigmaMountDuplicateSentencePopup();
 }
 
-function gigmaDuplicateSentenceGetEmptyScrollPane(target) {
-    if (!(target instanceof Element)) return null;
-    const pane = target.closest('#gigma-dedupe-root .gigma-dedupe-list.is-empty, #gigma-dedupe-root .gigma-dedupe-detail.is-empty');
-    return pane instanceof HTMLElement ? pane : null;
-}
-
-function gigmaDuplicateSentenceGetPopupScroller(pane) {
-    const overlay = pane?.closest?.('#gigma-duplicate-sentences-overlay');
-    if (overlay && overlay.scrollHeight > overlay.clientHeight) return overlay;
-    const shell = pane?.closest?.('.gigma-dedupe-shell');
-    if (shell && shell.scrollHeight > shell.clientHeight) return shell;
-    return null;
-}
-
 (function gigmaDuplicateSentencePopupEventsOnce() {
     try {
         if (window.__gigmaDuplicateSentencePopupEventsOnce) return;
@@ -41315,40 +41296,6 @@ function gigmaDuplicateSentenceGetPopupScroller(pane) {
             } catch (_eDuplicateSentencePopupClick) { }
         }, true);
 
-        let gigmaDuplicateSentenceEmptyPaneLastTouchY = 0;
-        document.addEventListener('wheel', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
-                if (!scroller) return;
-                scroller.scrollTop += event.deltaY;
-                event.preventDefault();
-            } catch (_eDuplicateSentenceEmptyWheel) { }
-        }, { capture: true, passive: false });
-
-        document.addEventListener('touchstart', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const touch = event.touches && event.touches[0];
-                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch ? touch.clientY : 0;
-            } catch (_eDuplicateSentenceEmptyTouchStart) { }
-        }, { capture: true, passive: true });
-
-        document.addEventListener('touchmove', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
-                if (!scroller) return;
-                const touch = event.touches && event.touches[0];
-                if (!touch || !gigmaDuplicateSentenceEmptyPaneLastTouchY) return;
-                scroller.scrollTop += gigmaDuplicateSentenceEmptyPaneLastTouchY - touch.clientY;
-                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch.clientY;
-                event.preventDefault();
-            } catch (_eDuplicateSentenceEmptyTouchMove) { }
-        }, { capture: true, passive: false });
     } catch (_eDuplicateSentencePopupEventsOnce) { }
 })();
 
