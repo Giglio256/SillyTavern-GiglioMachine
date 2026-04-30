@@ -4163,6 +4163,15 @@ return;
           html.gigma-mobile-fullscreen :is(#gigma-modal-root, #gigma-layout-preset-tree-preview-root) :is(button, input, select, textarea, a, label, .menu_button){
             touch-action:manipulation !important;
           }
+          @media (pointer: coarse), (hover: none){
+            #gigma-modal-root .gigma-row.gigma-selected,
+            #gigma-modal-root .gigma-folder.gigma-selected > .gigma-folder-header,
+            #gigma-modal-root .gigma-folder.gigma-selected > .gigma-folder-header .gigma-folder-title{
+              touch-action:none !important;
+              -webkit-user-select:none !important;
+              user-select:none !important;
+            }
+          }
         `;
         document.head.appendChild(css);
       }
@@ -36141,9 +36150,9 @@ function applyDistributionToRows(info, raw, state){
 function syncDistributionUiBits(state){
   try{
     if (!state || !state.distInput) return;
-    const info = getDistributionModeInfo();
+    const info = state.distOpen ? getDistributionModeInfo() : null;
     if (state.distUnit){
-      const text = (info.sameMode && info.label) ? info.label : '';
+      const text = (info && info.sameMode && info.label) ? info.label : '';
       state.distUnit.textContent = text;
       state.distUnit.title = text;
       state.distUnit.style.display = text ? '' : 'none';
