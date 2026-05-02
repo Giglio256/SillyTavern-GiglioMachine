@@ -27421,29 +27421,8 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
     };
 
     try{
-      const isSkinMutationRelevant = (m) => {
-        try{
-          const t = m && m.target;
-          if (!(t instanceof HTMLElement)) return false;
-          if (t.matches && t.matches(TARGET_SELECTOR)) return true;
-          for (const n of (m.addedNodes || [])){
-            if (!(n instanceof HTMLElement)) continue;
-            if ((n.matches && n.matches(TARGET_SELECTOR)) || (n.querySelector && n.querySelector(TARGET_SELECTOR))) return true;
-          }
-          return false;
-        }catch(_){ return false; }
-      };
-      const obs = new MutationObserver((muts) => {
-        try{
-          for (const m of (muts || [])){
-            if (isSkinMutationRelevant(m)){
-              scheduleSkin();
-              break;
-            }
-          }
-        }catch(_){ }
-      });
-      obs.observe(document.documentElement, { subtree:true, childList:true });
+      const obs = new MutationObserver(() => { scheduleSkin(); });
+      obs.observe(document.documentElement, { subtree:true, childList:true, characterData:true, attributes:true, attributeFilter:['class','style'] });
       window.__gigmaIconizePreviewAndFolderButtonsObserver = obs;
     }catch(_){ }
 
