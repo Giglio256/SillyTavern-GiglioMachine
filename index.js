@@ -2662,7 +2662,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         min-height:0 !important;
         overflow-y:auto !important;
         overflow-x:hidden !important;
-        -webkit-overflow-scrolling:touch;
+        -webkit-overflow-scrolling:auto;
       }
       html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root{
         display:block !important;
@@ -2724,7 +2724,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         box-sizing:border-box !important;
         overflow-y:auto !important;
         overflow-x:hidden !important;
-        -webkit-overflow-scrolling:touch;
+        -webkit-overflow-scrolling:auto;
       }
       html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-preview-gwi-host{
         position:static !important;
@@ -44179,7 +44179,7 @@ return '<li class="' + rowCls + '"' + dataAttrs + '>' +
         bodyHtml = '<div class="gigma-layout-preset-tree-empty">This preset does not contain any lorebooks yet.</div>';
     }
     return '' +
-        '<div class="gigma-layout-preset-tree" style="display:block;width:100%;max-width:100%;height:100%;max-height:100%;min-height:0;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;">' +
+        '<div class="gigma-layout-preset-tree" style="display:block;width:100%;max-width:100%;height:100%;max-height:100%;min-height:0;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:auto;">' +
         bodyHtml +
         '</div>';
 }
