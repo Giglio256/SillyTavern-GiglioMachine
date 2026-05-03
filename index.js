@@ -4107,6 +4107,18 @@ return;
       return !isOrderingItemTarget(target) && !isInsidePaneItemSpan(target, y);
     };
 
+    const getDropdownScrollHost = (target) => {
+      try {
+        const selector = '.select2-results__options, .select2-dropdown, .gigma-modal-stats-panel, .gigma-wi-lorebook-stats-panel, #gigma-modal-settings-popup, .gigma-mobile-fullscreen-panel';
+        let node = target && target.closest ? target.closest(selector) : null;
+        while (node) {
+          if (hasScrollableOverflow(node, 'y') || hasScrollableOverflow(node, 'x')) return node;
+          node = node.parentElement && node.parentElement.closest ? node.parentElement.closest(selector) : null;
+        }
+      } catch (_) {}
+      return null;
+    };
+
     const getScrollHost = (target) => {
       try {
         const searchHost = getSearchResultsScrollHost(target);
@@ -4214,8 +4226,10 @@ return;
 
     document.addEventListener('wheel', (ev) => {
       if (!isActive() || !isPopupTarget(ev.target)) return;
-      const host = getScrollHost(ev.target);
-      const modalOnlyY = isOrderingItemlessTarget(ev.target, ev.clientY);
+      if (ev.target && ev.target.closest && ev.target.closest('select')) return;
+      const dropdownHost = getDropdownScrollHost(ev.target);
+      const host = dropdownHost || getScrollHost(ev.target);
+      const modalOnlyY = dropdownHost ? false : isOrderingItemlessTarget(ev.target, ev.clientY);
       const modalHost = modalOnlyY ? getModalScrollHost(ev.target) : null;
       if (!host && !modalHost) return;
       const dx = ev && typeof ev.deltaX === 'number' ? ev.deltaX : 0;
@@ -4304,8 +4318,9 @@ return;
 
     const beginTouchScroll = (ev, point, kind) => {
       cancelMomentum();
-      const host = getScrollHost(ev.target);
-      const modalOnlyY = isOrderingItemlessTarget(ev.target, point.y);
+      const dropdownHost = getDropdownScrollHost(ev.target);
+      const host = dropdownHost || getScrollHost(ev.target);
+      const modalOnlyY = dropdownHost ? false : isOrderingItemlessTarget(ev.target, point.y);
       const modalHost = modalOnlyY ? getModalScrollHost(ev.target) : null;
       if (!host && !modalHost) return false;
       state.active = true;
@@ -4327,6 +4342,11 @@ return;
       if (!isActive() || !isPopupTarget(ev.target)) return;
       cancelMomentum();
       if (!ev.touches || ev.touches.length < 1) return;
+      if (ev.touches.length === 1 && getDropdownScrollHost(ev.target)) {
+        const t = ev.touches[0];
+        beginTouchScroll(ev, { x: t.clientX, y: t.clientY, id: t.identifier }, 'single');
+        return;
+      }
       if (isOrderingControlTarget(ev.target)) return;
       if (ev.touches.length === 1) {
         const t = ev.touches[0];
@@ -5192,6 +5212,1228 @@ function gigmaApplyHideUndoRedoDesktopPref(){
     window.addEventListener('resize', gigmaApplyHideUndoRedoDesktopPref, { passive: true });
     window.addEventListener('orientationchange', gigmaApplyHideUndoRedoDesktopPref, { passive: true });
 })();
+
+
+// --- GIGMA: Long-press information popups ---
+const GIGMA_INFO_POPUP_DEFAULT_ID = 'saveCloseButton';
+const GIGMA_INFO_POPUP_STATE = {
+    popup: null,
+    root: null,
+    history: [],
+    index: -1,
+    audioCleanup: null,
+    systemSpeech: {
+        text: '',
+        duration: 0,
+        currentTime: 0,
+        startTime: 0,
+        startOffset: 0,
+        utterance: null,
+        frame: 0,
+        speaking: false,
+        paused: false,
+        ended: true,
+    },
+};
+
+const GIGMA_INFO_POPUPS = {
+    saveCloseButton: {
+        title: 'Save and close button',
+        parts: [
+            'This button first saves the current ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' and ',
+            { text: 'assignment preset', target: 'assignmentPreset' },
+            ' under their current name and then closes the ',
+            { text: 'modal', target: 'modal' },
+            '.',
+        ],
+        speech: 'Save and close button. This button first saves the current layout preset and assignment preset under their current name and then closes the modal.',
+    },
+    layoutPreset: {
+        title: 'Layout preset',
+        parts: [
+            'A layout preset is a preset which determines the order and budget of your lorebooks. Layout presets live in the top of the ',
+            { text: 'modal', target: 'modal' },
+            '. Layout presets can be child presets or parent presets.',
+        ],
+        speech: 'Layout preset. A layout preset is a preset which determines the order and budget of your lorebooks. Layout presets live in the top of the modal. Layout presets can be child presets or parent presets.',
+    },
+    modal: {
+        title: 'Modal',
+        parts: [
+            'The modal is the main popup which opens when you click the GIGMA cat icon ',
+            { icon: 'giglioModalButton' },
+            ' in the top center of the native SillyTavern world info UI.',
+        ],
+        speech: 'Modal. The modal is the main popup which opens when you click the GIGMA cat icon in the top center of the native SillyTavern world info UI.',
+    },
+    assignmentPreset: {
+        title: 'Assignment preset',
+        parts: [
+            'The assignment preset, which lives at the bottom of the ',
+            { text: 'modal', target: 'modal' },
+            ', determines which ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' must be used for the current speaker. You can assign a different layout preset to each character. This way, you can set a different budget and different order for each character.',
+        ],
+        speech: 'Assignment preset. The assignment preset, which lives at the bottom of the modal, determines which layout preset must be used for the current speaker. You can assign a different layout preset to each character. This way, you can set a different budget and different order for each character.',
+    },
+};
+
+function gigmaGetLongPressInfoPopupPref(){
+    try{
+        return !!gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.longPressInfoPopup, true);
+    }catch(_){ return true; }
+}
+function gigmaSetLongPressInfoPopupPref(enabled){
+    try{
+        gigmaPersistBinaryExtensionSetting('longPressInfoPopup', !!enabled, 1);
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+    }catch(_){ }
+}
+function gigmaClampInfoPopupDelaySeconds(value){
+    try{
+        const n = Math.round((Number(value) || 1) * 10) / 10;
+        if (!Number.isFinite(n)) return 1;
+        if (n < 0.5) return 0.5;
+        if (n > 9.9) return 9.9;
+        return n;
+    }catch(_){ return 1; }
+}
+function gigmaGetInfoPopupDelaySecondsPref(){
+    try{
+        return gigmaClampInfoPopupDelaySeconds(gigmaExtensionSettings && gigmaExtensionSettings.infoPopupDelaySeconds);
+    }catch(_){ return 1; }
+}
+function gigmaSetInfoPopupDelaySecondsPref(value){
+    try{
+        const next = gigmaClampInfoPopupDelaySeconds(value);
+        if (gigmaExtensionSettings && typeof gigmaExtensionSettings === 'object') {
+            if (next === 1) delete gigmaExtensionSettings.infoPopupDelaySeconds;
+            else gigmaExtensionSettings.infoPopupDelaySeconds = next;
+        }
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+        return next;
+    }catch(_){ return 1; }
+}
+function gigmaGetReadInfoPopupTtsPref(){
+    try{
+        return !!gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.readInfoPopupTts, true);
+    }catch(_){ return true; }
+}
+function gigmaSetReadInfoPopupTtsPref(enabled){
+    try{
+        gigmaPersistBinaryExtensionSetting('readInfoPopupTts', !!enabled, 1);
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+    }catch(_){ }
+}
+function gigmaGetRepeatInfoPopupTtsPref(){
+    try{
+        return !!gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.repeatInfoPopupTts, false);
+    }catch(_){ return false; }
+}
+function gigmaSetRepeatInfoPopupTtsPref(enabled){
+    try{
+        gigmaPersistBinaryExtensionSetting('repeatInfoPopupTts', !!enabled, 0);
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+    }catch(_){ }
+}
+function gigmaClampInfoPopupTtsSpeed(value){
+    try{
+        const n = Math.round((Number(value) || 1) * 10) / 10;
+        if (!Number.isFinite(n)) return 1;
+        if (n < 0.1) return 0.1;
+        if (n > 3) return 3;
+        return n;
+    }catch(_){ return 1; }
+}
+function gigmaGetInfoPopupTtsSpeedPref(){
+    try{
+        return gigmaClampInfoPopupTtsSpeed(gigmaExtensionSettings && gigmaExtensionSettings.infoPopupTtsSpeed);
+    }catch(_){ return 1; }
+}
+function gigmaSetInfoPopupTtsSpeedPref(value){
+    try{
+        const next = gigmaClampInfoPopupTtsSpeed(value);
+        if (gigmaExtensionSettings && typeof gigmaExtensionSettings === 'object') {
+            gigmaExtensionSettings.infoPopupTtsSpeed = next;
+        }
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+        return next;
+    }catch(_){ return 1; }
+}
+function gigmaEscapeInfoPopupText(value){
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+function gigmaBuildInfoPopupBodyHtml(infoId){
+    const info = GIGMA_INFO_POPUPS[infoId] || GIGMA_INFO_POPUPS[GIGMA_INFO_POPUP_DEFAULT_ID];
+    const body = (info.parts || []).map(part => {
+        if (typeof part === 'string') return gigmaEscapeInfoPopupText(part);
+        if (part && part.icon === 'giglioModalButton') return `<img class="gigma-info-inline-modal-icon" src="${gigmaEscapeInfoPopupText(GIGLIO_ICON_SRC)}" alt="" aria-hidden="true" />`;
+        const target = GIGMA_INFO_POPUPS[part.target] ? part.target : GIGMA_INFO_POPUP_DEFAULT_ID;
+        return `<button type="button" class="gigma-info-link" data-gigma-info-target="${gigmaEscapeInfoPopupText(target)}">${gigmaEscapeInfoPopupText(part.text)}</button>`;
+    }).join('');
+    return `
+        <h2 class="gigma-info-title">${gigmaEscapeInfoPopupText(info.title)}</h2>
+        <div class="gigma-info-copy">${body}</div>
+    `;
+}
+function gigmaGetInfoPopupSpeechText(infoId){
+    const info = GIGMA_INFO_POPUPS[infoId] || GIGMA_INFO_POPUPS[GIGMA_INFO_POPUP_DEFAULT_ID];
+    return String(info.speech || `${info.title}. ${(info.parts || []).map(part => typeof part === 'string' ? part : part.text).join('')}`);
+}
+function gigmaFormatInfoPopupAudioTime(seconds){
+    const n = Number(seconds);
+    if (!Number.isFinite(n) || n < 0) return '0.00';
+    return n.toFixed(2);
+}
+function gigmaInfoPopupGetAudioElement(){
+    const audio = document.getElementById('tts_audio');
+    return audio instanceof HTMLAudioElement ? audio : null;
+}
+function gigmaInfoPopupUsesSystemTts(){
+    try{
+        return !!(window && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window && extension_settings?.tts?.currentProvider === 'System');
+    }catch(_){ return false; }
+}
+function gigmaGetInfoPopupSystemSettings(){
+    try{
+        const settings = extension_settings?.tts?.System || {};
+        return {
+            rate: Number(settings.rate) || 1,
+            pitch: Number(settings.pitch) || 1,
+            voiceMap: settings.voiceMap || {},
+        };
+    }catch(_){ return { rate: 1, pitch: 1, voiceMap: {} }; }
+}
+function gigmaGetInfoPopupSystemRate(){
+    try{ return Math.max(0.1, (Number(gigmaGetInfoPopupSystemSettings().rate) || 1) * gigmaGetInfoPopupTtsSpeedPref()); }
+    catch(_){ return gigmaGetInfoPopupTtsSpeedPref(); }
+}
+function gigmaGetInfoPopupSystemPitch(){
+    try{ return Math.max(0, Math.min(2, Number(gigmaGetInfoPopupSystemSettings().pitch) || 1)); }
+    catch(_){ return 1; }
+}
+function gigmaApplyInfoPopupAudioSpeed(audio){
+    if (!audio) return;
+    const speed = gigmaGetInfoPopupTtsSpeedPref();
+    try{ audio.defaultPlaybackRate = speed; }catch(_){ }
+    try{ audio.playbackRate = speed; }catch(_){ }
+    try{ audio.preservesPitch = true; }catch(_){ }
+    try{ audio.mozPreservesPitch = true; }catch(_){ }
+    try{ audio.webkitPreservesPitch = true; }catch(_){ }
+}
+function gigmaApplyInfoPopupCurrentSpeed(){
+    try{
+        if (gigmaInfoPopupUsesSystemTts()) {
+            const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+            const wasPlaying = state.speaking && !state.paused && !state.ended;
+            if (wasPlaying) gigmaUpdateInfoPopupSystemPosition();
+            if (state.text) {
+                const oldDuration = Number(state.duration) || 0;
+                const ratio = oldDuration > 0 ? (Number(state.currentTime) || 0) / oldDuration : 0;
+                state.duration = gigmaEstimateInfoPopupSystemDuration(state.text);
+                state.currentTime = gigmaClampInfoPopupSystemTime((Number(state.duration) || 0) * ratio);
+            }
+            if (wasPlaying) gigmaStartInfoPopupSystemSpeech(GIGMA_INFO_POPUP_STATE.history[GIGMA_INFO_POPUP_STATE.index] || GIGMA_INFO_POPUP_DEFAULT_ID, state.currentTime);
+            gigmaUpdateInfoPopupTtsUi(GIGMA_INFO_POPUP_STATE.root);
+            return;
+        }
+        gigmaApplyInfoPopupAudioSpeed(gigmaInfoPopupGetAudioElement());
+        gigmaUpdateInfoPopupTtsUi(GIGMA_INFO_POPUP_STATE.root);
+    }catch(_){ }
+}
+function gigmaGetInfoPopupSystemVoiceName(){
+    try{
+        const rows = Array.from(document.querySelectorAll('#tts_voicemap_block .tts_voicemap_block_char') || []);
+        for (const row of rows) {
+            const label = String(row.querySelector('span')?.textContent || '').trim();
+            if (label !== 'SillyTavern System' && label !== '[Default Voice]') continue;
+            const value = String(row.querySelector('select')?.value || '').trim();
+            if (value && value !== '[Default Voice]' && value !== 'disabled') return value;
+        }
+        const map = gigmaGetInfoPopupSystemSettings().voiceMap || {};
+        for (const key of ['SillyTavern System', '[Default Voice]']) {
+            const value = String(map[key] || '').trim();
+            if (value && value !== '[Default Voice]' && value !== 'disabled') return value;
+        }
+    }catch(_){ }
+    return '';
+}
+function gigmaGetInfoPopupSystemVoice(){
+    try{
+        const name = gigmaGetInfoPopupSystemVoiceName();
+        if (!name) return null;
+        const voices = window.speechSynthesis.getVoices() || [];
+        return voices.find(v => v && (v.name === name || v.voiceURI === name)) || null;
+    }catch(_){ return null; }
+}
+function gigmaEstimateInfoPopupSystemDuration(text){
+    const words = String(text || '').trim().split(/\s+/).filter(Boolean).length;
+    const rate = Math.max(0.1, (Number(gigmaGetInfoPopupSystemSettings().rate) || 1) * gigmaGetInfoPopupTtsSpeedPref());
+    return Math.max(1, (words / 2.55) / rate);
+}
+function gigmaClampInfoPopupSystemTime(seconds){
+    const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+    const duration = Number(state.duration) || 0;
+    const value = Number(seconds) || 0;
+    return Math.max(0, Math.min(duration, value));
+}
+function gigmaUpdateInfoPopupSystemPosition(){
+    const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+    if (!state.speaking || state.paused || state.ended) return;
+    const elapsed = ((typeof performance !== 'undefined' ? performance.now() : Date.now()) - state.startTime) / 1000;
+    state.currentTime = gigmaClampInfoPopupSystemTime(state.startOffset + elapsed);
+}
+function gigmaInfoPopupSystemCharIndexForTime(seconds){
+    const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+    const text = String(state.text || '');
+    const duration = Number(state.duration) || 0;
+    if (!text || duration <= 0) return 0;
+    return Math.max(0, Math.min(text.length - 1, Math.floor((gigmaClampInfoPopupSystemTime(seconds) / duration) * text.length)));
+}
+function gigmaSetInfoPopupSystemUiLoop(root){
+    const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+    if (state.frame) cancelAnimationFrame(state.frame);
+    const tick = () => {
+        gigmaUpdateInfoPopupSystemPosition();
+        gigmaUpdateInfoPopupTtsUi(root);
+        if (state.speaking && !state.ended) state.frame = requestAnimationFrame(tick);
+        else state.frame = 0;
+    };
+    state.frame = requestAnimationFrame(tick);
+}
+function gigmaCancelInfoPopupSystemSpeech(resetPosition){
+    const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+    try{ if (state.frame) cancelAnimationFrame(state.frame); }catch(_){ }
+    state.frame = 0;
+    try{ window.speechSynthesis.cancel(); }catch(_){ }
+    state.utterance = null;
+    state.speaking = false;
+    state.paused = false;
+    if (resetPosition) {
+        state.currentTime = 0;
+        state.ended = true;
+    }
+}
+function gigmaStopInfoPopupPlayback(){
+    try{ gigmaCancelInfoPopupSystemSpeech(true); }catch(_){ }
+    try{
+        const audio = gigmaInfoPopupGetAudioElement();
+        if (!audio) return;
+        audio.pause();
+        if (Number.isFinite(audio.duration) && audio.duration > 0) audio.currentTime = 0;
+    }catch(_){ }
+}
+function gigmaHandleInfoPopupSystemEnd(){
+    const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+    state.currentTime = 0;
+    state.startOffset = 0;
+    state.startTime = 0;
+    state.speaking = false;
+    state.paused = false;
+    state.ended = true;
+    gigmaUpdateInfoPopupTtsUi(GIGMA_INFO_POPUP_STATE.root);
+    if (gigmaGetRepeatInfoPopupTtsPref()) {
+        gigmaStartInfoPopupSystemSpeech(GIGMA_INFO_POPUP_STATE.history[GIGMA_INFO_POPUP_STATE.index] || GIGMA_INFO_POPUP_DEFAULT_ID, 0);
+    }
+}
+function gigmaHandleInfoPopupAudioEnd(audio){
+    if (!audio) return;
+    try{ audio.pause(); }catch(_){ }
+    try{ audio.currentTime = 0; }catch(_){ }
+    gigmaUpdateInfoPopupTtsUi(GIGMA_INFO_POPUP_STATE.root);
+    if (gigmaGetRepeatInfoPopupTtsPref()) {
+        try{ void audio.play(); }catch(_){ }
+    }
+}
+function gigmaStartInfoPopupSystemSpeech(infoId, startSeconds = 0){
+    if (!gigmaInfoPopupUsesSystemTts()) return;
+    const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+    const text = gigmaGetInfoPopupSpeechText(infoId);
+    const duration = gigmaEstimateInfoPopupSystemDuration(text);
+    gigmaCancelInfoPopupSystemSpeech(false);
+    state.text = text;
+    state.duration = duration;
+    state.currentTime = gigmaClampInfoPopupSystemTime(startSeconds);
+    state.startOffset = state.currentTime;
+    state.startTime = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    state.speaking = true;
+    state.paused = false;
+    state.ended = false;
+    const charIndex = gigmaInfoPopupSystemCharIndexForTime(state.currentTime);
+    const utterance = new SpeechSynthesisUtterance(text.slice(charIndex));
+    const voice = gigmaGetInfoPopupSystemVoice();
+    if (voice) utterance.voice = voice;
+    utterance.rate = gigmaGetInfoPopupSystemRate();
+    utterance.pitch = gigmaGetInfoPopupSystemPitch();
+    utterance.onboundary = (event) => {
+        if (!event || typeof event.charIndex !== 'number') return;
+        const absoluteChar = Math.max(0, Math.min(text.length, charIndex + event.charIndex));
+        if (state.duration > 0 && text.length > 0) state.currentTime = gigmaClampInfoPopupSystemTime((absoluteChar / text.length) * state.duration);
+    };
+    utterance.onend = () => {
+        if (state.utterance !== utterance) return;
+        gigmaHandleInfoPopupSystemEnd();
+    };
+    utterance.onerror = () => {
+        if (state.utterance !== utterance) return;
+        state.speaking = false;
+        state.paused = false;
+        state.ended = true;
+        gigmaUpdateInfoPopupTtsUi(GIGMA_INFO_POPUP_STATE.root);
+    };
+    state.utterance = utterance;
+    window.speechSynthesis.speak(utterance);
+    gigmaSetInfoPopupSystemUiLoop(GIGMA_INFO_POPUP_STATE.root);
+}
+function gigmaPauseInfoPopupSystemSpeech(){
+    const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+    if (!state.speaking || state.paused) return;
+    gigmaUpdateInfoPopupSystemPosition();
+    try{ window.speechSynthesis.pause(); }catch(_){ }
+    state.paused = true;
+    gigmaUpdateInfoPopupTtsUi(GIGMA_INFO_POPUP_STATE.root);
+}
+function gigmaResumeInfoPopupSystemSpeech(){
+    const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+    if (!state.text) return;
+    if (state.paused && state.utterance) {
+        state.startOffset = state.currentTime;
+        state.startTime = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        state.paused = false;
+        state.speaking = true;
+        try{ window.speechSynthesis.resume(); }catch(_){ }
+        gigmaSetInfoPopupSystemUiLoop(GIGMA_INFO_POPUP_STATE.root);
+        return;
+    }
+    gigmaStartInfoPopupSystemSpeech(GIGMA_INFO_POPUP_STATE.history[GIGMA_INFO_POPUP_STATE.index] || GIGMA_INFO_POPUP_DEFAULT_ID, state.currentTime);
+}
+function gigmaSeekInfoPopupSystemSpeech(seconds){
+    const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+    const next = gigmaClampInfoPopupSystemTime(seconds);
+    const wasPlaying = state.speaking && !state.paused && !state.ended;
+    state.currentTime = next;
+    if (next >= state.duration) {
+        gigmaCancelInfoPopupSystemSpeech(false);
+        gigmaHandleInfoPopupSystemEnd();
+    } else if (wasPlaying) {
+        gigmaStartInfoPopupSystemSpeech(GIGMA_INFO_POPUP_STATE.history[GIGMA_INFO_POPUP_STATE.index] || GIGMA_INFO_POPUP_DEFAULT_ID, next);
+    } else {
+        gigmaCancelInfoPopupSystemSpeech(false);
+        state.paused = true;
+        state.ended = false;
+    }
+    gigmaUpdateInfoPopupTtsUi(GIGMA_INFO_POPUP_STATE.root);
+}
+async function gigmaSpeakInfoPopupText(infoId){
+    if (gigmaInfoPopupUsesSystemTts()) {
+        gigmaStartInfoPopupSystemSpeech(infoId, 0);
+        return;
+    }
+    const command = SlashCommandParser && SlashCommandParser.commands ? SlashCommandParser.commands.speak : null;
+    if (!command || typeof command.callback !== 'function') {
+        try{ toastr.warning('Native SillyTavern TTS is not available.'); }catch(_){ }
+        return;
+    }
+    await command.callback({}, gigmaGetInfoPopupSpeechText(infoId));
+}
+function gigmaSeekInfoPopupAudio(deltaSeconds){
+    if (gigmaInfoPopupUsesSystemTts()) {
+        const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+        gigmaSeekInfoPopupSystemSpeech((Number(state.currentTime) || 0) + Number(deltaSeconds || 0));
+        return;
+    }
+    const audio = gigmaInfoPopupGetAudioElement();
+    if (!audio) return;
+    const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+    const next = Math.max(0, Math.min(duration || 0, (Number(audio.currentTime) || 0) + Number(deltaSeconds || 0)));
+    if (duration > 0 && next >= duration) {
+        gigmaHandleInfoPopupAudioEnd(audio);
+        return;
+    }
+    audio.currentTime = next;
+}
+function gigmaBuildInfoPopupShellHtml(){
+    return `
+        <div id="gigma-info-popup-root">
+            <div class="gigma-info-header">
+                <div class="gigma-info-nav">
+                    <button id="gigma-info-back" class="menu_button gigma-info-square-btn" type="button" aria-label="Previous information popup" title="Previous information popup"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+                    <button id="gigma-info-forward" class="menu_button gigma-info-square-btn" type="button" aria-label="Next information popup" title="Next information popup"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                </div>
+                <button id="gigma-info-close" class="menu_button gigma-global-cancel gigma-global-icon gigma-info-close" type="button" aria-label="Close information popup" title="Close information popup">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
+                </button>
+            </div>
+            <div id="gigma-info-content" class="gigma-info-content"></div>
+            <div class="gigma-info-tts-section" aria-label="Text to speech playback controls">
+                <div class="gigma-info-tts-label">Text to speech</div>
+                <div class="gigma-info-tts-bar tts-bar-container">
+                    <input id="gigma-info-tts-seeker" class="gigma-info-tts-seeker" type="range" min="0" max="0" step="0.001" value="0" aria-label="Seek audio position" />
+                    <div id="gigma-info-tts-time" class="gigma-info-tts-time">0.00 / 0.00</div>
+                </div>
+                <div class="gigma-info-tts-speed-row">
+                    <label for="gigma-info-tts-speed">Speed</label>
+                    <input id="gigma-info-tts-speed" class="gigma-info-tts-speed" type="range" min="0.1" max="3" step="0.1" value="1" aria-label="Playback speed" />
+                    <input id="gigma-info-tts-speed-value" class="gigma-info-tts-speed-value" type="number" min="0.1" max="3" step="0.1" value="1.0" aria-label="Playback speed value" />
+                </div>
+                <div class="gigma-info-tts-buttons">
+                    <button type="button" class="menu_button gigma-info-tts-btn" data-gigma-tts-action="start" aria-label="To the start" title="To the start"><i class="fa-solid fa-backward-step" aria-hidden="true"></i></button>
+                    <button type="button" class="menu_button gigma-info-tts-btn" data-gigma-tts-seek="-30" aria-label="Thirty seconds back" title="Thirty seconds back"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>30</span></button>
+                    <button type="button" class="menu_button gigma-info-tts-btn" data-gigma-tts-seek="-20" aria-label="Twenty seconds back" title="Twenty seconds back"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>20</span></button>
+                    <button type="button" class="menu_button gigma-info-tts-btn" data-gigma-tts-seek="-10" aria-label="Ten seconds back" title="Ten seconds back"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>10</span></button>
+                    <button type="button" class="menu_button gigma-info-tts-btn" data-gigma-tts-seek="-5" aria-label="Five seconds back" title="Five seconds back"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>5</span></button>
+                    <button id="gigma-info-tts-play-pause" type="button" class="menu_button gigma-info-tts-btn" data-gigma-tts-action="playPause" aria-label="Play or pause" title="Play or pause"><i class="fa-solid fa-play" aria-hidden="true"></i></button>
+                    <button type="button" class="menu_button gigma-info-tts-btn" data-gigma-tts-seek="5" aria-label="Five seconds forward" title="Five seconds forward"><span>5</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                    <button type="button" class="menu_button gigma-info-tts-btn" data-gigma-tts-seek="10" aria-label="Ten seconds forward" title="Ten seconds forward"><span>10</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                    <button type="button" class="menu_button gigma-info-tts-btn" data-gigma-tts-seek="20" aria-label="Twenty seconds forward" title="Twenty seconds forward"><span>20</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                    <button type="button" class="menu_button gigma-info-tts-btn" data-gigma-tts-seek="30" aria-label="Thirty seconds forward" title="Thirty seconds forward"><span>30</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                    <button type="button" class="menu_button gigma-info-tts-btn" data-gigma-tts-action="end" aria-label="To the end" title="To the end"><i class="fa-solid fa-forward-step" aria-hidden="true"></i></button>
+                    <button id="gigma-info-tts-repeat" type="button" class="menu_button gigma-info-tts-btn gigma-info-tts-repeat-btn" data-gigma-tts-action="repeat" aria-label="Repeat playback" title="Repeat playback" aria-pressed="false"><i class="fa-solid fa-repeat" aria-hidden="true"></i></button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+function gigmaInstallInfoPopupStylesOnce(){
+    try{
+        if (document.getElementById('gigma-info-popup-style')) return;
+        const s = document.createElement('style');
+        s.id = 'gigma-info-popup-style';
+        s.textContent = `
+dialog:has(#gigma-info-popup-root){
+  width:42em !important;
+  height:36em !important;
+  max-width:min(92vw, 42em) !important;
+  max-height:90vh !important;
+  overflow:hidden !important;
+}
+dialog:has(#gigma-info-popup-root) :is(.popup-body,.popup-content,.popup-content-wrapper){
+  height:100% !important;
+  max-height:100% !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-button-row,.popup_button_container,.swal2-actions){
+  display:none !important;
+}
+#gigma-info-popup-root{
+  box-sizing:border-box;
+  width:100%;
+  height:100%;
+  padding:1em;
+  display:flex;
+  flex-direction:column;
+  gap:0.75em;
+  min-height:0;
+  color:var(--SmartThemeBodyColor);
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  user-select:none;
+}
+#gigma-info-popup-root .gigma-info-header{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:start;
+  gap:0.75em;
+  flex:0 0 auto;
+}
+#gigma-info-popup-root .gigma-info-nav{
+  display:inline-flex;
+  align-items:center;
+  gap:0.35em;
+  grid-column:1;
+}
+#gigma-info-popup-root .gigma-info-square-btn,
+#gigma-info-popup-root .gigma-info-close{
+  width:var(--gigma-hdr-btn, 2.2em) !important;
+  min-width:var(--gigma-hdr-btn, 2.2em) !important;
+  max-width:var(--gigma-hdr-btn, 2.2em) !important;
+  height:var(--gigma-hdr-btn, 2.2em) !important;
+  padding:0 !important;
+  margin:0 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+}
+#gigma-info-popup-root .gigma-info-square-btn:disabled{
+  opacity:0.38;
+  cursor:not-allowed;
+  filter:grayscale(1);
+}
+#gigma-info-popup-root .gigma-info-close{
+  grid-column:3;
+  background:rgba(255,255,255,0.08) !important;
+  border:var(--gigma-hdr-border, 0.08em) solid rgba(255,255,255,0.18) !important;
+  color:#ffffff !important;
+  box-shadow:none !important;
+  transition:background-color .12s ease-out, border-color .12s ease-out, box-shadow .12s ease-out;
+}
+#gigma-info-popup-root .gigma-info-close .gigma-global-icon-svg,
+#gigma-info-popup-root .gigma-info-close .gigma-global-icon-svg *{
+  stroke:rgba(220,220,220,0.84) !important;
+}
+#gigma-info-popup-root .gigma-info-close:hover,
+#gigma-info-popup-root .gigma-info-close:focus-visible{
+  background:rgba(255,0,90,0.52) !important;
+  border-color:rgba(255,0,90,1) !important;
+}
+#gigma-info-popup-root .gigma-info-content{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  border:0.08em solid rgba(255,255,255,0.13);
+  border-radius:0.75em;
+  background:rgba(0,0,0,0.22);
+  padding:1em;
+  display:flex;
+  flex-direction:column;
+  gap:0.75em;
+}
+#gigma-info-popup-root .gigma-info-title{
+  margin:0;
+  font-size:1.3em;
+  line-height:1.15;
+  font-weight:700;
+}
+#gigma-info-popup-root .gigma-info-copy{
+  font-size:1em;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+#gigma-info-popup-root .gigma-info-inline-modal-icon{
+  width:1.25em;
+  height:1.25em;
+  object-fit:contain;
+  vertical-align:-0.28em;
+  margin:0 0.1em;
+}
+#gigma-info-popup-root .gigma-info-link{
+  appearance:none;
+  border:0;
+  background:transparent;
+  color:#61a8ff;
+  text-decoration:underline;
+  cursor:pointer;
+  padding:0;
+  margin:0;
+  font:inherit;
+}
+#gigma-info-popup-root .gigma-info-link:hover,
+#gigma-info-popup-root .gigma-info-link:focus-visible{
+  color:#9dccff;
+}
+#gigma-info-popup-root .gigma-info-tts-section{
+  flex:0 0 auto;
+  border:0.08em solid rgba(255,255,255,0.13);
+  border-radius:0.75em;
+  background:rgba(0,0,0,0.22);
+  padding:0.75em;
+  display:flex;
+  flex-direction:column;
+  gap:0.55em;
+  min-height:0;
+}
+#gigma-info-popup-root .gigma-info-tts-label{
+  font-weight:700;
+  font-size:0.95em;
+  opacity:0.92;
+}
+#gigma-info-popup-root .gigma-info-tts-bar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:0.6em;
+  filter:grayscale(1) brightness(75%);
+}
+#gigma-info-popup-root .gigma-info-tts-seeker{
+  width:100%;
+  min-width:0;
+  appearance:none;
+  background:transparent;
+  cursor:pointer;
+}
+#gigma-info-popup-root .gigma-info-tts-seeker::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  height:0.75em;
+  width:0.25em;
+  background:#fff;
+  border-radius:0.15em;
+  margin-top:-0.31em;
+}
+#gigma-info-popup-root .gigma-info-tts-seeker::-moz-range-thumb{
+  height:0.75em;
+  width:0.25em;
+  background:#fff;
+  border:none;
+  border-radius:0.15em;
+}
+#gigma-info-popup-root .gigma-info-tts-seeker::-webkit-slider-runnable-track{
+  height:0.12em;
+  background:#4b5563;
+  border-radius:0.15em;
+}
+#gigma-info-popup-root .gigma-info-tts-seeker::-moz-range-track{
+  height:0.12em;
+  background:#4b5563;
+  border-radius:0.15em;
+}
+#gigma-info-popup-root .gigma-info-tts-time{
+  font-family:var(--monoFontFamily, monospace);
+  font-size:0.85em;
+  opacity:0.9;
+  white-space:nowrap;
+}
+#gigma-info-popup-root .gigma-info-tts-speed-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:0.6em;
+  width:100%;
+  max-width:24em;
+  margin:0 auto;
+  padding:0.05em 0.25em;
+  box-sizing:border-box;
+  font-size:0.9em;
+}
+#gigma-info-popup-root .gigma-info-tts-speed-row label{
+  flex:0 0 auto;
+  opacity:0.88;
+}
+#gigma-info-popup-root .gigma-info-tts-speed{
+  flex:1 1 16em;
+  width:16em !important;
+  min-width:12em !important;
+  max-width:18em !important;
+  height:1.4em !important;
+  padding:0 !important;
+  margin:0 !important;
+  appearance:none;
+  -webkit-appearance:none;
+  background:transparent;
+  cursor:pointer;
+}
+#gigma-info-popup-root .gigma-info-tts-speed::-webkit-slider-runnable-track{
+  height:0.42em;
+  border:0.08em solid rgba(255,255,255,0.18);
+  border-radius:999em;
+  background:rgba(0,0,0,0.28);
+}
+#gigma-info-popup-root .gigma-info-tts-speed::-webkit-slider-thumb{
+  width:1.05em;
+  height:1.05em;
+  margin-top:-0.395em;
+  border:0.08em solid rgba(255,255,255,0.32);
+  border-radius:50%;
+  background:var(--SmartThemeBodyColor);
+  box-shadow:0 0 0.25em rgba(0,0,0,0.45);
+  appearance:none;
+  -webkit-appearance:none;
+}
+#gigma-info-popup-root .gigma-info-tts-speed::-moz-range-track{
+  height:0.42em;
+  border:0.08em solid rgba(255,255,255,0.18);
+  border-radius:999em;
+  background:rgba(0,0,0,0.28);
+}
+#gigma-info-popup-root .gigma-info-tts-speed::-moz-range-thumb{
+  width:1.05em;
+  height:1.05em;
+  border:0.08em solid rgba(255,255,255,0.32);
+  border-radius:50%;
+  background:var(--SmartThemeBodyColor);
+  box-shadow:0 0 0.25em rgba(0,0,0,0.45);
+}
+#gigma-info-popup-root .gigma-info-tts-speed-value{
+  flex:0 0 4.2em;
+  width:4.2em !important;
+  height:1.75em !important;
+  min-height:1.75em !important;
+  box-sizing:border-box;
+  border:0.08em solid rgba(255,255,255,0.18) !important;
+  border-radius:0.35em !important;
+  background:rgba(0,0,0,0.22) !important;
+  color:var(--SmartThemeBodyColor) !important;
+  font-family:var(--monoFontFamily, monospace);
+  font-size:0.95em !important;
+  text-align:center;
+  padding:0 0.35em !important;
+  opacity:0.94;
+}
+#gigma-info-popup-root .gigma-info-tts-buttons{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:0.28em;
+  flex-wrap:wrap;
+}
+#gigma-info-popup-root .gigma-info-tts-btn{
+  min-width:2.15em !important;
+  height:2.05em !important;
+  padding:0 0.35em !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:0.18em;
+  box-sizing:border-box !important;
+  line-height:1 !important;
+}
+#gigma-info-popup-root .gigma-info-tts-btn span{
+  font-size:0.78em;
+  line-height:1;
+}
+#gigma-info-popup-root .gigma-info-tts-btn:disabled{
+  opacity:0.38;
+  cursor:not-allowed;
+  filter:grayscale(1);
+}
+#gigma-info-popup-root .gigma-info-tts-repeat-btn.gigma-info-tts-repeat-active{
+  background:rgba(255,255,255,0.10) !important;
+  border-color:rgba(255,255,255,0.72) !important;
+}
+#gigma-modal-root #gigma-modal-settings-popup .gigma-settings-info-delay-wrap{
+  display:inline-flex;
+  align-items:center;
+  gap:0.35em;
+}
+#gigma-modal-root #gigma-modal-settings-popup .gigma-settings-info-delay-unit{
+  font-size:0.9em;
+  opacity:0.86;
+}
+#gigma-modal-root #gigma-modal-settings-popup tr.gigma-settings-row-disabled td{
+  opacity:0.48;
+}
+html.gigma-mobile-fullscreen dialog:has(#gigma-info-popup-root){
+  position:fixed !important;
+  inset:0 !important;
+  width:100dvw !important;
+  max-width:100dvw !important;
+  height:100dvh !important;
+  max-height:100dvh !important;
+  margin:0 !important;
+  border-radius:0 !important;
+}
+html.gigma-mobile-fullscreen #gigma-info-popup-root{
+  height:100dvh;
+  padding:calc(env(safe-area-inset-top) + 0.75em) calc(env(safe-area-inset-right) + 0.75em) calc(env(safe-area-inset-bottom) + 0.75em) calc(env(safe-area-inset-left) + 0.75em);
+}
+html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-content{
+  padding:0.85em;
+}
+html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-section{
+  padding:0.65em;
+}
+html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-buttons{
+  gap:0.22em;
+}
+html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-btn{
+  min-width:1.95em !important;
+  height:1.95em !important;
+  padding:0 0.25em !important;
+}
+`;
+        document.head.appendChild(s);
+    }catch(_){ }
+}
+function gigmaUpdateInfoPopupNavButtons(root){
+    try{
+        if (!root) return;
+        const back = root.querySelector('#gigma-info-back');
+        const forward = root.querySelector('#gigma-info-forward');
+        if (back) back.disabled = !(GIGMA_INFO_POPUP_STATE.index > 0);
+        if (forward) forward.disabled = !(GIGMA_INFO_POPUP_STATE.index >= 0 && GIGMA_INFO_POPUP_STATE.index < GIGMA_INFO_POPUP_STATE.history.length - 1);
+    }catch(_){ }
+}
+function gigmaRenderInfoPopupCurrent(autoSpeak){
+    try{
+        const root = GIGMA_INFO_POPUP_STATE.root;
+        if (!root) return;
+        const infoId = GIGMA_INFO_POPUP_STATE.history[GIGMA_INFO_POPUP_STATE.index] || GIGMA_INFO_POPUP_DEFAULT_ID;
+        const content = root.querySelector('#gigma-info-content');
+        if (content) content.innerHTML = gigmaBuildInfoPopupBodyHtml(infoId);
+        if (gigmaInfoPopupUsesSystemTts()) {
+            gigmaCancelInfoPopupSystemSpeech(true);
+            GIGMA_INFO_POPUP_STATE.systemSpeech.text = gigmaGetInfoPopupSpeechText(infoId);
+            GIGMA_INFO_POPUP_STATE.systemSpeech.duration = gigmaEstimateInfoPopupSystemDuration(GIGMA_INFO_POPUP_STATE.systemSpeech.text);
+            GIGMA_INFO_POPUP_STATE.systemSpeech.ended = true;
+        }
+        gigmaUpdateInfoPopupNavButtons(root);
+        gigmaBindInfoPopupTtsUi(root);
+        if (autoSpeak) void gigmaSpeakInfoPopupText(infoId);
+    }catch(_){ }
+}
+function gigmaInfoPopupGoTo(infoId){
+    try{
+        const safeId = GIGMA_INFO_POPUPS[infoId] ? infoId : GIGMA_INFO_POPUP_DEFAULT_ID;
+        const history = GIGMA_INFO_POPUP_STATE.history;
+        const currentIndex = GIGMA_INFO_POPUP_STATE.index;
+        if (currentIndex < history.length - 1) history.splice(currentIndex + 1);
+        history.push(safeId);
+        GIGMA_INFO_POPUP_STATE.index = history.length - 1;
+        gigmaRenderInfoPopupCurrent(gigmaGetReadInfoPopupTtsPref());
+    }catch(_){ }
+}
+function gigmaInfoPopupHistoryStep(delta){
+    try{
+        const next = GIGMA_INFO_POPUP_STATE.index + Number(delta || 0);
+        if (next < 0 || next >= GIGMA_INFO_POPUP_STATE.history.length) return;
+        GIGMA_INFO_POPUP_STATE.index = next;
+        gigmaRenderInfoPopupCurrent(gigmaGetReadInfoPopupTtsPref());
+    }catch(_){ }
+}
+function gigmaCleanupInfoPopupAudioBinding(){
+    try{
+        if (typeof GIGMA_INFO_POPUP_STATE.audioCleanup === 'function') GIGMA_INFO_POPUP_STATE.audioCleanup();
+    }catch(_){ }
+    GIGMA_INFO_POPUP_STATE.audioCleanup = null;
+}
+function gigmaUpdateInfoPopupTtsUi(root){
+    try{
+        if (!root) root = GIGMA_INFO_POPUP_STATE.root;
+        if (!root) return;
+        const seeker = root.querySelector('#gigma-info-tts-seeker');
+        const time = root.querySelector('#gigma-info-tts-time');
+        const playPause = root.querySelector('#gigma-info-tts-play-pause');
+        const repeat = root.querySelector('#gigma-info-tts-repeat');
+        const speed = root.querySelector('#gigma-info-tts-speed');
+        const speedValue = root.querySelector('#gigma-info-tts-speed-value');
+        const buttons = Array.from(root.querySelectorAll('.gigma-info-tts-btn') || []);
+        const setDisabled = (disabled) => {
+            if (seeker) seeker.disabled = !!disabled;
+            for (const btn of buttons) btn.disabled = !!disabled;
+        };
+        if (repeat) {
+            const enabled = gigmaGetRepeatInfoPopupTtsPref();
+            repeat.classList.toggle('gigma-info-tts-repeat-active', enabled);
+            repeat.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        }
+        const speedPref = gigmaGetInfoPopupTtsSpeedPref();
+        if (speed && document.activeElement !== speed) speed.value = String(speedPref);
+        if (speedValue && document.activeElement !== speedValue) speedValue.value = speedPref.toFixed(1);
+        if (gigmaInfoPopupUsesSystemTts()) {
+            const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+            if (!state.text) {
+                const infoId = GIGMA_INFO_POPUP_STATE.history[GIGMA_INFO_POPUP_STATE.index] || GIGMA_INFO_POPUP_DEFAULT_ID;
+                state.text = gigmaGetInfoPopupSpeechText(infoId);
+                state.duration = gigmaEstimateInfoPopupSystemDuration(state.text);
+                state.currentTime = 0;
+                state.ended = true;
+            }
+            gigmaUpdateInfoPopupSystemPosition();
+            setDisabled(!('speechSynthesis' in window));
+            if (seeker && document.activeElement !== seeker) {
+                seeker.max = String(Number(state.duration) || 0);
+                seeker.value = String(gigmaClampInfoPopupSystemTime(state.currentTime));
+            }
+            if (time) time.textContent = `${gigmaFormatInfoPopupAudioTime(state.currentTime)} / ${gigmaFormatInfoPopupAudioTime(state.duration)}`;
+            if (playPause) {
+                const icon = playPause.querySelector('i');
+                if (icon) icon.className = 'fa-solid ' + (state.speaking && !state.paused && !state.ended ? 'fa-pause' : 'fa-play');
+            }
+            return;
+        }
+        const liveAudio = gigmaInfoPopupGetAudioElement();
+        if (!liveAudio) {
+            setDisabled(true);
+            if (time) time.textContent = '0.00 / 0.00';
+            if (seeker) { seeker.value = '0'; seeker.max = '1'; }
+            return;
+        }
+        setDisabled(false);
+        gigmaApplyInfoPopupAudioSpeed(liveAudio);
+        const duration = Number.isFinite(liveAudio.duration) ? liveAudio.duration : 0;
+        const current = Number.isFinite(liveAudio.currentTime) ? liveAudio.currentTime : 0;
+        if (seeker && document.activeElement !== seeker) {
+            seeker.max = String(duration || 0);
+            seeker.value = String(Math.min(current, duration || current || 0));
+        }
+        if (time) time.textContent = `${gigmaFormatInfoPopupAudioTime(current)} / ${gigmaFormatInfoPopupAudioTime(duration)}`;
+        if (playPause) {
+            const icon = playPause.querySelector('i');
+            if (icon) icon.className = 'fa-solid ' + (liveAudio.paused ? 'fa-play' : 'fa-pause');
+        }
+    }catch(_){ }
+}
+function gigmaBindInfoPopupTtsUi(root){
+    try{
+        gigmaCleanupInfoPopupAudioBinding();
+        if (!root) return;
+        const seeker = root.querySelector('#gigma-info-tts-seeker');
+        const speed = root.querySelector('#gigma-info-tts-speed');
+        const speedValue = root.querySelector('#gigma-info-tts-speed-value');
+        const listeners = [];
+        let frame = 0;
+        const update = () => gigmaUpdateInfoPopupTtsUi(root);
+        const loop = () => {
+            update();
+            const liveAudio = gigmaInfoPopupGetAudioElement();
+            if (gigmaInfoPopupUsesSystemTts()) {
+                const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+                if (state.speaking && !state.ended) frame = requestAnimationFrame(loop);
+                return;
+            }
+            if (liveAudio && !liveAudio.paused) frame = requestAnimationFrame(loop);
+        };
+        const restartLoop = () => {
+            if (frame) cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(loop);
+        };
+        if (seeker) {
+            const onSeek = () => {
+                if (gigmaInfoPopupUsesSystemTts()) {
+                    gigmaSeekInfoPopupSystemSpeech(Number(seeker.value) || 0);
+                    return;
+                }
+                const liveAudio = gigmaInfoPopupGetAudioElement();
+                if (!liveAudio) return;
+                liveAudio.currentTime = Number(seeker.value) || 0;
+                update();
+            };
+            seeker.addEventListener('input', onSeek);
+            listeners.push([seeker, 'input', onSeek]);
+        }
+        if (speed) {
+            const onSpeed = () => {
+                const next = gigmaSetInfoPopupTtsSpeedPref(speed.value);
+                if (speedValue && document.activeElement !== speedValue) speedValue.value = next.toFixed(1);
+                gigmaApplyInfoPopupCurrentSpeed();
+                update();
+            };
+            speed.addEventListener('input', onSpeed);
+            listeners.push([speed, 'input', onSpeed]);
+        }
+        if (speedValue) {
+            const onSpeedValueInput = () => {
+                const raw = String(speedValue.value || '').trim();
+                if (!raw) return;
+                const parsed = Number(raw);
+                if (!Number.isFinite(parsed)) return;
+                const next = gigmaSetInfoPopupTtsSpeedPref(parsed);
+                if (speed) speed.value = String(next);
+                gigmaApplyInfoPopupCurrentSpeed();
+                update();
+            };
+            const onSpeedValueChange = () => {
+                const next = gigmaSetInfoPopupTtsSpeedPref(speedValue.value);
+                speedValue.value = next.toFixed(1);
+                if (speed) speed.value = String(next);
+                gigmaApplyInfoPopupCurrentSpeed();
+                update();
+            };
+            speedValue.addEventListener('input', onSpeedValueInput);
+            speedValue.addEventListener('change', onSpeedValueChange);
+            listeners.push([speedValue, 'input', onSpeedValueInput]);
+            listeners.push([speedValue, 'change', onSpeedValueChange]);
+        }
+        const audio = gigmaInfoPopupGetAudioElement();
+        if (audio) {
+            for (const eventName of ['play', 'pause', 'durationchange', 'loadedmetadata', 'timeupdate']) {
+                audio.addEventListener(eventName, restartLoop);
+                listeners.push([audio, eventName, restartLoop]);
+            }
+            const onAudioEnd = () => {
+                gigmaHandleInfoPopupAudioEnd(audio);
+                restartLoop();
+            };
+            audio.addEventListener('ended', onAudioEnd);
+            listeners.push([audio, 'ended', onAudioEnd]);
+        }
+        update();
+        GIGMA_INFO_POPUP_STATE.audioCleanup = () => {
+            try{ if (frame) cancelAnimationFrame(frame); }catch(_){ }
+            for (const [el, eventName, handler] of listeners) {
+                try{ el.removeEventListener(eventName, handler); }catch(_){ }
+            }
+        };
+    }catch(_){ }
+}
+function gigmaResetInfoPopupState(){
+    gigmaCleanupInfoPopupAudioBinding();
+    gigmaStopInfoPopupPlayback();
+    GIGMA_INFO_POPUP_STATE.popup = null;
+    GIGMA_INFO_POPUP_STATE.root = null;
+    GIGMA_INFO_POPUP_STATE.history = [];
+    GIGMA_INFO_POPUP_STATE.index = -1;
+    GIGMA_INFO_POPUP_STATE.systemSpeech.text = '';
+    GIGMA_INFO_POPUP_STATE.systemSpeech.duration = 0;
+}
+function gigmaCloseInfoPopup(){
+    gigmaStopInfoPopupPlayback();
+    try{
+        const popup = GIGMA_INFO_POPUP_STATE.popup;
+        if (popup && typeof popup.completeCancelled === 'function') {
+            void popup.completeCancelled();
+            return;
+        }
+    }catch(_){ }
+    gigmaResetInfoPopupState();
+}
+function gigmaMountInfoPopup(root, autoSpeak){
+    if (!root) return;
+    GIGMA_INFO_POPUP_STATE.root = root;
+    root.addEventListener('click', (ev) => {
+        try{
+            const target = ev.target && ev.target.closest ? ev.target.closest('button') : null;
+            if (!target || !root.contains(target)) return;
+            const link = target.closest('.gigma-info-link');
+            if (link) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                gigmaInfoPopupGoTo(link.getAttribute('data-gigma-info-target'));
+                return;
+            }
+            if (target.id === 'gigma-info-back') {
+                ev.preventDefault();
+                ev.stopPropagation();
+                gigmaInfoPopupHistoryStep(-1);
+                return;
+            }
+            if (target.id === 'gigma-info-forward') {
+                ev.preventDefault();
+                ev.stopPropagation();
+                gigmaInfoPopupHistoryStep(1);
+                return;
+            }
+            if (target.id === 'gigma-info-close') {
+                ev.preventDefault();
+                ev.stopPropagation();
+                gigmaCloseInfoPopup();
+                return;
+            }
+            if (target.dataset && target.dataset.gigmaTtsSeek) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                gigmaSeekInfoPopupAudio(Number(target.dataset.gigmaTtsSeek));
+                gigmaBindInfoPopupTtsUi(root);
+                return;
+            }
+            if (target.dataset && target.dataset.gigmaTtsAction) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                const action = target.dataset.gigmaTtsAction;
+                if (action === 'repeat') {
+                    gigmaSetRepeatInfoPopupTtsPref(!gigmaGetRepeatInfoPopupTtsPref());
+                    gigmaUpdateInfoPopupTtsUi(root);
+                    return;
+                }
+                if (gigmaInfoPopupUsesSystemTts()) {
+                    const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+                    if (action === 'start') gigmaSeekInfoPopupSystemSpeech(0);
+                    else if (action === 'end') gigmaSeekInfoPopupSystemSpeech(state.duration);
+                    else if (action === 'playPause') {
+                        if (state.speaking && !state.paused && !state.ended) gigmaPauseInfoPopupSystemSpeech();
+                        else gigmaResumeInfoPopupSystemSpeech();
+                    }
+                    return;
+                }
+                const audio = gigmaInfoPopupGetAudioElement();
+                if (!audio) return;
+                if (action === 'start') audio.currentTime = 0;
+                else if (action === 'end') {
+                    if (Number.isFinite(audio.duration) && audio.duration > 0) gigmaHandleInfoPopupAudioEnd(audio);
+                    else audio.currentTime = audio.currentTime;
+                }
+                else if (action === 'playPause') {
+                    if (audio.paused) void audio.play();
+                    else audio.pause();
+                }
+                gigmaBindInfoPopupTtsUi(root);
+            }
+        }catch(_){ }
+    });
+    gigmaRenderInfoPopupCurrent(autoSpeak);
+}
+function gigmaShowInfoPopup(infoId){
+    try{
+        gigmaInstallInfoPopupStylesOnce();
+        const safeId = GIGMA_INFO_POPUPS[infoId] ? infoId : GIGMA_INFO_POPUP_DEFAULT_ID;
+        GIGMA_INFO_POPUP_STATE.history = [safeId];
+        GIGMA_INFO_POPUP_STATE.index = 0;
+        if (GIGMA_INFO_POPUP_STATE.popup && GIGMA_INFO_POPUP_STATE.root) {
+            gigmaRenderInfoPopupCurrent(gigmaGetReadInfoPopupTtsPref());
+            return;
+        }
+        const popup = new Popup(gigmaBuildInfoPopupShellHtml(), POPUP_TYPE.TEXT, '', {
+            okButton: false,
+            cancelButton: false,
+            wide: false,
+            large: false,
+            allowVerticalScrolling: false,
+            onOpen: () => {
+                const root = document.getElementById('gigma-info-popup-root');
+                gigmaMountInfoPopup(root, gigmaGetReadInfoPopupTtsPref());
+            },
+            onClosing: () => {
+                gigmaResetInfoPopupState();
+                return true;
+            },
+        });
+        GIGMA_INFO_POPUP_STATE.popup = popup;
+        void popup.show();
+    }catch(error){
+        console.warn('GIGMA: Failed to open information popup.', error);
+    }
+}
+function gigmaBindInfoPopupLongPress(element, infoId){
+    try{
+        if (!element || !element.addEventListener || (element.dataset && element.dataset.gigmaInfoLongPressBound === '1')) return;
+        if (element.dataset) element.dataset.gigmaInfoLongPressBound = '1';
+        let timer = 0;
+        let triggered = false;
+        const clearTimer = () => {
+            if (timer) clearTimeout(timer);
+            timer = 0;
+        };
+        const start = (ev) => {
+            if (!gigmaGetLongPressInfoPopupPref()) return;
+            if (ev && ev.pointerType === 'mouse' && ev.button !== 0) return;
+            clearTimer();
+            triggered = false;
+            timer = setTimeout(() => {
+                timer = 0;
+                triggered = true;
+                gigmaShowInfoPopup(infoId);
+            }, Math.round(gigmaGetInfoPopupDelaySecondsPref() * 1000));
+        };
+        const cancel = () => clearTimer();
+        const suppressClick = (ev) => {
+            if (!triggered) return;
+            triggered = false;
+            try{ ev.preventDefault(); }catch(_){ }
+            try{ ev.stopPropagation(); }catch(_){ }
+            try{ ev.stopImmediatePropagation(); }catch(_){ }
+        };
+        element.addEventListener('pointerdown', start, { passive: true });
+        element.addEventListener('pointerup', cancel, { passive: true });
+        element.addEventListener('pointercancel', cancel, { passive: true });
+        element.addEventListener('pointerleave', cancel, { passive: true });
+        element.addEventListener('click', suppressClick, true);
+    }catch(_){ }
+}
+function gigmaUpdateInfoPopupDependentSettingsControls(popup){
+    try{
+        if (!popup) popup = document.getElementById('gigma-modal-settings-popup');
+        if (!popup) return;
+        const enabled = gigmaGetLongPressInfoPopupPref();
+        const delaySlot = popup.querySelector('#gigma-modal-settings-slot-info-popup-delay');
+        const readSlot = popup.querySelector('#gigma-modal-settings-slot-info-popup-tts');
+        const delayInput = popup.querySelector('#gigma-modal-settings-info-popup-delay-input');
+        const readInput = popup.querySelector('#gigma-modal-settings-info-popup-tts-btn');
+        if (delayInput) delayInput.disabled = !enabled;
+        if (readInput) gigmaSetPrettySwitchDisabled(readInput, !enabled);
+        for (const slot of [delaySlot, readSlot]) {
+            const row = slot && slot.closest ? slot.closest('tr') : null;
+            if (row) row.classList.toggle('gigma-settings-row-disabled', !enabled);
+        }
+    }catch(_){ }
+}
+// --- end GIGMA: Long-press information popups ---
 
 function gigmaClampModalUndoHistorySteps(value){
     try{
@@ -18373,6 +19615,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
         const root = rootOverride || document.getElementById('gigma-modal-root');
         if (!root) return;
         try { gigmaInstallModalSettingsPopupStylesOnce(); } catch (_e) { }
+        try { gigmaInstallInfoPopupStylesOnce(); } catch (_e) { }
 
         let popup = root.querySelector('#gigma-modal-settings-popup');
         if (!popup) {
@@ -18410,6 +19653,9 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Auto-update entry order in WI UI', 'gigma-modal-settings-slot-auto-wi-order');
             addRow('Undo history steps', 'gigma-modal-settings-slot-undo-history');
             addRow('Hide undo & redo buttons on desktop', 'gigma-modal-settings-slot-hide-undo-redo-desktop');
+            addRow('Long button press opens information popup', 'gigma-modal-settings-slot-info-popup-long-press');
+            addRow('Information popup opens after', 'gigma-modal-settings-slot-info-popup-delay');
+            addRow('Read out information text as popup opens', 'gigma-modal-settings-slot-info-popup-tts');
             addRow('LB ID assignment & removal popup', 'gigma-modal-settings-slot-show-lorebook-id-dialog');
             addRow('Erase all LB IDs from world json files', 'gigma-modal-settings-slot-erase-lorebook-ids');
             addRow('Erase all GIGMA extension settings', 'gigma-modal-settings-slot-erase-all');
@@ -18692,6 +19938,89 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             }
             gigmaUpdateHideUndoRedoDesktopButtonUi(b);
         }
+
+
+        const slotInfoPopupLongPress = popup.querySelector('#gigma-modal-settings-slot-info-popup-long-press');
+        if (slotInfoPopupLongPress) {
+            let b = popup.querySelector('#gigma-modal-settings-info-popup-long-press-btn');
+            if (!b) {
+                const control = gigmaCreatePrettySwitch(
+                    gigmaGetLongPressInfoPopupPref(),
+                    'Long button press opens information popup',
+                    'Long button press opens information popup',
+                    (ev) => {
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
+                        gigmaSetLongPressInfoPopupPref(ev.currentTarget.checked);
+                        ev.currentTarget.checked = !!gigmaGetLongPressInfoPopupPref();
+                        gigmaUpdateInfoPopupDependentSettingsControls(popup);
+                    },
+                );
+                b = control.input;
+                b.id = 'gigma-modal-settings-info-popup-long-press-btn';
+                slotInfoPopupLongPress.appendChild(control.switchLabel);
+            } else if (b.closest('label')?.parentElement !== slotInfoPopupLongPress) {
+                slotInfoPopupLongPress.appendChild(b.closest('label'));
+            }
+            b.checked = !!gigmaGetLongPressInfoPopupPref();
+        }
+
+        const slotInfoPopupDelay = popup.querySelector('#gigma-modal-settings-slot-info-popup-delay');
+        if (slotInfoPopupDelay) {
+            let input = popup.querySelector('#gigma-modal-settings-info-popup-delay-input');
+            if (!input) {
+                input = document.createElement('input');
+                input.id = 'gigma-modal-settings-info-popup-delay-input';
+                input.type = 'number';
+                input.className = 'text_pole textarea_compact gigma-modal-settings-number';
+                input.min = '0.5';
+                input.max = '9.9';
+                input.step = '0.1';
+                input.inputMode = 'decimal';
+                input.style.width = '3.4em';
+                input.style.minWidth = '3.4em';
+                input.style.maxWidth = '3.4em';
+                const commit = () => {
+                    try {
+                        const next = gigmaSetInfoPopupDelaySecondsPref(input.value);
+                        input.value = next.toFixed(1);
+                    } catch (_eCommit) { }
+                };
+                input.addEventListener('change', commit);
+                input.addEventListener('blur', commit);
+            }
+            input.value = gigmaGetInfoPopupDelaySecondsPref().toFixed(1);
+            const wrap = document.createElement('span');
+            wrap.className = 'gigma-settings-info-delay-wrap';
+            wrap.appendChild(input);
+            const unit = document.createElement('span');
+            unit.className = 'gigma-settings-info-delay-unit';
+            unit.textContent = 's';
+            wrap.appendChild(unit);
+            slotInfoPopupDelay.replaceChildren(wrap);
+        }
+
+        const slotInfoPopupTts = popup.querySelector('#gigma-modal-settings-slot-info-popup-tts');
+        if (slotInfoPopupTts) {
+            let b = popup.querySelector('#gigma-modal-settings-info-popup-tts-btn');
+            if (!b) {
+                const control = gigmaCreatePrettySwitch(
+                    gigmaGetReadInfoPopupTtsPref(),
+                    'Read out information text as popup opens',
+                    'Read out information text as popup opens',
+                    (ev) => {
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
+                        gigmaSetReadInfoPopupTtsPref(ev.currentTarget.checked);
+                    },
+                );
+                b = control.input;
+                b.id = 'gigma-modal-settings-info-popup-tts-btn';
+                slotInfoPopupTts.appendChild(control.switchLabel);
+            } else if (b.closest('label')?.parentElement !== slotInfoPopupTts) {
+                slotInfoPopupTts.appendChild(b.closest('label'));
+            }
+            b.checked = !!gigmaGetReadInfoPopupTtsPref();
+        }
+        gigmaUpdateInfoPopupDependentSettingsControls(popup);
 
         const slotShowLorebookIdDialog = popup.querySelector('#gigma-modal-settings-slot-show-lorebook-id-dialog');
         if (slotShowLorebookIdDialog) {
@@ -21341,7 +22670,7 @@ try {
             <div id="gigma-modal-root" class="world_entry_form_control MarginBot5 alignCenteritems gigma-modal-root">
                 <!-- Global settings section (always visible / non-scrolling) -->
                 <div id="gigma-global-settings" class="gigma-global-settings" aria-label="Global settings">
-                    <button id="gigma-global-accept" class="menu_button gigma-global-accept gigma-global-icon" type="button" aria-label="Quicksave layout preset & close" title="Quicksave layout preset & close">
+                    <button id="gigma-global-accept" class="menu_button gigma-global-accept gigma-global-icon" type="button" aria-label="Quicksave layout & assignment preset and close" title="Quicksave layout & assignment preset and close">
                         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
                     </button>
                     <div class="gigma-global-center">
@@ -21648,8 +22977,8 @@ if (footer) {
 
                 const accept = document.getElementById('gigma-global-accept');
                 if (accept) {
-                    accept.title = 'Quicksave layout preset & close';
-                    accept.setAttribute('aria-label', 'Quicksave layout preset & close');
+                    accept.title = 'Quicksave layout & assignment preset and close';
+                    accept.setAttribute('aria-label', 'Quicksave layout & assignment preset and close');
                     const handler = (e) => {
                         try { e.preventDefault(); } catch (_) {}
                         try { e.stopPropagation(); } catch (_) {}
@@ -21678,6 +23007,7 @@ if (footer) {
                     };
                     accept.addEventListener('click', handler);
                     modalEventListeners.push({ element: accept, event: 'click', handler });
+                    try { gigmaBindInfoPopupLongPress(accept, 'saveCloseButton'); } catch (_) { }
                 }
 
                 const cancel = document.getElementById('gigma-global-cancel');
