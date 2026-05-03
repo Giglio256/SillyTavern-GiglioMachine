@@ -33,34 +33,6 @@ const gigmaSyncMobileFullscreenClass = () => {
 })();
 
 
-// --- GIGMA: Scroll-safe MutationObserver refresh scheduling ---
-let __gigmaScrollBusyUntil = 0;
-const gigmaMarkScrollBusy = () => {
-  __gigmaScrollBusyUntil = performance.now() + 160;
-};
-try{ window.addEventListener('scroll', gigmaMarkScrollBusy, { passive:true, capture:true }); }catch(_){ }
-
-const gigmaScheduleMutationRefresh = (state, work) => {
-  if (!state || state.timer || state.raf) return;
-  const run = () => {
-    state.timer = 0;
-    state.raf = 0;
-    const remaining = __gigmaScrollBusyUntil - performance.now();
-    if (remaining > 0) {
-      state.timer = setTimeout(run, remaining);
-      return;
-    }
-    work();
-  };
-  const remaining = __gigmaScrollBusyUntil - performance.now();
-  if (remaining > 0) {
-    state.timer = setTimeout(run, remaining);
-    return;
-  }
-  state.raf = requestAnimationFrame(run);
-};
-
-
 // --- GIGMA: Lorebook usage icons (persona/chat/character) ---
 const __gigmaGetWorldUsageFlags = (worldName) => {
   const personaWorld = power_user?.persona_description_lorebook;
@@ -27433,9 +27405,42 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
 
     window.gigmaSkinPreviewAndFolderButtons = skinAll;
 
-    const skinScheduleState = { timer: 0, raf: 0 };
+    const gigmaUseFirefoxDomDebounce = () => navigator.userAgent.includes('Firefox/');
+
+    const gigmaScheduleChromeMicrotaskFirefoxTimer = (state, work) => {
+      if (state.id) return;
+      if (gigmaUseFirefoxDomDebounce()) {
+        state.id = setTimeout(() => {
+          state.id = 0;
+          work();
+        }, 500);
+        return;
+      }
+      state.id = true;
+      queueMicrotask(() => {
+        state.id = 0;
+        work();
+      });
+    };
+
+    const gigmaScheduleChromeFrameFirefoxTimer = (state, work) => {
+      if (state.id) return;
+      if (gigmaUseFirefoxDomDebounce()) {
+        state.id = setTimeout(() => {
+          state.id = 0;
+          work();
+        }, 500);
+        return;
+      }
+      state.id = requestAnimationFrame(() => {
+        state.id = 0;
+        work();
+      });
+    };
+
+    const skinScheduleState = { id: 0 };
     const scheduleSkin = () => {
-      gigmaScheduleMutationRefresh(skinScheduleState, () => {
+      gigmaScheduleChromeMicrotaskFirefoxTimer(skinScheduleState, () => {
         try{ skinAll(document); }catch(_){ }
       });
     };
@@ -34238,9 +34243,9 @@ if (changed) {
         try{ ensureWiring(); }catch(_){ }
 // 2) Re-apply whenever the dialog/pane toolbars are injected later.
         if (!window.__gigmaIconToolbarObs){
-            const iconScheduleState = { timer: 0, raf: 0 };
+            const iconScheduleState = { id: 0 };
             const schedule = ()=>{
-                gigmaScheduleMutationRefresh(iconScheduleState, ()=>{
+                gigmaScheduleChromeFrameFirefoxTimer(iconScheduleState, () => {
                     ensureRestoreButtons();
                     ensureIcons();
                     try{ ensureWiring(); }catch(_){ }
@@ -37465,9 +37470,9 @@ function openSearch(state){
     installPaneSearchKeyboardNav();
 
     if (!window.__gigmaPaneSearchObs){
-      const paneScheduleState = { timer: 0, raf: 0 };
+      const paneScheduleState = { id: 0 };
       const schedule = ()=>{
-        gigmaScheduleMutationRefresh(paneScheduleState, ()=>{ ensureAll(); });
+        gigmaScheduleChromeFrameFirefoxTimer(paneScheduleState, () => { ensureAll(); });
       };
       const obs = new MutationObserver(()=>schedule());
       obs.observe(document.documentElement, {subtree:true, childList:true});
@@ -37700,11 +37705,24 @@ function gigmaGetLayoutPresetStore(kind) {
       try{ if (typeof gigmaWireInheritSwitchButtons === 'function') gigmaWireInheritSwitchButtons(root); }catch(_){ }
       try{ if (typeof gigmaUpdateInheritSwitchButtons === 'function') gigmaUpdateInheritSwitchButtons(root); }catch(_){ }
     }
-    const chatWireScheduleState = { timer: 0, raf: 0 };
-    const obs = new MutationObserver(()=>{
-      gigmaScheduleMutationRefresh(chatWireScheduleState, ()=>{
-        try{ wireChatParentPresetSelects(document); }catch(_){}
-      });
+    const chatWireScheduleState = { id: 0 };
+    const obs = new MutationObserver((muts)=>{
+      if (gigmaUseFirefoxDomDebounce()) {
+        gigmaScheduleChromeFrameFirefoxTimer(chatWireScheduleState, () => {
+          try{ wireChatParentPresetSelects(document); }catch(_){}
+        });
+        return;
+      }
+      try{
+        muts.forEach((m)=>{
+          if (!m.addedNodes) return;
+          m.addedNodes.forEach((n)=>{
+            if (n && n.nodeType === 1){
+              wireChatParentPresetSelects(n);
+            }
+          });
+        });
+      }catch(_){}
     });
     obs.observe(document.documentElement, {subtree:true, childList:true});
     window.__gigmaChatTypeToggleObs = obs;
@@ -41764,9 +41782,9 @@ function gigmaEnsureDuplicateSentenceToolbarButton() {
         if (window.__gigmaDuplicateSentenceToolbarButtonOnce) return;
         window.__gigmaDuplicateSentenceToolbarButtonOnce = true;
 
-        const dedupeScheduleState = { timer: 0, raf: 0 };
+        const duplicateSentenceScheduleState = { id: 0 };
         const schedule = () => {
-            gigmaScheduleMutationRefresh(dedupeScheduleState, () => {
+            gigmaScheduleChromeFrameFirefoxTimer(duplicateSentenceScheduleState, () => {
                 gigmaEnsureDuplicateSentenceToolbarButton();
             });
         };
