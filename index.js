@@ -2662,7 +2662,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         min-height:0 !important;
         overflow-y:auto !important;
         overflow-x:hidden !important;
-        -webkit-overflow-scrolling:auto;
+        -webkit-overflow-scrolling:touch;
       }
       html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root{
         display:block !important;
@@ -2724,7 +2724,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         box-sizing:border-box !important;
         overflow-y:auto !important;
         overflow-x:hidden !important;
-        -webkit-overflow-scrolling:auto;
+        -webkit-overflow-scrolling:touch;
       }
       html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-preview-gwi-host{
         position:static !important;
@@ -27405,31 +27405,15 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
 
     window.gigmaSkinPreviewAndFolderButtons = skinAll;
 
-if (!window.__gigmaTypingDetector) {
-        window.__gigmaTypingDetector = true;
-        window.__gigmaIsTyping = false;
-        let typingTimeout = null;
-        document.addEventListener('keydown', (e) => {
-            if (e.target?.tagName === 'TEXTAREA' || e.target?.tagName === 'INPUT' || e.target?.isContentEditable) {
-                window.__gigmaIsTyping = true;
-                if (typingTimeout) clearTimeout(typingTimeout);
-                typingTimeout = setTimeout(() => { window.__gigmaIsTyping = false; }, 400);
-            }
-        }, true);
-    }
-
-    let skinRaf = 0, skinWait = 0;
+    let skinTimer = null;
     const scheduleSkin = () => {
-      if (window.__gigmaIsTyping) {
-          if (skinWait) return;
-          skinWait = setTimeout(() => { skinWait = 0; scheduleSkin(); }, 450);
-          return;
-      }
-      if (skinRaf) return;
-      skinRaf = requestAnimationFrame(() => {
-          skinRaf = 0;
+      try{
+        if (skinTimer) return;
+        skinTimer = setTimeout(() => {
+          skinTimer = null;
           try{ skinAll(document); }catch(_){ }
-      });
+        }, 500);
+      }catch(_){ }
     };
 
     try{
@@ -34230,20 +34214,15 @@ if (changed) {
         try{ ensureWiring(); }catch(_){ }
 // 2) Re-apply whenever the dialog/pane toolbars are injected later.
         if (!window.__gigmaIconToolbarObs){
-          let iconRaf = 0, iconWait = 0;
+            let iconTimer = null;
           const schedule = ()=>{
-              if (window.__gigmaIsTyping) {
-                  if (iconWait) return;
-                  iconWait = setTimeout(() => { iconWait = 0; schedule(); }, 450);
-                  return;
-              }
-              if (iconRaf) return;
-              iconRaf = requestAnimationFrame(()=>{
-                  iconRaf = 0;
+              if (iconTimer) return;
+              iconTimer = setTimeout(()=>{
+                  iconTimer = null;
                   ensureRestoreButtons();
                   ensureIcons();
                   try{ ensureWiring(); }catch(_){ }
-              });
+              }, 500);
           };
             const obs = new MutationObserver((muts)=>{
                 for (const m of muts){
@@ -37463,21 +37442,19 @@ function openSearch(state){
     installOutsideCloser();
     installPaneSearchKeyboardNav();
 
-        if (!window.__gigmaPaneSearchObs){
-          let paneRaf = 0, paneWait = 0;
+    if (!window.__gigmaPaneSearchObs){
+          let paneTimer = null;
           const schedule = ()=>{
-            if (window.__gigmaIsTyping) {
-                if (paneWait) return;
-                paneWait = setTimeout(() => { paneWait = 0; schedule(); }, 450);
-                return;
-            }
-            if (paneRaf) return;
-            paneRaf = requestAnimationFrame(()=>{ paneRaf = 0; ensureAll(); });
+            if (paneTimer) return;
+            paneTimer = setTimeout(()=>{ 
+                paneTimer = null;
+                ensureAll(); 
+            }, 500);
           };
           const obs = new MutationObserver(()=>schedule());
-          obs.observe(document.documentElement, {subtree:true, childList:true});
-          window.__gigmaPaneSearchObs = obs;
-        }
+      obs.observe(document.documentElement, {subtree:true, childList:true});
+      window.__gigmaPaneSearchObs = obs;
+    }
   }catch(_){ }
 })();
 // === END GIGMA: Pane search ===
@@ -37705,20 +37682,14 @@ function gigmaGetLayoutPresetStore(kind) {
       try{ if (typeof gigmaWireInheritSwitchButtons === 'function') gigmaWireInheritSwitchButtons(root); }catch(_){ }
       try{ if (typeof gigmaUpdateInheritSwitchButtons === 'function') gigmaUpdateInheritSwitchButtons(root); }catch(_){ }
     }
-    let chatRaf = 0, chatWait = 0;
-    const scheduleChatWire = () => {
-      if (window.__gigmaIsTyping) {
-          if (chatWait) return;
-          chatWait = setTimeout(() => { chatWait = 0; scheduleChatWire(); }, 450);
-          return;
-      }
-      if (chatRaf) return;
-      chatRaf = requestAnimationFrame(() => {
-          chatRaf = 0;
-          try{ wireChatParentPresetSelects(document); }catch(_){}
-      });
-    };
-    const obs = new MutationObserver(() => { scheduleChatWire(); });
+    let chatWireTimer = null;
+    const obs = new MutationObserver((muts)=>{
+      if (chatWireTimer) return;
+      chatWireTimer = setTimeout(() => {
+        chatWireTimer = null;
+        try{ wireChatParentPresetSelects(document); }catch(_){}
+      }, 500);
+    });
     obs.observe(document.documentElement, {subtree:true, childList:true});
     window.__gigmaChatTypeToggleObs = obs;
     // Wire any existing rows on load
@@ -41777,18 +41748,13 @@ function gigmaEnsureDuplicateSentenceToolbarButton() {
         if (window.__gigmaDuplicateSentenceToolbarButtonOnce) return;
         window.__gigmaDuplicateSentenceToolbarButtonOnce = true;
 
-        let dedupeRaf = 0, dedupeWait = 0;
+        let dedupeTimer = null;
         const schedule = () => {
-            if (window.__gigmaIsTyping) {
-                if (dedupeWait) return;
-                dedupeWait = setTimeout(() => { dedupeWait = 0; schedule(); }, 450);
-                return;
-            }
-            if (dedupeRaf) return;
-            dedupeRaf = requestAnimationFrame(() => {
-                dedupeRaf = 0;
+            if (dedupeTimer) return; // If ticking, let it finish!
+            dedupeTimer = setTimeout(() => {
+                dedupeTimer = null;
                 gigmaEnsureDuplicateSentenceToolbarButton();
-            });
+            }, 500);
         };
 
         if (document.readyState === 'loading') {
@@ -44206,7 +44172,7 @@ return '<li class="' + rowCls + '"' + dataAttrs + '>' +
         bodyHtml = '<div class="gigma-layout-preset-tree-empty">This preset does not contain any lorebooks yet.</div>';
     }
     return '' +
-        '<div class="gigma-layout-preset-tree" style="display:block;width:100%;max-width:100%;height:100%;max-height:100%;min-height:0;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:auto;">' +
+        '<div class="gigma-layout-preset-tree" style="display:block;width:100%;max-width:100%;height:100%;max-height:100%;min-height:0;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;">' +
         bodyHtml +
         '</div>';
 }
