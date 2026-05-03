@@ -27405,15 +27405,19 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
 
     window.gigmaSkinPreviewAndFolderButtons = skinAll;
 
-    let skinTimer = null;
+    let queued = false;
     const scheduleSkin = () => {
       try{
-        if (skinTimer) return;
-        skinTimer = setTimeout(() => {
-          skinTimer = null;
+        if (queued) return;
+        queued = true;
+        queueMicrotask(() => {
+          queued = false;
           try{ skinAll(document); }catch(_){ }
-        }, 500);
-      }catch(_){ }
+        });
+      }catch(_){
+        queued = false;
+        try{ skinAll(document); }catch(__){ }
+      }
     };
 
     try{
@@ -34214,16 +34218,16 @@ if (changed) {
         try{ ensureWiring(); }catch(_){ }
 // 2) Re-apply whenever the dialog/pane toolbars are injected later.
         if (!window.__gigmaIconToolbarObs){
-            let iconTimer = null;
-          const schedule = ()=>{
-              if (iconTimer) return;
-              iconTimer = setTimeout(()=>{
-                  iconTimer = null;
-                  ensureRestoreButtons();
-                  ensureIcons();
-                  try{ ensureWiring(); }catch(_){ }
-              }, 500);
-          };
+            let raf = 0;
+            const schedule = ()=>{
+                if (raf) return;
+                raf = requestAnimationFrame(()=>{
+                    raf = 0;
+                    ensureRestoreButtons();
+                    ensureIcons();
+                    try{ ensureWiring(); }catch(_){ }
+                });
+            };
             const obs = new MutationObserver((muts)=>{
                 for (const m of muts){
                     for (const n of m.addedNodes || []){
@@ -37443,15 +37447,12 @@ function openSearch(state){
     installPaneSearchKeyboardNav();
 
     if (!window.__gigmaPaneSearchObs){
-          let paneTimer = null;
-          const schedule = ()=>{
-            if (paneTimer) return;
-            paneTimer = setTimeout(()=>{ 
-                paneTimer = null;
-                ensureAll(); 
-            }, 500);
-          };
-          const obs = new MutationObserver(()=>schedule());
+      let raf = 0;
+      const schedule = ()=>{
+        if (raf) return;
+        raf = requestAnimationFrame(()=>{ raf = 0; ensureAll(); });
+      };
+      const obs = new MutationObserver(()=>schedule());
       obs.observe(document.documentElement, {subtree:true, childList:true});
       window.__gigmaPaneSearchObs = obs;
     }
@@ -37682,13 +37683,17 @@ function gigmaGetLayoutPresetStore(kind) {
       try{ if (typeof gigmaWireInheritSwitchButtons === 'function') gigmaWireInheritSwitchButtons(root); }catch(_){ }
       try{ if (typeof gigmaUpdateInheritSwitchButtons === 'function') gigmaUpdateInheritSwitchButtons(root); }catch(_){ }
     }
-    let chatWireTimer = null;
     const obs = new MutationObserver((muts)=>{
-      if (chatWireTimer) return;
-      chatWireTimer = setTimeout(() => {
-        chatWireTimer = null;
-        try{ wireChatParentPresetSelects(document); }catch(_){}
-      }, 500);
+      try{
+        muts.forEach((m)=>{
+          if (!m.addedNodes) return;
+          m.addedNodes.forEach((n)=>{
+            if (n && n.nodeType === 1){
+              wireChatParentPresetSelects(n);
+            }
+          });
+        });
+      }catch(_){}
     });
     obs.observe(document.documentElement, {subtree:true, childList:true});
     window.__gigmaChatTypeToggleObs = obs;
@@ -41748,13 +41753,15 @@ function gigmaEnsureDuplicateSentenceToolbarButton() {
         if (window.__gigmaDuplicateSentenceToolbarButtonOnce) return;
         window.__gigmaDuplicateSentenceToolbarButtonOnce = true;
 
-        let dedupeTimer = null;
+        let scheduled = false;
         const schedule = () => {
-            if (dedupeTimer) return; // If ticking, let it finish!
-            dedupeTimer = setTimeout(() => {
-                dedupeTimer = null;
+            if (scheduled) return;
+            scheduled = true;
+            const run = () => {
+                scheduled = false;
                 gigmaEnsureDuplicateSentenceToolbarButton();
-            }, 500);
+            };
+            try { requestAnimationFrame(run); } catch (_eDuplicateSentenceToolbarRaf) { setTimeout(run, 0); }
         };
 
         if (document.readyState === 'loading') {
