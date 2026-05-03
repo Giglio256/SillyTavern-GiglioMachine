@@ -4090,6 +4090,14 @@ return;
       }
     };
 
+    const getPreviewTreeScrollHost = (target) => {
+      try {
+        return target && target.closest ? target.closest('#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree') : null;
+      } catch (_) {
+        return null;
+      }
+    };
+
     const isOrderingItemlessTarget = (target, y) => {
       if (!isPopupTarget(target)) return false;
       const searchHost = getSearchResultsScrollHost(target);
@@ -4103,6 +4111,8 @@ return;
       try {
         const searchHost = getSearchResultsScrollHost(target);
         if (hasScrollableOverflow(searchHost, 'y') || hasScrollableOverflow(searchHost, 'x')) return searchHost;
+        const previewHost = getPreviewTreeScrollHost(target);
+        if (hasScrollableOverflow(previewHost, 'y') || hasScrollableOverflow(previewHost, 'x')) return previewHost;
         let node = target && target.closest ? target.closest('#gigma-ordering-list, .gigma-unsorted-content, .gigma-focus-pane-list, #gigma-ordering-container, .gigma-unsorted-pane') : null;
         while (node) {
           if (hasScrollableOverflow(node, 'y') || hasScrollableOverflow(node, 'x')) return node;
@@ -4114,6 +4124,8 @@ return;
 
     const getModalScrollHost = (target) => {
       try {
+        const previewHost = getPreviewTreeScrollHost(target);
+        if (hasScrollableOverflow(previewHost, 'y')) return previewHost;
         const dialog = target && target.closest ? target.closest('dialog') : null;
         const modalScroll = dialog && dialog.querySelector ? dialog.querySelector('#gigma-modal-scroll') : document.getElementById('gigma-modal-scroll');
         return hasScrollableOverflow(modalScroll, 'y') ? modalScroll : null;
@@ -4182,6 +4194,7 @@ return;
           html.gigma-mobile-fullscreen #gigma-modal-root,
           html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root,
           html.gigma-mobile-fullscreen #gigma-modal-scroll,
+          html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree,
           html.gigma-mobile-fullscreen #gigma-ordering-container,
           html.gigma-mobile-fullscreen #gigma-ordering-list,
           html.gigma-mobile-fullscreen .gigma-unsorted-pane,
