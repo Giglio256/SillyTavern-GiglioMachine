@@ -2662,7 +2662,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         min-height:0 !important;
         overflow-y:auto !important;
         overflow-x:hidden !important;
-        -webkit-overflow-scrolling:auto;
+        -webkit-overflow-scrolling:touch;
       }
       html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root{
         display:block !important;
@@ -2724,7 +2724,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
         box-sizing:border-box !important;
         overflow-y:auto !important;
         overflow-x:hidden !important;
-        -webkit-overflow-scrolling:auto;
+        -webkit-overflow-scrolling:touch;
       }
       html.gigma-mobile-fullscreen #gigma-layout-preset-tree-preview-root .gigma-preview-gwi-host{
         position:static !important;
@@ -27405,19 +27405,44 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
 
     window.gigmaSkinPreviewAndFolderButtons = skinAll;
 
-    let queued = false;
-    const scheduleSkin = () => {
-      try{
-        if (queued) return;
-        queued = true;
-        queueMicrotask(() => {
-          queued = false;
-          try{ skinAll(document); }catch(_){ }
-        });
-      }catch(_){
-        queued = false;
-        try{ skinAll(document); }catch(__){ }
+    const gigmaUseFirefoxDomDebounce = () => navigator.userAgent.includes('Firefox/');
+
+    const gigmaScheduleChromeMicrotaskFirefoxTimer = (state, work) => {
+      if (state.id) return;
+      if (gigmaUseFirefoxDomDebounce()) {
+        state.id = setTimeout(() => {
+          state.id = 0;
+          work();
+        }, 500);
+        return;
       }
+      state.id = true;
+      queueMicrotask(() => {
+        state.id = 0;
+        work();
+      });
+    };
+
+    const gigmaScheduleChromeFrameFirefoxTimer = (state, work) => {
+      if (state.id) return;
+      if (gigmaUseFirefoxDomDebounce()) {
+        state.id = setTimeout(() => {
+          state.id = 0;
+          work();
+        }, 500);
+        return;
+      }
+      state.id = requestAnimationFrame(() => {
+        state.id = 0;
+        work();
+      });
+    };
+
+    const skinScheduleState = { id: 0 };
+    const scheduleSkin = () => {
+      gigmaScheduleChromeMicrotaskFirefoxTimer(skinScheduleState, () => {
+        try{ skinAll(document); }catch(_){ }
+      });
     };
 
     try{
@@ -34218,11 +34243,9 @@ if (changed) {
         try{ ensureWiring(); }catch(_){ }
 // 2) Re-apply whenever the dialog/pane toolbars are injected later.
         if (!window.__gigmaIconToolbarObs){
-            let raf = 0;
+            const iconScheduleState = { id: 0 };
             const schedule = ()=>{
-                if (raf) return;
-                raf = requestAnimationFrame(()=>{
-                    raf = 0;
+                gigmaScheduleChromeFrameFirefoxTimer(iconScheduleState, () => {
                     ensureRestoreButtons();
                     ensureIcons();
                     try{ ensureWiring(); }catch(_){ }
@@ -37447,10 +37470,9 @@ function openSearch(state){
     installPaneSearchKeyboardNav();
 
     if (!window.__gigmaPaneSearchObs){
-      let raf = 0;
+      const paneScheduleState = { id: 0 };
       const schedule = ()=>{
-        if (raf) return;
-        raf = requestAnimationFrame(()=>{ raf = 0; ensureAll(); });
+        gigmaScheduleChromeFrameFirefoxTimer(paneScheduleState, () => { ensureAll(); });
       };
       const obs = new MutationObserver(()=>schedule());
       obs.observe(document.documentElement, {subtree:true, childList:true});
@@ -37683,7 +37705,14 @@ function gigmaGetLayoutPresetStore(kind) {
       try{ if (typeof gigmaWireInheritSwitchButtons === 'function') gigmaWireInheritSwitchButtons(root); }catch(_){ }
       try{ if (typeof gigmaUpdateInheritSwitchButtons === 'function') gigmaUpdateInheritSwitchButtons(root); }catch(_){ }
     }
+    const chatWireScheduleState = { id: 0 };
     const obs = new MutationObserver((muts)=>{
+      if (gigmaUseFirefoxDomDebounce()) {
+        gigmaScheduleChromeFrameFirefoxTimer(chatWireScheduleState, () => {
+          try{ wireChatParentPresetSelects(document); }catch(_){}
+        });
+        return;
+      }
       try{
         muts.forEach((m)=>{
           if (!m.addedNodes) return;
@@ -41753,15 +41782,11 @@ function gigmaEnsureDuplicateSentenceToolbarButton() {
         if (window.__gigmaDuplicateSentenceToolbarButtonOnce) return;
         window.__gigmaDuplicateSentenceToolbarButtonOnce = true;
 
-        let scheduled = false;
+        const duplicateSentenceScheduleState = { id: 0 };
         const schedule = () => {
-            if (scheduled) return;
-            scheduled = true;
-            const run = () => {
-                scheduled = false;
+            gigmaScheduleChromeFrameFirefoxTimer(duplicateSentenceScheduleState, () => {
                 gigmaEnsureDuplicateSentenceToolbarButton();
-            };
-            try { requestAnimationFrame(run); } catch (_eDuplicateSentenceToolbarRaf) { setTimeout(run, 0); }
+            });
         };
 
         if (document.readyState === 'loading') {
@@ -44179,7 +44204,7 @@ return '<li class="' + rowCls + '"' + dataAttrs + '>' +
         bodyHtml = '<div class="gigma-layout-preset-tree-empty">This preset does not contain any lorebooks yet.</div>';
     }
     return '' +
-        '<div class="gigma-layout-preset-tree" style="display:block;width:100%;max-width:100%;height:100%;max-height:100%;min-height:0;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:auto;">' +
+        '<div class="gigma-layout-preset-tree" style="display:block;width:100%;max-width:100%;height:100%;max-height:100%;min-height:0;box-sizing:border-box;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;">' +
         bodyHtml +
         '</div>';
 }
