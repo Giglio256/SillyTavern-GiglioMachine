@@ -4170,11 +4170,12 @@ return;
     const scrollWithModalRoute = (host, modalHost, dx, dy, modalOnlyY) => {
       let moved = false;
       const xHost = canScrollXBy(host, dx) ? host : null;
-      const yHost = modalOnlyY ? (canScrollYBy(modalHost, dy) ? modalHost : null) : (canScrollYBy(host, dy) ? host : null);
+      const yBoundaryHost = modalOnlyY ? modalHost : host;
+      const yHost = canScrollYBy(yBoundaryHost, dy) ? yBoundaryHost : null;
       if (xHost && xHost === yHost) return scrollElementBy(xHost, dx, dy);
       if (xHost) moved = scrollElementBy(xHost, dx, 0) || moved;
       if (yHost) moved = scrollElementBy(yHost, 0, dy) || moved;
-      if (!moved && dy && !modalOnlyY && isSearchResultsScrollHost(host) && hasScrollableOverflow(host, 'y')) return true;
+      if (!moved && dy && hasScrollableOverflow(yBoundaryHost, 'y')) return true;
       return moved;
     };
 
@@ -4249,11 +4250,17 @@ return;
       const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
       const dx = state.lastX - x;
       const dy = state.lastY - y;
-      const dt = Math.max(1, now - (state.lastTime || now));
+      const isPreviewHost = !!(state.host && state.host.closest && state.host.closest('#gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree'));
+      const dt = Math.max(isPreviewHost ? 16 : 1, now - (state.lastTime || now));
       const vx = dx / dt;
       const vy = dy / dt;
       state.velocityX = (state.velocityX * 0.65) + (vx * 0.35);
       state.velocityY = (state.velocityY * 0.65) + (vy * 0.35);
+      if (isPreviewHost) {
+        const maxV = 2.4;
+        state.velocityX = Math.max(-maxV, Math.min(maxV, state.velocityX));
+        state.velocityY = Math.max(-maxV, Math.min(maxV, state.velocityY));
+      }
       state.lastX = x;
       state.lastY = y;
       state.lastTime = now;
