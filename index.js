@@ -27405,31 +27405,19 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
 
     window.gigmaSkinPreviewAndFolderButtons = skinAll;
 
-if (!window.__gigmaTypingDetector) {
-        window.__gigmaTypingDetector = true;
-        window.__gigmaIsTyping = false;
-        let typingTimeout = null;
-        document.addEventListener('keydown', (e) => {
-            if (e.target?.tagName === 'TEXTAREA' || e.target?.tagName === 'INPUT' || e.target?.isContentEditable) {
-                window.__gigmaIsTyping = true;
-                if (typingTimeout) clearTimeout(typingTimeout);
-                typingTimeout = setTimeout(() => { window.__gigmaIsTyping = false; }, 400);
-            }
-        }, true);
-    }
-
-    let skinRaf = 0, skinWait = 0;
+    let queued = false;
     const scheduleSkin = () => {
-      if (window.__gigmaIsTyping) {
-          if (skinWait) return;
-          skinWait = setTimeout(() => { skinWait = 0; scheduleSkin(); }, 450);
-          return;
-      }
-      if (skinRaf) return;
-      skinRaf = requestAnimationFrame(() => {
-          skinRaf = 0;
+      try{
+        if (queued) return;
+        queued = true;
+        queueMicrotask(() => {
+          queued = false;
           try{ skinAll(document); }catch(_){ }
-      });
+        });
+      }catch(_){
+        queued = false;
+        try{ skinAll(document); }catch(__){ }
+      }
     };
 
     try{
@@ -34230,21 +34218,16 @@ if (changed) {
         try{ ensureWiring(); }catch(_){ }
 // 2) Re-apply whenever the dialog/pane toolbars are injected later.
         if (!window.__gigmaIconToolbarObs){
-          let iconRaf = 0, iconWait = 0;
-          const schedule = ()=>{
-              if (window.__gigmaIsTyping) {
-                  if (iconWait) return;
-                  iconWait = setTimeout(() => { iconWait = 0; schedule(); }, 450);
-                  return;
-              }
-              if (iconRaf) return;
-              iconRaf = requestAnimationFrame(()=>{
-                  iconRaf = 0;
-                  ensureRestoreButtons();
-                  ensureIcons();
-                  try{ ensureWiring(); }catch(_){ }
-              });
-          };
+            let raf = 0;
+            const schedule = ()=>{
+                if (raf) return;
+                raf = requestAnimationFrame(()=>{
+                    raf = 0;
+                    ensureRestoreButtons();
+                    ensureIcons();
+                    try{ ensureWiring(); }catch(_){ }
+                });
+            };
             const obs = new MutationObserver((muts)=>{
                 for (const m of muts){
                     for (const n of m.addedNodes || []){
@@ -37463,21 +37446,16 @@ function openSearch(state){
     installOutsideCloser();
     installPaneSearchKeyboardNav();
 
-        if (!window.__gigmaPaneSearchObs){
-          let paneRaf = 0, paneWait = 0;
-          const schedule = ()=>{
-            if (window.__gigmaIsTyping) {
-                if (paneWait) return;
-                paneWait = setTimeout(() => { paneWait = 0; schedule(); }, 450);
-                return;
-            }
-            if (paneRaf) return;
-            paneRaf = requestAnimationFrame(()=>{ paneRaf = 0; ensureAll(); });
-          };
-          const obs = new MutationObserver(()=>schedule());
-          obs.observe(document.documentElement, {subtree:true, childList:true});
-          window.__gigmaPaneSearchObs = obs;
-        }
+    if (!window.__gigmaPaneSearchObs){
+      let raf = 0;
+      const schedule = ()=>{
+        if (raf) return;
+        raf = requestAnimationFrame(()=>{ raf = 0; ensureAll(); });
+      };
+      const obs = new MutationObserver(()=>schedule());
+      obs.observe(document.documentElement, {subtree:true, childList:true});
+      window.__gigmaPaneSearchObs = obs;
+    }
   }catch(_){ }
 })();
 // === END GIGMA: Pane search ===
@@ -37705,20 +37683,18 @@ function gigmaGetLayoutPresetStore(kind) {
       try{ if (typeof gigmaWireInheritSwitchButtons === 'function') gigmaWireInheritSwitchButtons(root); }catch(_){ }
       try{ if (typeof gigmaUpdateInheritSwitchButtons === 'function') gigmaUpdateInheritSwitchButtons(root); }catch(_){ }
     }
-    let chatRaf = 0, chatWait = 0;
-    const scheduleChatWire = () => {
-      if (window.__gigmaIsTyping) {
-          if (chatWait) return;
-          chatWait = setTimeout(() => { chatWait = 0; scheduleChatWire(); }, 450);
-          return;
-      }
-      if (chatRaf) return;
-      chatRaf = requestAnimationFrame(() => {
-          chatRaf = 0;
-          try{ wireChatParentPresetSelects(document); }catch(_){}
-      });
-    };
-    const obs = new MutationObserver(() => { scheduleChatWire(); });
+    const obs = new MutationObserver((muts)=>{
+      try{
+        muts.forEach((m)=>{
+          if (!m.addedNodes) return;
+          m.addedNodes.forEach((n)=>{
+            if (n && n.nodeType === 1){
+              wireChatParentPresetSelects(n);
+            }
+          });
+        });
+      }catch(_){}
+    });
     obs.observe(document.documentElement, {subtree:true, childList:true});
     window.__gigmaChatTypeToggleObs = obs;
     // Wire any existing rows on load
@@ -41777,18 +41753,15 @@ function gigmaEnsureDuplicateSentenceToolbarButton() {
         if (window.__gigmaDuplicateSentenceToolbarButtonOnce) return;
         window.__gigmaDuplicateSentenceToolbarButtonOnce = true;
 
-        let dedupeRaf = 0, dedupeWait = 0;
+        let scheduled = false;
         const schedule = () => {
-            if (window.__gigmaIsTyping) {
-                if (dedupeWait) return;
-                dedupeWait = setTimeout(() => { dedupeWait = 0; schedule(); }, 450);
-                return;
-            }
-            if (dedupeRaf) return;
-            dedupeRaf = requestAnimationFrame(() => {
-                dedupeRaf = 0;
+            if (scheduled) return;
+            scheduled = true;
+            const run = () => {
+                scheduled = false;
                 gigmaEnsureDuplicateSentenceToolbarButton();
-            });
+            };
+            try { requestAnimationFrame(run); } catch (_eDuplicateSentenceToolbarRaf) { setTimeout(run, 0); }
         };
 
         if (document.readyState === 'loading') {
