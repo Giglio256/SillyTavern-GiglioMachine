@@ -4109,11 +4109,24 @@ return;
 
     const getDropdownScrollHost = (target) => {
       try {
-        const selector = '.select2-results__options, .select2-dropdown, .gigma-modal-stats-panel, .gigma-wi-lorebook-stats-panel, #gigma-modal-settings-popup, .gigma-mobile-fullscreen-panel';
+        const selector = '.select2-results__options, .select2-dropdown, .gigma-modal-stats-panel, .gigma-wi-lorebook-stats-panel, .gigma-lore-content-scroll, .gigma-lore-entry-text, .gigma-lore-entry-settings, .gigma-pane-search-results-list, .gigma-multi-preset-delete-list, #gigma-modal-settings-popup, .gigma-mobile-fullscreen-panel';
         let node = target && target.closest ? target.closest(selector) : null;
         while (node) {
           if (hasScrollableOverflow(node, 'y') || hasScrollableOverflow(node, 'x')) return node;
           node = node.parentElement && node.parentElement.closest ? node.parentElement.closest(selector) : null;
+        }
+      } catch (_) {}
+      return null;
+    };
+
+    const getGenericScrollHost = (target) => {
+      try {
+        let node = target && target.nodeType === 1 ? target : target && target.parentElement;
+        const boundary = target && target.closest ? target.closest('dialog, #gigma-modal-root, #gigma-layout-preset-tree-preview-root') : null;
+        while (node && node !== document.body && node !== document.documentElement) {
+          if (hasScrollableOverflow(node, 'y') || hasScrollableOverflow(node, 'x')) return node;
+          if (boundary && node === boundary) break;
+          node = node.parentElement;
         }
       } catch (_) {}
       return null;
@@ -4212,7 +4225,12 @@ return;
           html.gigma-mobile-fullscreen #gigma-ordering-list,
           html.gigma-mobile-fullscreen .gigma-unsorted-pane,
           html.gigma-mobile-fullscreen .gigma-unsorted-content,
-          html.gigma-mobile-fullscreen .gigma-focus-pane-list{
+          html.gigma-mobile-fullscreen .gigma-focus-pane-list,
+          html.gigma-mobile-fullscreen .gigma-lore-content-scroll,
+          html.gigma-mobile-fullscreen .gigma-lore-entry-text,
+          html.gigma-mobile-fullscreen .gigma-lore-entry-settings,
+          html.gigma-mobile-fullscreen .gigma-pane-search-results-list,
+          html.gigma-mobile-fullscreen .gigma-multi-preset-delete-list{
             touch-action:none !important;
             overscroll-behavior:contain !important;
           }
@@ -4224,17 +4242,43 @@ return;
       }
     } catch (_) {}
 
+    const wheelRouteState = { host: null, modalHost: null, modalOnlyY: false, timer: 0 };
+    const clearWheelRouteState = () => {
+      wheelRouteState.host = null;
+      wheelRouteState.modalHost = null;
+      wheelRouteState.modalOnlyY = false;
+      if (wheelRouteState.timer) {
+        try { clearTimeout(wheelRouteState.timer); } catch (_) {}
+        wheelRouteState.timer = 0;
+      }
+    };
+    const refreshWheelRouteState = () => {
+      if (wheelRouteState.timer) {
+        try { clearTimeout(wheelRouteState.timer); } catch (_) {}
+      }
+      wheelRouteState.timer = setTimeout(clearWheelRouteState, 220);
+    };
+    const getWheelRouteState = (ev) => {
+      if (wheelRouteState.host || wheelRouteState.modalHost) return wheelRouteState;
+      const dropdownHost = getDropdownScrollHost(ev.target);
+      const host = dropdownHost || getScrollHost(ev.target) || getGenericScrollHost(ev.target);
+      const modalOnlyY = dropdownHost ? false : isOrderingItemlessTarget(ev.target, ev.clientY);
+      const modalHost = modalOnlyY ? getModalScrollHost(ev.target) : null;
+      wheelRouteState.host = host;
+      wheelRouteState.modalHost = modalHost;
+      wheelRouteState.modalOnlyY = modalOnlyY;
+      return wheelRouteState;
+    };
+
     document.addEventListener('wheel', (ev) => {
       if (!isActive() || !isPopupTarget(ev.target)) return;
       if (ev.target && ev.target.closest && ev.target.closest('select')) return;
-      const dropdownHost = getDropdownScrollHost(ev.target);
-      const host = dropdownHost || getScrollHost(ev.target);
-      const modalOnlyY = dropdownHost ? false : isOrderingItemlessTarget(ev.target, ev.clientY);
-      const modalHost = modalOnlyY ? getModalScrollHost(ev.target) : null;
-      if (!host && !modalHost) return;
+      const route = getWheelRouteState(ev);
+      if (!route.host && !route.modalHost) return;
       const dx = ev && typeof ev.deltaX === 'number' ? ev.deltaX : 0;
       const dy = ev && typeof ev.deltaY === 'number' ? ev.deltaY : 0;
-      if (!scrollWithModalRoute(host, modalHost, dx, dy, modalOnlyY)) return;
+      refreshWheelRouteState();
+      if (!scrollWithModalRoute(route.host, route.modalHost, dx, dy, route.modalOnlyY)) return;
       try { ev.preventDefault(); } catch (_) {}
       try { ev.stopPropagation(); } catch (_) {}
     }, { capture: true, passive: false });
@@ -4319,7 +4363,7 @@ return;
     const beginTouchScroll = (ev, point, kind) => {
       cancelMomentum();
       const dropdownHost = getDropdownScrollHost(ev.target);
-      const host = dropdownHost || getScrollHost(ev.target);
+      const host = dropdownHost || getScrollHost(ev.target) || getGenericScrollHost(ev.target);
       const modalOnlyY = dropdownHost ? false : isOrderingItemlessTarget(ev.target, point.y);
       const modalHost = modalOnlyY ? getModalScrollHost(ev.target) : null;
       if (!host && !modalHost) return false;
@@ -4393,7 +4437,7 @@ return;
         if (!state.active || state.kind !== 'single') {
           if (!beginTouchScroll(ev, { x: t.clientX, y: t.clientY, id: t.identifier }, 'single')) return;
         }
-        const host = state.host || getScrollHost(ev.target);
+        const host = state.host || getScrollHost(ev.target) || getGenericScrollHost(ev.target);
         const modalHost = state.modalOnlyY ? (state.modalHost || getModalScrollHost(ev.target)) : null;
         if (!host && !modalHost) return;
         const delta = updateTouchVelocity(t.clientX, t.clientY);
@@ -4408,7 +4452,7 @@ return;
         if (!state.active || state.kind !== 'double') {
           if (!beginTouchScroll(ev, { x: mid.x, y: mid.y, id: null }, 'double')) return;
         }
-        const host = state.host || getScrollHost(ev.target);
+        const host = state.host || getScrollHost(ev.target) || getGenericScrollHost(ev.target);
         const modalHost = state.modalOnlyY ? (state.modalHost || getModalScrollHost(ev.target)) : null;
         if (!host && !modalHost) return;
         const delta = updateTouchVelocity(mid.x, mid.y);
@@ -5556,13 +5600,13 @@ function gigmaSetInfoPopupSeekerVisual(root, current, duration, forceNativeValue
         gigmaUpdateInfoPopupSeekerInput(root, value, max, forceNativeValue);
     }catch(_){ }
 }
-function gigmaAnimateInfoPopupSeekerVisual(root, current, duration){
+function gigmaAnimateInfoPopupSeekerVisual(root, current, duration, wallSeconds){
     try{
         if (!root) root = GIGMA_INFO_POPUP_STATE.root;
         if (!root) return;
         const max = Math.max(0, Number(duration) || 0);
         const value = Math.max(0, Math.min(max, Number(current) || 0));
-        const remaining = Math.max(0, max - value);
+        const remaining = Math.max(0, Number(wallSeconds ?? (max - value)) || 0);
         if (remaining <= 0) {
             gigmaSetInfoPopupSeekerVisual(root, value, max, true);
             return;
@@ -5590,6 +5634,38 @@ function gigmaUpdateInfoPopupSystemProgressUi(root){
             state.timeLabelStamp = now;
             const time = root.querySelector('#gigma-info-tts-time');
             if (time) time.textContent = `${gigmaFormatInfoPopupAudioTime(state.currentTime)} / ${gigmaFormatInfoPopupAudioTime(state.duration)}`;
+        }
+    }catch(_){ }
+}
+function gigmaAnimateInfoPopupAudioSeekerVisual(root, audio){
+    try{
+        if (!audio) audio = gigmaInfoPopupGetAudioElement();
+        if (!audio) return;
+        const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+        const current = Number.isFinite(audio.currentTime) ? Math.min(audio.currentTime, duration || audio.currentTime || 0) : 0;
+        if (!duration || audio.paused || audio.ended) {
+            gigmaSetInfoPopupSeekerVisual(root, current, duration || 0, true);
+            return;
+        }
+        const rate = Math.max(0.01, Math.abs(Number(audio.playbackRate) || 1));
+        gigmaAnimateInfoPopupSeekerVisual(root, current, duration, Math.max(0, (duration - current) / rate));
+    }catch(_){ }
+}
+function gigmaUpdateInfoPopupAudioProgressUi(root, audio){
+    try{
+        if (!root) root = GIGMA_INFO_POPUP_STATE.root;
+        if (!root) return;
+        if (!audio) audio = gigmaInfoPopupGetAudioElement();
+        if (!audio) return;
+        const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+        const current = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+        gigmaUpdateInfoPopupSeekerInput(root, Math.min(current, duration || current || 0), duration || 0);
+        const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        const state = GIGMA_INFO_POPUP_STATE.systemSpeech;
+        if (!state.audioTimeLabelStamp || now - state.audioTimeLabelStamp >= 100 || audio.paused || audio.ended) {
+            state.audioTimeLabelStamp = now;
+            const time = root.querySelector('#gigma-info-tts-time');
+            if (time) time.textContent = `${gigmaFormatInfoPopupAudioTime(current)} / ${gigmaFormatInfoPopupAudioTime(duration)}`;
         }
     }catch(_){ }
 }
@@ -5652,6 +5728,7 @@ function gigmaHandleInfoPopupAudioEnd(audio){
     if (!audio) return;
     try{ audio.pause(); }catch(_){ }
     try{ audio.currentTime = 0; }catch(_){ }
+    gigmaSetInfoPopupSeekerVisual(GIGMA_INFO_POPUP_STATE.root, 0, Number(audio.duration) || 0, true);
     gigmaUpdateInfoPopupTtsUi(GIGMA_INFO_POPUP_STATE.root);
     if (gigmaGetRepeatInfoPopupTtsPref()) {
         try{ void audio.play(); }catch(_){ }
@@ -6373,7 +6450,8 @@ function gigmaUpdateInfoPopupTtsUi(root){
         gigmaApplyInfoPopupAudioSpeed(liveAudio);
         const duration = Number.isFinite(liveAudio.duration) ? liveAudio.duration : 0;
         const current = Number.isFinite(liveAudio.currentTime) ? liveAudio.currentTime : 0;
-        gigmaSetInfoPopupSeekerVisual(root, Math.min(current, duration || current || 0), duration || 0, true);
+        if (liveAudio.paused || liveAudio.ended) gigmaSetInfoPopupSeekerVisual(root, Math.min(current, duration || current || 0), duration || 0, true);
+        else gigmaAnimateInfoPopupAudioSeekerVisual(root, liveAudio);
         if (time) time.textContent = `${gigmaFormatInfoPopupAudioTime(current)} / ${gigmaFormatInfoPopupAudioTime(duration)}`;
         for (const playPause of playPauseButtons) {
             const icon = playPause.querySelector('i');
@@ -6386,6 +6464,7 @@ function gigmaBindInfoPopupTtsUi(root){
         gigmaCleanupInfoPopupAudioBinding();
         if (!root) return;
         const seeker = root.querySelector('#gigma-info-tts-seeker');
+        const seekerWrap = root.querySelector('.gigma-info-tts-seeker-wrap');
         const speed = root.querySelector('#gigma-info-tts-speed');
         const speedValue = root.querySelector('#gigma-info-tts-speed-value');
         const autoTts = root.querySelector('#gigma-info-tts-auto');
@@ -6393,40 +6472,87 @@ function gigmaBindInfoPopupTtsUi(root){
         let frame = 0;
         const update = () => gigmaUpdateInfoPopupTtsUi(root);
         const loop = () => {
-            update();
             const liveAudio = gigmaInfoPopupGetAudioElement();
             if (gigmaInfoPopupUsesSystemTts()) {
                 gigmaUpdateInfoPopupSystemProgressUi(root);
                 frame = 0;
                 return;
             }
-            if (liveAudio && !liveAudio.paused) frame = requestAnimationFrame(loop);
+            if (liveAudio && !liveAudio.paused && !liveAudio.ended) {
+                gigmaUpdateInfoPopupAudioProgressUi(root, liveAudio);
+                frame = requestAnimationFrame(loop);
+                return;
+            }
+            frame = 0;
         };
         const restartLoop = () => {
             if (frame) cancelAnimationFrame(frame);
             frame = requestAnimationFrame(loop);
         };
+        const seekTo = (rawValue) => {
+            const max = Math.max(0, Number(seeker ? seeker.max : 0) || 0);
+            const value = Math.max(0, Math.min(max, Number(rawValue) || 0));
+            if (seeker) seeker.value = String(value);
+            if (gigmaInfoPopupUsesSystemTts()) {
+                gigmaSetInfoPopupSeekerVisual(root, value, max, true);
+                gigmaSeekInfoPopupSystemSpeech(value);
+                return;
+            }
+            const liveAudio = gigmaInfoPopupGetAudioElement();
+            if (!liveAudio) return;
+            const duration = Number.isFinite(liveAudio.duration) ? liveAudio.duration : max;
+            liveAudio.currentTime = Math.max(0, Math.min(duration || value, value));
+            if (liveAudio.paused || liveAudio.ended) gigmaSetInfoPopupSeekerVisual(root, liveAudio.currentTime, duration || 0, true);
+            else {
+                gigmaSetInfoPopupSeekerVisual(root, value, duration || max, true);
+                gigmaAnimateInfoPopupAudioSeekerVisual(root, liveAudio);
+            }
+            update();
+        };
         if (seeker) {
-            const onSeek = () => {
-                if (gigmaInfoPopupUsesSystemTts()) {
-                    gigmaSetInfoPopupSeekerVisual(root, Number(seeker.value) || 0, Number(seeker.max) || 0, true);
-                    gigmaSeekInfoPopupSystemSpeech(Number(seeker.value) || 0);
-                    return;
-                }
-                const liveAudio = gigmaInfoPopupGetAudioElement();
-                if (!liveAudio) return;
-                liveAudio.currentTime = Number(seeker.value) || 0;
-                gigmaSetInfoPopupSeekerVisual(root, liveAudio.currentTime, Number(liveAudio.duration) || 0, true);
-                update();
-            };
+            const onSeek = () => seekTo(seeker.value);
             seeker.addEventListener('input', onSeek);
             listeners.push([seeker, 'input', onSeek]);
+        }
+        if (seekerWrap && seeker) {
+            let seekerPointerActive = false;
+            const pointerSeek = (ev) => {
+                if (seeker.disabled) return;
+                const rect = seekerWrap.getBoundingClientRect();
+                if (!rect.width) return;
+                const pct = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+                seekTo(pct * (Number(seeker.max) || 0));
+            };
+            const onSeekerPointerDown = (ev) => {
+                seekerPointerActive = true;
+                try{ ev.preventDefault(); }catch(_){ }
+                try{ seeker.focus(); }catch(_){ }
+                try{ seekerWrap.setPointerCapture(ev.pointerId); }catch(_){ }
+                pointerSeek(ev);
+            };
+            const onSeekerPointerMove = (ev) => {
+                if (!seekerPointerActive) return;
+                pointerSeek(ev);
+            };
+            const onSeekerPointerUp = (ev) => {
+                seekerPointerActive = false;
+                try{ seekerWrap.releasePointerCapture(ev.pointerId); }catch(_){ }
+            };
+            seekerWrap.addEventListener('pointerdown', onSeekerPointerDown);
+            seekerWrap.addEventListener('pointermove', onSeekerPointerMove);
+            seekerWrap.addEventListener('pointerup', onSeekerPointerUp);
+            seekerWrap.addEventListener('pointercancel', onSeekerPointerUp);
+            listeners.push([seekerWrap, 'pointerdown', onSeekerPointerDown]);
+            listeners.push([seekerWrap, 'pointermove', onSeekerPointerMove]);
+            listeners.push([seekerWrap, 'pointerup', onSeekerPointerUp]);
+            listeners.push([seekerWrap, 'pointercancel', onSeekerPointerUp]);
         }
         if (speed) {
             const onSpeed = () => {
                 const next = gigmaSetInfoPopupTtsSpeedPref(speed.value);
                 if (speedValue && document.activeElement !== speedValue) speedValue.value = next.toFixed(1);
                 gigmaApplyInfoPopupCurrentSpeed();
+                if (!gigmaInfoPopupUsesSystemTts()) gigmaAnimateInfoPopupAudioSeekerVisual(root, gigmaInfoPopupGetAudioElement());
                 update();
             };
             speed.addEventListener('input', onSpeed);
@@ -6441,6 +6567,7 @@ function gigmaBindInfoPopupTtsUi(root){
                 const next = gigmaSetInfoPopupTtsSpeedPref(parsed);
                 if (speed) speed.value = String(next);
                 gigmaApplyInfoPopupCurrentSpeed();
+                if (!gigmaInfoPopupUsesSystemTts()) gigmaAnimateInfoPopupAudioSeekerVisual(root, gigmaInfoPopupGetAudioElement());
                 update();
             };
             const onSpeedValueChange = () => {
@@ -6448,6 +6575,7 @@ function gigmaBindInfoPopupTtsUi(root){
                 speedValue.value = next.toFixed(1);
                 if (speed) speed.value = String(next);
                 gigmaApplyInfoPopupCurrentSpeed();
+                if (!gigmaInfoPopupUsesSystemTts()) gigmaAnimateInfoPopupAudioSeekerVisual(root, gigmaInfoPopupGetAudioElement());
                 update();
             };
             speedValue.addEventListener('input', onSpeedValueInput);
@@ -6465,9 +6593,26 @@ function gigmaBindInfoPopupTtsUi(root){
         }
         const audio = gigmaInfoPopupGetAudioElement();
         if (audio) {
-            for (const eventName of ['play', 'pause', 'durationchange', 'loadedmetadata', 'timeupdate']) {
-                audio.addEventListener(eventName, restartLoop);
-                listeners.push([audio, eventName, restartLoop]);
+            const onAudioPlay = () => {
+                gigmaAnimateInfoPopupAudioSeekerVisual(root, audio);
+                update();
+                restartLoop();
+            };
+            const onAudioPause = () => {
+                gigmaSetInfoPopupSeekerVisual(root, audio.currentTime || 0, Number(audio.duration) || 0, true);
+                update();
+            };
+            const onAudioMeta = () => {
+                gigmaSetInfoPopupSeekerVisual(root, audio.currentTime || 0, Number(audio.duration) || 0, true);
+                update();
+            };
+            audio.addEventListener('play', onAudioPlay);
+            listeners.push([audio, 'play', onAudioPlay]);
+            audio.addEventListener('pause', onAudioPause);
+            listeners.push([audio, 'pause', onAudioPause]);
+            for (const eventName of ['durationchange', 'loadedmetadata']) {
+                audio.addEventListener(eventName, onAudioMeta);
+                listeners.push([audio, eventName, onAudioMeta]);
             }
             const onAudioEnd = () => {
                 gigmaHandleInfoPopupAudioEnd(audio);
@@ -18749,6 +18894,16 @@ function gigmaInstallLorebookContentStylesOnce() {
 .gigma-row.gigma-lore-content-open{
   align-items:flex-start !important;
 }
+#gigma-modal-root #gigma-ordering-container .gigma-row-header-mainline .gigma-row-left-controls:has(.gigma-lore-content-expander){
+  gap:0.12em !important;
+  margin-right:0.08em;
+}
+#gigma-modal-root #gigma-ordering-container .gigma-row-header-grid > .gigma-row-stats:empty{
+  display:none !important;
+  padding:0 !important;
+  margin:0 !important;
+  gap:0 !important;
+}
 
 /* Lorebook content panel */
 .gigma-lore-content-panel{
@@ -18777,6 +18932,8 @@ function gigmaInstallLorebookContentStylesOnce() {
 .gigma-lore-content-scroll{
   max-height: min(22em, 42vh);
   overflow:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
   scrollbar-gutter: stable;
   padding:0.35em 0.35em 0.45em 0.35em;
   box-sizing:border-box;
@@ -18873,7 +19030,7 @@ function gigmaInstallLorebookContentStylesOnce() {
 /* Body */
 .gigma-lore-entry-body{
   display:none;
-  padding:0.35em 0.45em 0.45em 0.45em;
+  padding:1.05em 0.65em 1.1em 0.65em;
   border-top:0.0625em solid rgba(255,255,255,0.10);
 }
 .gigma-lore-entry[data-gigma-open="1"] .gigma-lore-entry-body{
@@ -18882,6 +19039,9 @@ function gigmaInstallLorebookContentStylesOnce() {
 .gigma-lore-entry-text{
   max-height: 14em;
   overflow:auto;
+  margin:0.25em 0 1.1em 0;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
   scrollbar-gutter: stable;
   padding:0.35em 0.45em;
   border-radius:0.35em;
@@ -18896,6 +19056,7 @@ function gigmaInstallLorebookContentStylesOnce() {
 
 
 .gigma-lore-entry-text.gigma-empty-entry{
+  margin-bottom:1.1em;
   min-height: 1.35em;
   max-height: 1.35em;
   overflow:hidden;
@@ -18909,19 +19070,21 @@ function gigmaInstallLorebookContentStylesOnce() {
 }
 
 .gigma-lore-entry-details{
-  margin-top:0.45em;
+  margin:0 0 0.2em 0;
   border:0.0625em solid rgba(255,255,255,0.10);
   border-radius:0.35em;
   background: rgba(0,0,0,0.14);
-  padding:0.35em 0.4em;
+  padding:0.72em 0.6em;
   box-sizing:border-box;
 }
 .gigma-lore-entry-settings{
   max-height: 18em;
   overflow:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
   scrollbar-gutter: stable;
-  margin-top:0.35em;
-  padding-top:0.35em;
+  margin-top:0.75em;
+  padding-top:0.72em;
   border-top:0.0625em solid rgba(255,255,255,0.08);
 }
 .gigma-lore-entry-section{
@@ -19011,6 +19174,109 @@ function gigmaInstallLorebookContentStylesOnce() {
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
+}
+
+/* Mobile lorebook entry layout: keep the compact header, but shrink fixed chips so nothing clips. */
+html.gigma-mobile-fullscreen .gigma-lore-content-scroll{
+  padding:0.32em 0.28em 0.42em 0.28em;
+}
+html.gigma-mobile-fullscreen .gigma-lore-entry-head{
+  display:grid;
+  grid-template-columns:auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'usage name toggle'
+    'meta meta meta';
+  align-items:center;
+  column-gap:0.18em;
+  row-gap:0.18em;
+  padding:0.3em 0.28em;
+}
+html.gigma-mobile-fullscreen .gigma-lore-content-panel .gigma-wi-entry-token-mount{
+  grid-area:usage;
+  gap:0.08em;
+  flex:0 0 auto;
+}
+html.gigma-mobile-fullscreen .gigma-lore-content-panel .gigma-wi-entry-flag-box{
+  min-width:1.35em;
+  padding:0.04em 0.24em;
+  margin-left:0.02em;
+  margin-right:0.02em;
+  font-size:0.68em;
+  line-height:1.15;
+}
+html.gigma-mobile-fullscreen .gigma-lore-content-panel .gigma-wi-entry-token{
+  width:3.45em;
+  min-width:3.45em;
+  max-width:3.45em;
+  font-size:0.74em;
+}
+html.gigma-mobile-fullscreen .gigma-lore-entry-name{
+  grid-area:name;
+  flex:0 1 auto;
+  min-width:0;
+  font-size:0.86em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  text-align:left;
+}
+html.gigma-mobile-fullscreen .gigma-lore-entry-meta{
+  grid-area:meta;
+  width:100%;
+  max-width:100%;
+  grid-template-columns:1.45em 2.45em 2.2em 3.05em 3.35em;
+  gap:0.12em;
+  font-size:0.7em;
+  flex:0 0 auto;
+  justify-content:center;
+  justify-self:center;
+}
+html.gigma-mobile-fullscreen .gigma-lore-pill{
+  padding:0.035em 0.18em;
+  line-height:1.18;
+}
+html.gigma-mobile-fullscreen .gigma-lore-entry-toggle{
+  grid-area:toggle;
+  width:1.45em;
+  min-width:1.45em;
+  height:1.45em;
+}
+html.gigma-mobile-fullscreen .gigma-lore-entry-body{
+  padding:1.05em 0.46em 1.1em 0.46em;
+}
+html.gigma-mobile-fullscreen .gigma-lore-entry-text,
+html.gigma-mobile-fullscreen .gigma-lore-entry-details,
+html.gigma-mobile-fullscreen .gigma-lore-entry-settings{
+  max-width:100%;
+  box-sizing:border-box;
+}
+html.gigma-mobile-fullscreen .gigma-lore-entry-details{
+  padding:0.68em 0.42em;
+}
+html.gigma-mobile-fullscreen .gigma-lore-entry-grid{
+  grid-template-columns:minmax(0, 1fr);
+  gap:0.28em;
+}
+html.gigma-mobile-fullscreen .gigma-lore-setting{
+  grid-template-columns:minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap:0.35em;
+  padding:0.24em 0.32em;
+}
+html.gigma-mobile-fullscreen .gigma-lore-setting-label,
+html.gigma-mobile-fullscreen .gigma-lore-setting-value{
+  min-width:0;
+  max-width:100%;
+  overflow:visible;
+  text-overflow:clip;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+html.gigma-mobile-fullscreen .gigma-lore-setting-value{
+  text-align:right;
+  justify-self:stretch;
+}
+html.gigma-mobile-fullscreen .gigma-lore-setting-value.gigma-wrap{
+  text-align:left;
 }
         `;
         document.head.appendChild(s);
@@ -20600,6 +20866,12 @@ function gigmaEnsureLorebookContentExpanderOnModalRow(rowEl) {
             gigmaRemoveLorebookContentExpanderFromModalRow(rowEl);
             return;
         }
+
+        try {
+            if (rowEl.isConnected && typeof gigmaEnsureModalRowStatsHost === 'function') {
+                gigmaEnsureModalRowStatsHost(rowEl);
+            }
+        } catch (_eHost) { }
 
         const left = rowEl.querySelector('.gigma-row-left-controls')
             || rowEl.querySelector('.gigma-row-header-mainline')
