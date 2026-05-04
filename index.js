@@ -5195,7 +5195,7 @@ function gigmaGetIgnoreBudgetBypassPref(){
 }
 function gigmaSetIgnoreBudgetBypassPref(enabled){
     try{
-        gigmaPersistBinaryExtensionSetting('ignoreBudgetBypassTrim', !!enabled, 0);
+        gigmaPersistBinaryExtensionSetting('ignoreBudgetBypassTrim', !!enabled, 1);
         if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
     }catch(_){ }
 }
@@ -5206,7 +5206,7 @@ function gigmaGetSelectiveIgnoreBudgetBypassPref(){
 }
 function gigmaSetSelectiveIgnoreBudgetBypassPref(enabled){
     try{
-        gigmaPersistBinaryExtensionSetting('ignoreBudgetBypassSelective', !!enabled, 0);
+        gigmaPersistBinaryExtensionSetting('ignoreBudgetBypassSelective', !!enabled, 1);
         if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
     }catch(_){ }
 }
@@ -9252,6 +9252,7 @@ function gigmaSetLastModalLorebookStatsSnapshotPair(activatedEntriesIterable, in
 
         EXTENSION_STATE.modalLorebookStatsLastWiSnapshotPair = pair;
         try { gigmaRecomputeLastBudgetDropSummary(); } catch (_eRecompute) { }
+        try { gigmaQueueOpenLorebookContentUsageFlagsUpdate(); } catch (_eFlags) { }
         return true;
     } catch (_e) {
         return false;
@@ -17603,6 +17604,63 @@ function gigmaCreateWorldInfoEntryUsageFlagBox(letter, isMarked) {
     box.textContent = label;
     box.setAttribute('aria-hidden', isMarked ? 'false' : 'true');
     return box;
+}
+
+function gigmaSetWorldInfoEntryUsageFlagBoxState(box, isMarked) {
+    try {
+        if (!box) return;
+        box.classList.toggle('gigma-wi-entry-flag-box-empty', !isMarked);
+        box.setAttribute('aria-hidden', isMarked ? 'false' : 'true');
+    } catch (_e) { }
+}
+
+function gigmaUpdateOpenLorebookContentUsageFlags(rootOverride) {
+    try {
+        const roots = [];
+        if (rootOverride) roots.push(rootOverride);
+        else {
+            const modalRoot = document.getElementById('gigma-modal-root');
+            if (modalRoot) roots.push(modalRoot);
+            const previewRoot = (typeof gigmaGetLatestLayoutPresetTreePreviewRoot === 'function') ? gigmaGetLatestLayoutPresetTreePreviewRoot() : null;
+            if (previewRoot) roots.push(previewRoot);
+        }
+
+        for (const root of roots) {
+            if (!root || !root.querySelectorAll) continue;
+            const panels = root.querySelectorAll('.gigma-lore-content-panel');
+            for (const panel of panels) {
+                const worldName = String((panel.dataset && panel.dataset.worldName) || (panel.closest && panel.closest('[data-world]')?.dataset?.world) || '').trim();
+                if (!worldName) continue;
+
+                const activatedSet = gigmaGetLastModalLorebookEntryUidSetByWorld('activated', worldName);
+                const includedSet = gigmaGetLastModalLorebookEntryUidSetByWorld('included', worldName);
+                const entries = panel.querySelectorAll('.gigma-lore-entry[data-uid]');
+
+                for (const entryEl of entries) {
+                    const uid = String(entryEl.getAttribute('data-uid') || '');
+                    if (!uid) continue;
+
+                    const mount = entryEl.querySelector(':scope > .gigma-lore-entry-head > .gigma-wi-entry-token-mount') || entryEl.querySelector('.gigma-wi-entry-token-mount');
+                    if (!mount) continue;
+
+                    gigmaSetWorldInfoEntryUsageFlagBoxState(mount.querySelector('.gigma-wi-entry-flag-box-activated'), activatedSet.has(uid));
+                    gigmaSetWorldInfoEntryUsageFlagBoxState(mount.querySelector('.gigma-wi-entry-flag-box-included'), includedSet.has(uid));
+                }
+            }
+        }
+    } catch (_e) { }
+}
+
+function gigmaQueueOpenLorebookContentUsageFlagsUpdate() {
+    try {
+        if (EXTENSION_STATE.openLorebookContentUsageFlagsQueued) return;
+        if (typeof requestAnimationFrame !== 'function') return;
+        EXTENSION_STATE.openLorebookContentUsageFlagsQueued = true;
+        requestAnimationFrame(() => {
+            EXTENSION_STATE.openLorebookContentUsageFlagsQueued = false;
+            gigmaUpdateOpenLorebookContentUsageFlags();
+        });
+    } catch (_e) { }
 }
 
 function gigmaUpdateWorldInfoTokenAlignButton() {
