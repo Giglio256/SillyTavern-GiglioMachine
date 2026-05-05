@@ -21000,7 +21000,7 @@ function gigmaEnsureLorebookContentExpanderOnModalRow(rowEl) {
         insertHost.insertBefore(btn, insertHost.firstChild);
 
         // Auto-collapse on drag (requirement: dragging collapses content)
-        // Parent preset "unchained" rows are draggable only when they are NOT read-only.
+        // Parent preset "unchained" rows keep native draggable disabled when read-only.
         try{
             if (rowEl.classList && (rowEl.classList.contains('gigma-parent-unchained-placeholder') || rowEl.classList.contains('gigma-parent-budget-unchained-row'))) {
                 if (rowEl.classList.contains('gigma-unchained-readonly')) rowEl.setAttribute('draggable', 'false');
@@ -45215,7 +45215,7 @@ function gigmaSyncParentUnchainedLorebooksInParent(){
                     try{ ph.classList.toggle('gigma-parent-unchained-ghost', useGhost); }catch(_){ }
                     try{ ph.classList.toggle('gigma-parent-unchained-notext', useNoText); }catch(_){ }
                     try{ ph.classList.toggle('gigma-unchained-readonly', !!rowReadonly); }catch(_){ }
-                    try{ ph.setAttribute('draggable', rowReadonly ? 'false' : 'true'); }catch(_){ }
+                    try{ if (rowReadonly) ph.setAttribute('draggable', 'false'); else ph.removeAttribute('draggable'); }catch(_){ }
                     try{ if (ph.dataset) ph.dataset.gigmaNonInteractive = rowReadonly ? '1' : '0'; }catch(_){ }
 
                     try{
@@ -45684,7 +45684,7 @@ function gigmaSyncParentBudgetUnchainedLorebooksInParent(){
 
                     const rowReadonly = !editableUnchained;
                     try{ row.classList.toggle('gigma-unchained-readonly', !!rowReadonly); }catch(_){ }
-                    try{ row.setAttribute('draggable', rowReadonly ? 'false' : 'true'); }catch(_){ }
+                    try{ if (rowReadonly) row.setAttribute('draggable', 'false'); else row.removeAttribute('draggable'); }catch(_){ }
 
                     try{
                         const map = (childPreset.lorebookSettings && typeof childPreset.lorebookSettings === 'object')
@@ -50169,11 +50169,7 @@ function gigmaApplyUnchainedReadonlyStateToRows(kindOverride, viewModeOverride){
           if (row === anchor) anchorRemoved = true;
           try{ row.setAttribute('draggable', 'false'); }catch(_){ }
         }else{
-          try{
-            if (row.classList.contains('gigma-row')) {
-              row.setAttribute('draggable', 'true');
-            }
-          }catch(_){ }
+          try{ row.removeAttribute('draggable'); }catch(_){ }
         }
 
         var selEl = row.querySelector ? row.querySelector('.gigma-budget-header-select') : null;
@@ -53670,6 +53666,31 @@ function gigmaGetBudgetEntryKey(entry) {
     }
 }
 
+const GIGMA_TEMP_IGNORE_BUDGET_KEY = '__gigmaTemporaryIgnoreBudgetBypass';
+const GIGMA_ORIGINAL_IGNORE_BUDGET_KEY = '__gigmaOriginalIgnoreBudget';
+
+function gigmaSetTemporaryIgnoreBudgetBypass(entry, ignoreBudget) {
+    if (!entry || typeof entry !== 'object') return;
+    if (!Object.prototype.hasOwnProperty.call(entry, GIGMA_ORIGINAL_IGNORE_BUDGET_KEY)) {
+        Object.defineProperty(entry, GIGMA_ORIGINAL_IGNORE_BUDGET_KEY, { value: entry.ignoreBudget === true, configurable: true });
+    }
+    Object.defineProperty(entry, GIGMA_TEMP_IGNORE_BUDGET_KEY, { value: true, configurable: true });
+    entry.ignoreBudget = ignoreBudget === true;
+}
+
+function gigmaRestoreTemporaryIgnoreBudgetBypassEntry(entry) {
+    if (!entry || typeof entry !== 'object') return;
+    if (!Object.prototype.hasOwnProperty.call(entry, GIGMA_ORIGINAL_IGNORE_BUDGET_KEY)) return;
+    entry.ignoreBudget = entry[GIGMA_ORIGINAL_IGNORE_BUDGET_KEY] === true;
+    try { delete entry[GIGMA_TEMP_IGNORE_BUDGET_KEY]; } catch (_eTemp) { }
+    try { delete entry[GIGMA_ORIGINAL_IGNORE_BUDGET_KEY]; } catch (_eOriginal) { }
+}
+
+function gigmaRestoreTemporaryIgnoreBudgetBypassEntries(entries) {
+    if (!Array.isArray(entries)) return;
+    for (const entry of entries) gigmaRestoreTemporaryIgnoreBudgetBypassEntry(entry);
+}
+
 function gigmaGetLoadedWorldInfoEntries(eventData) {
     try {
         const { globalLore = [], characterLore = [], chatLore = [], personaLore = [] } = eventData || {};
@@ -53765,8 +53786,9 @@ async function gigmaPrepareIgnoreBudgetBypassForScan(eventData) {
         EXTENSION_STATE.budgetIgnoreBypassEnabled = false;
         EXTENSION_STATE.budgetIgnoreBypassApplied = false;
         EXTENSION_STATE.budgetIgnoreBypassRealIgnoreKeys = new Set();
-        if (!HAS_WORLDINFO_SCAN_DONE || !gigmaGetIgnoreBudgetBypassPref()) return;
         const entries = gigmaGetLoadedWorldInfoEntries(eventData);
+        gigmaRestoreTemporaryIgnoreBudgetBypassEntries(entries);
+        if (!HAS_WORLDINFO_SCAN_DONE || !gigmaGetIgnoreBudgetBypassPref()) return;
         if (!entries.length) return;
         const realIgnoreKeys = new Set();
         for (const entry of entries) {
@@ -53784,9 +53806,9 @@ async function gigmaPrepareIgnoreBudgetBypassForScan(eventData) {
         for (const entry of entries) {
             if (!entry || typeof entry !== 'object') continue;
             const key = gigmaGetBudgetEntryKey(entry);
-            entry.ignoreBudget = useSelectiveBypass
+            gigmaSetTemporaryIgnoreBudgetBypass(entry, useSelectiveBypass
                 ? !!(key && selectedKeys && selectedKeys.has(key))
-                : true;
+                : true);
         }
 
         EXTENSION_STATE.budgetIgnoreBypassEnabled = true;
@@ -54305,6 +54327,9 @@ function registerPerLoopBudgetTrimmer() {
                                 optimizedIgnoreBudgetTrim: true,
                             });
                         }
+                        if (isFinalScanLoop) {
+                            try { gigmaRestoreTemporaryIgnoreBudgetBypassEntries(args?.sortedEntries); } catch (_eRestoreBypass) { }
+                        }
                         return;
                     }
                 }
@@ -54474,6 +54499,9 @@ function registerPerLoopBudgetTrimmer() {
                         trimmedEntryCount: trimmedEntries.length,
                         optimizedIgnoreBudgetTrim: false,
                     });
+                }
+                if (isFinalScanLoop) {
+                    try { gigmaRestoreTemporaryIgnoreBudgetBypassEntries(args?.sortedEntries); } catch (_eRestoreBypass) { }
                 }
                 // Note: We do not force-stop the loop here; accepts one-iteration lag for recursion buffer.
 
