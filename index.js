@@ -5325,6 +5325,26 @@ const GIGMA_INFO_POPUPS = {
         ],
         speech: 'Assignment preset. The assignment preset, which lives at the bottom of the modal, determines which layout preset must be used for the current speaker. You can assign a different layout preset to each character. This way, you can set a different budget and different order for each character.',
     },
+    trimWhenWiBudgetExceeded: {
+        title: 'Only Trim When WI Budget Exceeded',
+        parts: [
+            'When enabled, GIGMA only trims lorebook entries if the activated World Info token count exceeds the native SillyTavern WI token budget.\n\n',
+            'Before SillyTavern runs the WI scan, GIGMA temporarily sets lorebook entries to ignore the native WI token budget, so activated entries past the WI budget can be used to fill the space left by entries removed during GIGMA’s trim.\n\n',
+            'If the activated World Info token count is above the WI token budget, GIGMA removes enough entries to bring the World Info token count back within budget, using your lorebook budget settings to decide what gets removed.\n\n',
+            'GIGMA trims from lower-priority lorebooks to higher-priority lorebooks, and inside each lorebook from lower-order entries to higher-order entries; when entries have the same order, the entry with the lower UID is trimmed first.\n\n',
+            'If the activated World Info token count already fits inside the WI token budget, GIGMA does not trim anything.',
+        ],
+        speech: 'Only Trim When WI Budget Exceeded. When enabled, GIGMA only trims lorebook entries if the activated World Info token count exceeds the native SillyTavern WI token budget. Before SillyTavern runs the WI scan, GIGMA temporarily sets lorebook entries to ignore the native WI token budget, so activated entries past the WI budget can be used to fill the space left by entries removed during GIGMA’s trim. If the activated World Info token count is above the WI token budget, GIGMA removes enough entries to bring the World Info token count back within budget, using your lorebook budget settings to decide what gets removed. GIGMA trims from lower-priority lorebooks to higher-priority lorebooks, and inside each lorebook from lower-order entries to higher-order entries; when entries have the same order, the entry with the lower UID is trimmed first. If the activated World Info token count already fits inside the WI token budget, GIGMA does not trim anything.',
+    },
+    onlyBypassNeededReplacements: {
+        title: 'Only Scan Needed Replacements',
+        parts: [
+            'Reduces WI scan work without changing the final prompt.\n\n',
+            'When enabled, GIGMA only sets as many entries past the WI budget to ignore the WI budget as are necessary to fill the gap left by trimming.\n\n',
+            'When disabled, GIGMA sets every lorebook entry to ignore the WI budget, which costs more processing power for the same final prompt.',
+        ],
+        speech: 'Only Scan Needed Replacements. Reduces WI scan work without changing the final prompt. When enabled, GIGMA only sets as many entries past the WI budget to ignore the WI budget as are necessary to fill the gap left by trimming. When disabled, GIGMA sets every lorebook entry to ignore the WI budget, which costs more processing power for the same final prompt.',
+    },
 };
 
 function gigmaGetLongPressInfoPopupPref(){
@@ -6014,6 +6034,7 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
   font-size:1em;
   line-height:1.45;
   overflow-wrap:anywhere;
+  white-space:pre-wrap;
 }
 #gigma-info-popup-root .gigma-info-inline-modal-icon{
   width:1.25em;
@@ -6780,6 +6801,10 @@ function gigmaBindInfoPopupLongPress(element, infoId){
         };
         const cancel = () => clearTimer();
         const suppressClick = (ev) => {
+            if (!gigmaGetLongPressInfoPopupPref()) {
+                triggered = false;
+                return;
+            }
             if (!triggered) return;
             triggered = false;
             try{ ev.preventDefault(); }catch(_){ }
@@ -20203,8 +20228,8 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Budget settings alignment', 'gigma-modal-settings-slot-budget-side');
             addRow('Count \\n separator in tokens', 'gigma-modal-settings-slot-newline');
             addRow('Detailed lorebook entries', 'gigma-modal-settings-slot-detailed');
-            addRow('Bypass native WI budget before GIGMA trim', 'gigma-modal-settings-slot-ignore-budget-bypass');
-            addRow('Only bypass entries needed to fill post-trim gaps', 'gigma-modal-settings-slot-ignore-budget-bypass-selective');
+            addRow('Only Trim When WI Budget Exceeded', 'gigma-modal-settings-slot-ignore-budget-bypass');
+            addRow('Only Scan Needed Replacements', 'gigma-modal-settings-slot-ignore-budget-bypass-selective');
             addRow('Debug logs', 'gigma-modal-settings-slot-budget-debug-logs');
             addRow('Auto-update entry order in WI UI', 'gigma-modal-settings-slot-auto-wi-order');
             addRow('Undo history steps', 'gigma-modal-settings-slot-undo-history');
@@ -20357,8 +20382,8 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             if (!b) {
                 const control = gigmaCreatePrettySwitch(
                     gigmaGetIgnoreBudgetBypassPref(),
-                    'Bypass native WI budget before GIGMA trim',
-                    'Bypass native WI budget before GIGMA trim',
+                    'Only Trim When WI Budget Exceeded',
+                    'Only Trim When WI Budget Exceeded',
                     (ev) => {
                         try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
                         gigmaSetIgnoreBudgetBypassPref(ev.currentTarget.checked);
@@ -20372,6 +20397,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             } else if (b.closest('label')?.parentElement !== slotIgnoreBudgetBypass) {
                 slotIgnoreBudgetBypass.appendChild(b.closest('label'));
             }
+            try { gigmaBindInfoPopupLongPress(b.closest('label') || b, 'trimWhenWiBudgetExceeded'); } catch (_eInfo) { }
             b.checked = !!gigmaGetIgnoreBudgetBypassPref();
         }
 
@@ -20381,8 +20407,8 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             if (!b) {
                 const control = gigmaCreatePrettySwitch(
                     gigmaGetSelectiveIgnoreBudgetBypassPref(),
-                    'Only bypass entries needed to fill post-trim gaps',
-                    'Only bypass entries needed to fill post-trim gaps',
+                    'Only Scan Needed Replacements',
+                    'Only Scan Needed Replacements',
                     (ev) => {
                         try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
                         gigmaSetSelectiveIgnoreBudgetBypassPref(ev.currentTarget.checked);
@@ -20394,6 +20420,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             } else if (b.closest('label')?.parentElement !== slotIgnoreBudgetBypassSelective) {
                 slotIgnoreBudgetBypassSelective.appendChild(b.closest('label'));
             }
+            try { gigmaBindInfoPopupLongPress(b.closest('label') || b, 'onlyBypassNeededReplacements'); } catch (_eInfo) { }
             b.checked = !!gigmaGetSelectiveIgnoreBudgetBypassPref();
             gigmaSetPrettySwitchDisabled(b, !gigmaGetIgnoreBudgetBypassPref());
         }
