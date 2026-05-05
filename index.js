@@ -20903,43 +20903,15 @@ function gigmaInstallLorebookContentInteractionGuards(rowEl, panelEl) {
         if (panelEl.__gigmaLoreContentGuardsInstalled) return;
         panelEl.__gigmaLoreContentGuardsInstalled = true;
 
-        let prevDraggable = null;
-
         const disableRowDrag = (ev) => {
             try { ev && ev.stopPropagation && ev.stopPropagation(); } catch (_e) { }
             try { ev && typeof ev.stopImmediatePropagation === 'function' && ev.stopImmediatePropagation(); } catch (_e) { }
-
-            try {
-                // Mark that the next dragstart should be ignored.
-                rowEl.__gigmaLoreContentBlockDrag = true;
-                if (prevDraggable === null) prevDraggable = !!rowEl.draggable;
-                rowEl.draggable = false;
-            } catch (_e) { }
         };
 
-        const restoreRowDrag = () => {
-            try {
-                rowEl.__gigmaLoreContentBlockDrag = false;
-                if (prevDraggable !== null) rowEl.draggable = prevDraggable;
-            } catch (_e) { }
-        };
-
-        // Prevent the underlying lorebook row from being "grabbed" when interacting with the content panel.
+        // Prevent the underlying lorebook row from being grabbed when interacting with the content panel.
         panelEl.addEventListener('pointerdown', disableRowDrag, true);
         panelEl.addEventListener('mousedown', disableRowDrag, true);
         panelEl.addEventListener('touchstart', disableRowDrag, true);
-
-        panelEl.addEventListener('pointerup', restoreRowDrag, true);
-        panelEl.addEventListener('pointercancel', restoreRowDrag, true);
-        panelEl.addEventListener('mouseup', restoreRowDrag, true);
-        panelEl.addEventListener('touchend', restoreRowDrag, true);
-        panelEl.addEventListener('mouseleave', restoreRowDrag, true);
-
-        // Extra safety: never allow HTML5 dragstart originating while the panel is being interacted with.
-        panelEl.addEventListener('dragstart', (ev) => {
-            try { ev.preventDefault(); } catch (_e) { }
-            try { ev.stopPropagation(); } catch (_e) { }
-        }, true);
     } catch (_e) { }
 }
 
@@ -20999,26 +20971,6 @@ function gigmaEnsureLorebookContentExpanderOnModalRow(rowEl) {
         }catch(_eHost){ }
         insertHost.insertBefore(btn, insertHost.firstChild);
 
-        // Auto-collapse on drag (requirement: dragging collapses content)
-        // Parent preset "unchained" rows keep native draggable disabled when read-only.
-        try{
-            if (rowEl.classList && (rowEl.classList.contains('gigma-parent-unchained-placeholder') || rowEl.classList.contains('gigma-parent-budget-unchained-row'))) {
-                if (rowEl.classList.contains('gigma-unchained-readonly')) rowEl.setAttribute('draggable', 'false');
-            }
-        }catch(_eDrag){ }
-        if (!rowEl.__gigmaLoreContentDragHookInstalled) {
-            rowEl.__gigmaLoreContentDragHookInstalled = true;
-            rowEl.addEventListener('dragstart', (ev) => {
-                try {
-                    if (rowEl.__gigmaLoreContentBlockDrag) {
-                        try { ev && ev.preventDefault && ev.preventDefault(); } catch (_e) { }
-                        try { ev && ev.stopPropagation && ev.stopPropagation(); } catch (_e) { }
-                        return;
-                    }
-                } catch (_e) { }
-                gigmaCollapseLorebookContentForRow(rowEl);
-            }, true);
-        }
     } catch (_e) { }
 }
 
@@ -23920,14 +23872,14 @@ const changeHandler = async () => {
         gigmaAutoApplyLastPresetOrLoadLorebooks();
     }
 }
-// Add grab cursor to indicate that items are draggable.
+// Add grab cursor to indicate that items can be reordered.
 (function gigmaAddRowGrabCursor() {
     try {
         if (!document.getElementById('gigma-grab-style')) {
             const css = document.createElement('style');
             css.id = 'gigma-grab-style';
             css.textContent = `
-                /* Show grab cursor only on actual draggable lorebook rows and folder headers */
+                /* Show grab cursor only on actual reorderable lorebook rows and folder headers */
                 #gigma-ordering-list > .gigma-row,
                 #gigma-ordering-list > .gigma-folder > .gigma-folder-header {
                     cursor: grab;
@@ -23965,7 +23917,7 @@ const changeHandler = async () => {
                     cursor: default !important;
                 }
                 /* During cut & paste (blue insertion line visible), keep the normal arrow
-                   cursor on draggable lorebook rows so the grab hand
+                   cursor on reorderable lorebook rows so the grab hand
                    does not appear. Expand/Collapse and Focus/Defocus buttons remain
                    interactive via their own styles. */
                 .gigma-cutmode-global #gigma-ordering-list > .gigma-row,
@@ -26853,7 +26805,7 @@ async function populateOrderingList(opts = {}) {
         countDisplay.textContent = 'Lorebooks: 0';
         return;
     }
-    // Helper to create a row (draggable)
+    // Helper to create a reorderable row
 
     const __gigmaIsActiveWorld = (worldName) => {
         try {
@@ -27476,7 +27428,7 @@ if (e.key === 'Enter' && !e.shiftKey) {
             });
             // If focus truly leaves, save like Ctrl+Enter
             textarea.addEventListener('blur', () => commit(false));
-            // Capture any left-click outside the textarea (even on draggable lorebook items)
+            // Capture any left-click outside the textarea (even on reorderable lorebook items)
             const outsidePointerDown = (e) => {
                 if (e.button !== 0) return;                    // left click only
                 if (e.target === textarea) return;              // ignore clicks on the textarea itself
@@ -33883,19 +33835,19 @@ return __gigmaMovedFlag;
             // Allow both left (0) and right (2) buttons to start a drag.
             if (ev.button !== 0 && ev.button !== 2) return;
             if (window.gigmaCutMode) return;
-            // In Budget mode, lorebook rows must not be draggable.
+            // In Budget mode, lorebook rows must not be reorderable.
             try {
                 if (scope === 'row' && document && document.documentElement && document.documentElement.classList && document.documentElement.classList.contains('gigma-budget-mode-active')) {
                     return;
                 }
             } catch (_e) {}
-            // In Budget mode, folder structure must not be draggable.
+            // In Budget mode, folder structure must not be reorderable.
             try {
                 if (scope === 'folder' && document && document.documentElement && document.documentElement.classList && document.documentElement.classList.contains('gigma-budget-mode-active')) {
                     return;
                 }
             } catch (_e) {}
-            // Read-only unchained lorebooks must never be draggable.
+            // Read-only unchained lorebooks must never be reorderable.
             try {
                 if (scope === 'row' && target && target.classList && target.classList.contains('gigma-row')) {
                     if (typeof gigmaIsRowReadOnlyUnchained === 'function' && gigmaIsRowReadOnlyUnchained(target)) {
@@ -33906,11 +33858,11 @@ return __gigmaMovedFlag;
             // While Retrospective Order Adjustment mode is active, restrict what can be dragged.
             try {
                 if (typeof gigmaIsAnyRetroOrderEnabled === 'function' && gigmaIsAnyRetroOrderEnabled()) {
-                    // Folders must never be draggable in retro mode.
+                    // Folders must never be reorderable in retro mode.
                     if (scope === 'folder') {
                         return;
                     }
-                    // Lorebook rows remain draggable regardless of their Retrospective Order lock icon state.
+                    // Lorebook rows remain reorderable regardless of their Retrospective Order lock icon state.
                 }
             } catch (_e) {}
             // Avoid starting drags from interactive controls inside headers (icons inside buttons count too)
@@ -44319,7 +44271,6 @@ function gigmaGetOrCreateParentUnchainedPlaceholderRow(worldId, childPresetId){
         const childShort = (p && typeof p.name === 'string') ? p.name.trim().slice(0, 15) : '';
         __gigmaRenderUnchainedRowLabel(label, name, childShort, true, true);
 el.appendChild(label);
-        try{ el.setAttribute('draggable', 'false'); }catch(_){}
         try{ el.dataset.gigmaNonInteractive = '1'; }catch(_){}
         window.__gigmaParentUnchainedPlaceholderByKey[key] = el;
         return el;
@@ -45215,7 +45166,6 @@ function gigmaSyncParentUnchainedLorebooksInParent(){
                     try{ ph.classList.toggle('gigma-parent-unchained-ghost', useGhost); }catch(_){ }
                     try{ ph.classList.toggle('gigma-parent-unchained-notext', useNoText); }catch(_){ }
                     try{ ph.classList.toggle('gigma-unchained-readonly', !!rowReadonly); }catch(_){ }
-                    try{ if (rowReadonly) ph.setAttribute('draggable', 'false'); else ph.removeAttribute('draggable'); }catch(_){ }
                     try{ if (ph.dataset) ph.dataset.gigmaNonInteractive = rowReadonly ? '1' : '0'; }catch(_){ }
 
                     try{
@@ -45684,7 +45634,6 @@ function gigmaSyncParentBudgetUnchainedLorebooksInParent(){
 
                     const rowReadonly = !editableUnchained;
                     try{ row.classList.toggle('gigma-unchained-readonly', !!rowReadonly); }catch(_){ }
-                    try{ if (rowReadonly) row.setAttribute('draggable', 'false'); else row.removeAttribute('draggable'); }catch(_){ }
 
                     try{
                         const map = (childPreset.lorebookSettings && typeof childPreset.lorebookSettings === 'object')
@@ -50167,9 +50116,7 @@ function gigmaApplyUnchainedReadonlyStateToRows(kindOverride, viewModeOverride){
           if (row.classList.contains('gigma-selected')) row.classList.remove('gigma-selected');
           if (sel && sel.items && typeof sel.items.delete === 'function') sel.items.delete(row);
           if (row === anchor) anchorRemoved = true;
-          try{ row.setAttribute('draggable', 'false'); }catch(_){ }
         }else{
-          try{ row.removeAttribute('draggable'); }catch(_){ }
         }
 
         var selEl = row.querySelector ? row.querySelector('.gigma-budget-header-select') : null;
