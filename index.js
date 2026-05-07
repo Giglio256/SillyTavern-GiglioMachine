@@ -4242,47 +4242,6 @@ return;
       }
     } catch (_) {}
 
-    const wheelRouteState = { host: null, modalHost: null, modalOnlyY: false, timer: 0 };
-    const clearWheelRouteState = () => {
-      wheelRouteState.host = null;
-      wheelRouteState.modalHost = null;
-      wheelRouteState.modalOnlyY = false;
-      if (wheelRouteState.timer) {
-        try { clearTimeout(wheelRouteState.timer); } catch (_) {}
-        wheelRouteState.timer = 0;
-      }
-    };
-    const refreshWheelRouteState = () => {
-      if (wheelRouteState.timer) {
-        try { clearTimeout(wheelRouteState.timer); } catch (_) {}
-      }
-      wheelRouteState.timer = setTimeout(clearWheelRouteState, 220);
-    };
-    const getWheelRouteState = (ev) => {
-      if (wheelRouteState.host || wheelRouteState.modalHost) return wheelRouteState;
-      const dropdownHost = getDropdownScrollHost(ev.target);
-      const host = dropdownHost || getScrollHost(ev.target) || getGenericScrollHost(ev.target);
-      const modalOnlyY = dropdownHost ? false : isOrderingItemlessTarget(ev.target, ev.clientY);
-      const modalHost = modalOnlyY ? getModalScrollHost(ev.target) : null;
-      wheelRouteState.host = host;
-      wheelRouteState.modalHost = modalHost;
-      wheelRouteState.modalOnlyY = modalOnlyY;
-      return wheelRouteState;
-    };
-
-    document.addEventListener('wheel', (ev) => {
-      if (!isActive() || !isPopupTarget(ev.target)) return;
-      if (ev.target && ev.target.closest && ev.target.closest('select')) return;
-      const route = getWheelRouteState(ev);
-      if (!route.host && !route.modalHost) return;
-      const dx = ev && typeof ev.deltaX === 'number' ? ev.deltaX : 0;
-      const dy = ev && typeof ev.deltaY === 'number' ? ev.deltaY : 0;
-      refreshWheelRouteState();
-      if (!scrollWithModalRoute(route.host, route.modalHost, dx, dy, route.modalOnlyY)) return;
-      try { ev.preventDefault(); } catch (_) {}
-      try { ev.stopPropagation(); } catch (_) {}
-    }, { capture: true, passive: false });
-
     const state = { active: false, kind: '', host: null, modalHost: null, modalOnlyY: false, lastX: 0, lastY: 0, lastTime: 0, velocityX: 0, velocityY: 0, moved: false, touchId: null };
     let momentumFrame = 0;
     const cancelMomentum = () => {
@@ -7664,8 +7623,7 @@ async function gigmaEraseAllGigmaExtensionSettings(){
         gigmaExtensionSettings = {};
         await saveSettings();
         try{
-            const popup = document.getElementById('gigma-modal-settings-popup');
-            if (popup) popup.style.display = 'none';
+            gigmaCloseModalSettingsPopup();
         }catch(_){ }
         try{
             if (typeof toastr !== 'undefined' && toastr && typeof toastr.success === 'function') {
@@ -7828,10 +7786,8 @@ function gigmaApplyViewLockToDialog(dlg, locked){
                 }catch(_){}
             }, { passive: true });
 
-            scrollEl.addEventListener('wheel', (ev)=>{
+            scrollEl.__gigmaViewLockWheelHandler = (ev)=>{
                 try{
-                    if (!scrollEl.__gigmaViewLocked) return;
-
                     const dy = ev && typeof ev.deltaY === 'number' ? ev.deltaY : 0;
                     let n = ev && ev.target ? ev.target : null;
 
@@ -7849,11 +7805,20 @@ function gigmaApplyViewLockToDialog(dlg, locked){
 
                     ev.preventDefault();
                 }catch(_){}
-            }, { passive: false });
+            };
         }
 
         scrollEl.__gigmaViewLocked = !!locked;
         if (locked) scrollEl.__gigmaViewLockTop = scrollEl.scrollTop;
+        if (scrollEl.__gigmaViewLockWheelHandler) {
+            if (locked && !scrollEl.__gigmaViewLockWheelBound) {
+                scrollEl.addEventListener('wheel', scrollEl.__gigmaViewLockWheelHandler, { passive: false });
+                scrollEl.__gigmaViewLockWheelBound = true;
+            } else if (!locked && scrollEl.__gigmaViewLockWheelBound) {
+                scrollEl.removeEventListener('wheel', scrollEl.__gigmaViewLockWheelHandler);
+                scrollEl.__gigmaViewLockWheelBound = false;
+            }
+        }
     }catch(_){}
 }
 try{
@@ -19942,6 +19907,36 @@ function gigmaUpdateModalSettingsPopupPlacementNow(){
     }catch(_e){}
 }
 
+function gigmaHandleModalSettingsPopupPlacementEvent(){
+    try{ gigmaUpdateModalSettingsPopupPlacementNow(); }catch(_e){}
+}
+
+function gigmaBindModalSettingsPopupPlacementEvents(){
+    try{
+        if (window.__gigmaModalSettingsPopupPlacementEventsBound) return;
+        document.addEventListener('scroll', gigmaHandleModalSettingsPopupPlacementEvent, { capture:true, passive:true });
+        window.addEventListener('resize', gigmaHandleModalSettingsPopupPlacementEvent, { passive:true });
+        window.__gigmaModalSettingsPopupPlacementEventsBound = true;
+    }catch(_e){}
+}
+
+function gigmaUnbindModalSettingsPopupPlacementEvents(){
+    try{
+        if (!window.__gigmaModalSettingsPopupPlacementEventsBound) return;
+        document.removeEventListener('scroll', gigmaHandleModalSettingsPopupPlacementEvent, true);
+        window.removeEventListener('resize', gigmaHandleModalSettingsPopupPlacementEvent);
+        window.__gigmaModalSettingsPopupPlacementEventsBound = false;
+    }catch(_e){}
+}
+
+function gigmaCloseModalSettingsPopup(){
+    try{
+        const popupEl = document.getElementById('gigma-modal-settings-popup');
+        if (popupEl) popupEl.style.display = 'none';
+        gigmaUnbindModalSettingsPopupPlacementEvents();
+    }catch(_e){}
+}
+
 function gigmaSkinLorebookSettingsButton(btn, titleText) {
     try {
         if (!btn) return;
@@ -20703,7 +20698,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
                     const target = ev && ev.target ? ev.target : null;
                     if (popupEl.contains(target)) return;
                     if (btn && btn.contains(target)) return;
-                    popupEl.style.display = 'none';
+                    gigmaCloseModalSettingsPopup();
                 } catch (_e) { }
             }, true);
             document.addEventListener('keydown', (ev) => {
@@ -20711,11 +20706,9 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
                     if (!ev || ev.key !== 'Escape') return;
                     const popupEl = document.getElementById('gigma-modal-settings-popup');
                     if (!popupEl || popupEl.style.display === 'none') return;
-                    popupEl.style.display = 'none';
+                    gigmaCloseModalSettingsPopup();
                 } catch (_e) { }
             }, true);
-            document.addEventListener('scroll', () => { try{ gigmaUpdateModalSettingsPopupPlacementNow(); }catch(_e){} }, true);
-            window.addEventListener('resize', () => { try{ gigmaUpdateModalSettingsPopupPlacementNow(); }catch(_e){} });
         }
     } catch (_e) { }
 }
@@ -20748,7 +20741,7 @@ function gigmaEnsureOrderingModalSettingsButton(rootOverride) {
                 if (!popup) return;
                 const isOpen = popup.style.display && popup.style.display !== 'none';
                 if (isOpen) {
-                    popup.style.display = 'none';
+                    gigmaCloseModalSettingsPopup();
                     return;
                 }
                 if (popup.parentElement !== row) row.appendChild(popup);
@@ -20758,6 +20751,7 @@ function gigmaEnsureOrderingModalSettingsButton(rootOverride) {
                     row.style.overflow = 'visible';
                 }catch(_e){}
                 popup.style.display = 'block';
+                gigmaBindModalSettingsPopupPlacementEvents();
                 popup.style.visibility = 'hidden';
                 requestAnimationFrame(() => {
                     try{
@@ -29420,7 +29414,6 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
       }
       .gigma-modal-dim-btn.gigma-dim-on{
         opacity:0.55;
-        filter: grayscale(1);
       }
       .gigma-modal-dim-btn.gigma-dim-on .gigma-modal-dim-dot{
         background: rgba(220,220,220,0.55);
@@ -29430,27 +29423,28 @@ if (!window.gigmaRecomputeFolderPaddingOnly) {
       /* Apply dimming within the ordering modal only (dim inner content, keep selection outline vivid) */
       #gigma-modal-root[data-gigma-dim-unchained="1"] .gigma-row.gigma-parent-unchained-placeholder > *,
       #gigma-modal-root[data-gigma-dim-unchained="1"] .gigma-row.gigma-parent-budget-unchained-row > *,
-      #gigma-modal-root[data-gigma-dim-unchained="1"] .gigma-row:has(.gigma-retro-lock-circle.gigma-retro-locked) > *{
+      html:not(.gigma-budget-mode-active) #gigma-modal-root[data-gigma-dim-unchained="1"] .gigma-row[data-gigma-retro-locked-order="1"] > *,
+      html.gigma-budget-mode-active #gigma-modal-root[data-gigma-dim-unchained="1"] .gigma-row[data-gigma-retro-locked-budget="1"] > *{
         opacity:0.55 !important;
-        filter:grayscale(1) !important;
       }
       #gigma-modal-root[data-gigma-dim-unchained="1"] .gigma-row.gigma-parent-unchained-placeholder.gigma-selected,
       #gigma-modal-root[data-gigma-dim-unchained="1"] .gigma-row.gigma-parent-budget-unchained-row.gigma-selected,
-      #gigma-modal-root[data-gigma-dim-unchained="1"] .gigma-row.gigma-selected:has(.gigma-retro-lock-circle.gigma-retro-locked){
+      html:not(.gigma-budget-mode-active) #gigma-modal-root[data-gigma-dim-unchained="1"] .gigma-row.gigma-selected[data-gigma-retro-locked-order="1"],
+      html.gigma-budget-mode-active #gigma-modal-root[data-gigma-dim-unchained="1"] .gigma-row.gigma-selected[data-gigma-retro-locked-budget="1"]{
         background: rgba(77,163,255,0.055) !important;
       }
 
       #gigma-modal-root[data-gigma-dim-unchained="0"] .gigma-row.gigma-parent-unchained-placeholder > *,
       #gigma-modal-root[data-gigma-dim-unchained="0"] .gigma-row.gigma-parent-budget-unchained-row > *{
         opacity:1 !important;
-        filter:none !important;
       }
 
-      #gigma-modal-root[data-gigma-dim-chained="1"] .gigma-row:not(.gigma-parent-unchained-placeholder):not(.gigma-parent-budget-unchained-row):not(:has(.gigma-retro-lock-circle.gigma-retro-locked)) > *{
+      html:not(.gigma-budget-mode-active) #gigma-modal-root[data-gigma-dim-chained="1"] .gigma-row:not(.gigma-parent-unchained-placeholder):not(.gigma-parent-budget-unchained-row):not([data-gigma-retro-locked-order="1"]) > *,
+      html.gigma-budget-mode-active #gigma-modal-root[data-gigma-dim-chained="1"] .gigma-row:not(.gigma-parent-unchained-placeholder):not(.gigma-parent-budget-unchained-row):not([data-gigma-retro-locked-budget="1"]) > *{
         opacity:0.55 !important;
-        filter:grayscale(1) !important;
       }
-      #gigma-modal-root[data-gigma-dim-chained="1"] .gigma-row:not(.gigma-parent-unchained-placeholder):not(.gigma-parent-budget-unchained-row):not(:has(.gigma-retro-lock-circle.gigma-retro-locked)).gigma-selected{
+      html:not(.gigma-budget-mode-active) #gigma-modal-root[data-gigma-dim-chained="1"] .gigma-row:not(.gigma-parent-unchained-placeholder):not(.gigma-parent-budget-unchained-row):not([data-gigma-retro-locked-order="1"]).gigma-selected,
+      html.gigma-budget-mode-active #gigma-modal-root[data-gigma-dim-chained="1"] .gigma-row:not(.gigma-parent-unchained-placeholder):not(.gigma-parent-budget-unchained-row):not([data-gigma-retro-locked-budget="1"]).gigma-selected{
         background: rgba(77,163,255,0.055) !important;
       }
     `;
@@ -43575,40 +43569,7 @@ function gigmaDuplicateSentenceGetPopupScroller(pane) {
             } catch (_eDuplicateSentencePopupClick) { }
         }, true);
 
-        let gigmaDuplicateSentenceEmptyPaneLastTouchY = 0;
-        document.addEventListener('wheel', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
-                if (!scroller) return;
-                scroller.scrollTop += event.deltaY;
-                event.preventDefault();
-            } catch (_eDuplicateSentenceEmptyWheel) { }
-        }, { capture: true, passive: false });
-
-        document.addEventListener('touchstart', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const touch = event.touches && event.touches[0];
-                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch ? touch.clientY : 0;
-            } catch (_eDuplicateSentenceEmptyTouchStart) { }
-        }, { capture: true, passive: true });
-
-        document.addEventListener('touchmove', (event) => {
-            try {
-                const pane = gigmaDuplicateSentenceGetEmptyScrollPane(event.target);
-                if (!pane) return;
-                const scroller = gigmaDuplicateSentenceGetPopupScroller(pane);
-                if (!scroller) return;
-                const touch = event.touches && event.touches[0];
-                if (!touch || !gigmaDuplicateSentenceEmptyPaneLastTouchY) return;
-                scroller.scrollTop += gigmaDuplicateSentenceEmptyPaneLastTouchY - touch.clientY;
-                gigmaDuplicateSentenceEmptyPaneLastTouchY = touch.clientY;
-                event.preventDefault();
-            } catch (_eDuplicateSentenceEmptyTouchMove) { }
-        }, { capture: true, passive: false });
+        // Empty-pane popup scrolling is left to the browser's native scroll chain.
     } catch (_eDuplicateSentencePopupEventsOnce) { }
 })();
 
@@ -49073,8 +49034,7 @@ async function gigmaShowMultiPresetDeletePopup(initialKind, mode){
                 if (openBtn) {
                     try { ev.preventDefault(); ev.stopPropagation(); } catch (_){ }
                     try {
-                        const popup = document.getElementById('gigma-modal-settings-popup');
-                        if (popup) popup.style.display = 'none';
+                        gigmaCloseModalSettingsPopup();
                     } catch (_){ }
                     await gigmaShowMultiPresetDeletePopup(gigmaGetCurrentModalLayoutPresetKind(), openBtn && openBtn.id === 'gigma-modal-settings-assignment-delete-btn' ? 'assignment' : 'layout');
                     return;
@@ -49908,7 +49868,7 @@ function gigmaInstallEditableUnchainedStylesOnce(){
       #gigma-modal-root[data-gigma-editable-unchained="1"] .gigma-row.gigma-parent-unchained-placeholder:not(.gigma-unchained-readonly):active{
         cursor:grabbing !important;
       }
-      #gigma-modal-root[data-gigma-editable-unchained="1"] .gigma-row.gigma-parent-unchained-placeholder:not(.gigma-unchained-readonly):not(.gigma-parent-unchained-ghost) > *{
+      #gigma-modal-root[data-gigma-editable-unchained="1"]:not([data-gigma-dim-unchained="1"]) .gigma-row.gigma-parent-unchained-placeholder:not(.gigma-unchained-readonly):not(.gigma-parent-unchained-ghost) > *{
         filter:none !important;
         opacity:1 !important;
       }
