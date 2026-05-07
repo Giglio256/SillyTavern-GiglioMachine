@@ -1380,6 +1380,7 @@ const __gigmaRenderUnchainedRowLabel = (labelEl, worldName, childPresetShort, in
       const dlg = findDialogFrom(btn);
       setBtnLabel(btn, effectivePref);
       applyWidthToDialog(dlg, pref);
+      try{ if (typeof gigmaBindModalHeaderInfoPopups === 'function') gigmaBindModalHeaderInfoPopups(dlg); }catch(_){}
       btn.addEventListener('click', (ev)=>{
         ev.preventDefault();
         ev.stopPropagation();
@@ -4204,6 +4205,33 @@ return;
       return moved;
     };
 
+    const normalizeWheelDelta = (ev) => {
+      try {
+        let dx = ev.deltaX || 0;
+        let dy = ev.deltaY || 0;
+        if (ev.deltaMode === 1) { dx *= 16; dy *= 16; }
+        else if (ev.deltaMode === 2) { dx *= window.innerWidth || 800; dy *= window.innerHeight || 600; }
+        return { dx, dy };
+      } catch (_) {
+        return { dx: ev.deltaX || 0, dy: ev.deltaY || 0 };
+      }
+    };
+
+    document.addEventListener('wheel', (ev) => {
+      try {
+        if (!isActive() || !isPopupTarget(ev.target)) return;
+        if (getDropdownScrollHost(ev.target)) return;
+        if (!isOrderingItemlessTarget(ev.target, ev.clientY)) return;
+        const modalHost = getModalScrollHost(ev.target);
+        if (!modalHost) return;
+        const delta = normalizeWheelDelta(ev);
+        if (!delta.dy || !canScrollYBy(modalHost, delta.dy)) return;
+        scrollElementBy(modalHost, 0, delta.dy);
+        ev.preventDefault();
+        ev.stopPropagation();
+      } catch (_) {}
+    }, { capture: true, passive: false });
+
     const midpoint = (touches) => {
       const a = touches[0];
       const b = touches[1];
@@ -5244,6 +5272,7 @@ const GIGMA_INFO_POPUP_STATE = {
 const GIGMA_INFO_POPUPS = {
     saveCloseButton: {
         title: 'Save and close button',
+        titleIconSelector: '#gigma-global-accept',
         parts: [
             'This button first saves the current ',
             { text: 'layout preset', target: 'layoutPreset' },
@@ -5303,6 +5332,70 @@ const GIGMA_INFO_POPUPS = {
             'When disabled, GIGMA sets every lorebook entry to ignore the WI budget, which costs more processing power for the same final prompt.',
         ],
         speech: 'Only Scan Needed Replacements. Reduces WI scan work without changing the final prompt. When enabled, GIGMA only sets as many entries past the WI budget to ignore the WI budget as are necessary to fill the gap left by trimming. When disabled, GIGMA sets every lorebook entry to ignore the WI budget, which costs more processing power for the same final prompt.',
+    },
+    wideNarrowButton: {
+        title: 'Wide / Narrow button',
+        titleIconSelector: '.gigmaWidthBtn',
+        parts: [
+            'This button switches the modal between narrow view and wide view. The only difference between narrow and wide view is that in wide view, there are two lorebook panes instead of one. Two lorebook panes make it easier to drag items between folders. Think of it like two explorer windows or two finder windows side by side, in split screen. Makes it easier to move an item from one folder to another.',
+        ],
+        speech: 'Wide / Narrow button. This button switches the modal between narrow view and wide view. The only difference between narrow and wide view is that in wide view, there are two lorebook panes instead of one. Two lorebook panes make it easier to drag items between folders. Think of it like two explorer windows or two finder windows side by side, in split screen. Makes it easier to move an item from one folder to another.',
+    },
+    viewLockButton: {
+        title: 'View lock button',
+        titleIconSelector: '#gigma-view-lock-global',
+        parts: [
+            'This button locks or unlocks the modal’s current scroll position. When view lock is enabled, the main modal stays at the same scroll position, which helps prevent accidental scrolling while you work. Scrollable controls inside the modal can still scroll when they have their own scroll area.',
+        ],
+        speech: 'View lock button. This button locks or unlocks the modal’s current scroll position. When view lock is enabled, the main modal stays at the same scroll position, which helps prevent accidental scrolling while you work. Scrollable controls inside the modal can still scroll when they have their own scroll area.',
+    },
+    scrollTopButton: {
+        title: 'Scroll to top button',
+        titleIconSelector: '#gigma-scroll-top-global',
+        parts: [
+            'This button scrolls the modal to the top preset section, where the child/parent layout preset controls are located. Use it when you want to quickly return to the layout preset area without manually scrolling upward.',
+        ],
+        speech: 'Scroll to top button. This button scrolls the modal to the top preset section, where the child/parent layout preset controls are located. Use it when you want to quickly return to the layout preset area without manually scrolling upward.',
+    },
+    scrollCenterButton: {
+        title: 'Scroll to center button',
+        titleIconSelector: '#gigma-center-panes-global',
+        parts: [
+            'This button scrolls the modal until the lorebook ordering area is centered in the visible part of the modal. Use it when you want to quickly return to the main lorebook ordering and budget area.',
+        ],
+        speech: 'Scroll to center button. This button scrolls the modal until the lorebook ordering area is centered in the visible part of the modal. Use it when you want to quickly return to the main lorebook ordering and budget area.',
+    },
+    scrollBottomButton: {
+        title: 'Scroll to bottom button',
+        titleIconSelector: '#gigma-scroll-bottom-global',
+        parts: [
+            'This button scrolls the modal to the assignment preset section near the bottom. Use it when you want to quickly edit which layout preset should be used for each speaker.',
+        ],
+        speech: 'Scroll to bottom button. This button scrolls the modal to the assignment preset section near the bottom. Use it when you want to quickly edit which layout preset should be used for each speaker.',
+    },
+    helpButton: {
+        title: 'Help button',
+        titleIconSelector: '#gigma-global-help',
+        parts: [
+            'This button opens the GIGMA Discord in a new browser tab, where you can ask for help with the extension.',
+        ],
+        speech: 'Help button. This button opens the GIGMA Discord in a new browser tab, where you can ask for help with the extension.',
+    },
+    bugButton: {
+        title: 'Bug button',
+        titleIconSelector: '#gigma-global-bug',
+        parts: [
+            'This button opens the GIGMA Discord in a new browser tab, where you can report a bug or explain something that is not working correctly.',
+        ],
+        speech: 'Bug button. This button opens the GIGMA Discord in a new browser tab, where you can report a bug or explain something that is not working correctly.',
+    },
+    closeWithoutSavingButton: {
+        title: 'Close without saving button',
+        titleIconSelector: '#gigma-global-cancel',
+        parts: [
+            'This button closes the modal without pressing the quicksave buttons first. Use it when you want to leave the modal without saving the current layout preset and assignment preset under their current names.',
+        ],
+        speech: 'Close without saving button. This button closes the modal without pressing the quicksave buttons first. Use it when you want to leave the modal without saving the current layout preset and assignment preset under their current names.',
     },
 };
 
@@ -5401,6 +5494,18 @@ function gigmaSetInfoPopupTtsSpeedPref(value){
 function gigmaEscapeInfoPopupText(value){
     return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 }
+function gigmaBuildInfoPopupTitleIconHtml(info){
+    try{
+        const selector = info && info.titleIconSelector;
+        if (!selector) return '';
+        const source = document.querySelector(selector);
+        if (!source) return '';
+        const clone = source.cloneNode(true);
+        clone.removeAttribute('id');
+        for (const node of clone.querySelectorAll('[id]')) node.removeAttribute('id');
+        return `<span class="gigma-info-title-icon" aria-hidden="true">${clone.innerHTML || gigmaEscapeInfoPopupText(clone.textContent || '')}</span>`;
+    }catch(_){ return ''; }
+}
 function gigmaBuildInfoPopupBodyHtml(infoId){
     const info = GIGMA_INFO_POPUPS[infoId] || GIGMA_INFO_POPUPS[GIGMA_INFO_POPUP_DEFAULT_ID];
     const body = (info.parts || []).map(part => {
@@ -5410,8 +5515,8 @@ function gigmaBuildInfoPopupBodyHtml(infoId){
         return `<button type="button" class="gigma-info-link" data-gigma-info-target="${gigmaEscapeInfoPopupText(target)}">${gigmaEscapeInfoPopupText(part.text)}</button>`;
     }).join('');
     return `
-        <h2 class="gigma-info-title">${gigmaEscapeInfoPopupText(info.title)}</h2>
-        <div class="gigma-info-copy">${body}</div>
+        <h2 class="gigma-info-title"><span class="gigma-info-title-text">${gigmaEscapeInfoPopupText(info.title)}</span>${gigmaBuildInfoPopupTitleIconHtml(info)}</h2>
+        <div class="gigma-info-copy" lang="en">${body}</div>
     `;
 }
 function gigmaGetInfoPopupSpeechText(infoId){
@@ -5984,16 +6089,112 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
   gap:0.75em;
 }
 #gigma-info-popup-root .gigma-info-title{
+  width:100%;
   margin:0;
   font-size:1.3em;
   line-height:1.15;
   font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:0.45em;
+  text-align:center;
+}
+#gigma-info-popup-root .gigma-info-title-text{
+  min-width:0;
+}
+#gigma-info-popup-root .gigma-info-title-icon{
+  min-width:var(--gigma-hdr-btn, 2.2em);
+  height:var(--gigma-hdr-btn, 2.2em);
+  padding:0 0.45em;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  border:var(--gigma-hdr-border, 0.08em) solid rgba(255,255,255,0.18);
+  border-radius:0.35em;
+  background:rgba(255,255,255,0.08);
+  color:#ffffff;
+  font-size:0.74em;
+  line-height:1;
+  white-space:nowrap;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-global-icon-svg{
+  width:1.05em;
+  height:1.05em;
+  display:inline-block;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-label{
+  display:none;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-glyph{
+  position:static;
+  inset:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-pair{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:0.36em;
+  line-height:1;
+  position:relative;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-pair::before,
+#gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-pair::after{
+  content:'';
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  height:1em;
+  border-left:0.16em solid currentColor;
+  opacity:0.92;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-pair-wide::before{
+  left:-0.22em;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-pair-wide::after{
+  right:-0.22em;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-pair-narrow::before{
+  left:50%;
+  transform:translate(-50%, -50%);
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-pair-narrow::after{
+  display:none;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-pair i{
+  font-size:0.82em;
+  line-height:1;
+  width:1em;
+  flex:0 0 1em;
+  text-align:center;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+#gigma-info-popup-root .gigma-info-title-icon > i{
+  font-size:1.05em;
+  line-height:1;
 }
 #gigma-info-popup-root .gigma-info-copy{
+  width:100%;
+  max-width:none;
+  display:block;
+  box-sizing:border-box;
+  columns:auto 1;
+  column-count:1;
   font-size:1em;
   line-height:1.45;
-  overflow-wrap:anywhere;
-  white-space:pre-wrap;
+  text-align:justify;
+  text-align-last:auto;
+  white-space:normal;
+  overflow-wrap:normal;
+  word-break:normal;
+  hyphens:auto;
+  -webkit-hyphens:auto;
 }
 #gigma-info-popup-root .gigma-info-inline-modal-icon{
   width:1.25em;
@@ -6318,6 +6519,72 @@ html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-btn{
   height:1.95em !important;
   padding:0 0.25em !important;
 }
+@media (orientation: landscape){
+  html.gigma-mobile-fullscreen dialog:has(#gigma-info-popup-root){
+    overflow:hidden !important;
+  }
+  html.gigma-mobile-fullscreen dialog:has(#gigma-info-popup-root) .popup-body{
+    display:block !important;
+    height:100% !important;
+    max-height:100% !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    -webkit-overflow-scrolling:touch;
+  }
+  html.gigma-mobile-fullscreen dialog:has(#gigma-info-popup-root) :is(.popup-content,.popup-content-wrapper){
+    display:block !important;
+    height:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+  html.gigma-mobile-fullscreen #gigma-info-popup-root{
+    display:block !important;
+    height:auto !important;
+    min-height:100% !important;
+    overflow:visible !important;
+  }
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-header{
+    margin-bottom:0.75em;
+  }
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-content{
+    min-height:calc(100dvh - 5.7em - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    height:auto !important;
+    max-height:none !important;
+    flex:none !important;
+    overflow:visible !important;
+    box-sizing:border-box !important;
+    margin-bottom:0.75em;
+  }
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-buttons{
+    grid-template-columns:repeat(11, minmax(0, 1fr));
+    width:min(100%, 39.888em);
+  }
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-buttons .gigma-info-tts-btn:nth-child(6){display:inline-flex !important;grid-column:6;grid-row:1;}
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-buttons .gigma-info-tts-btn:nth-child(7){grid-column:7;grid-row:1;}
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-buttons .gigma-info-tts-btn:nth-child(8){grid-column:8;grid-row:1;}
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-buttons .gigma-info-tts-btn:nth-child(9){grid-column:9;grid-row:1;}
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-buttons .gigma-info-tts-btn:nth-child(10){grid-column:10;grid-row:1;}
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-buttons .gigma-info-tts-btn:nth-child(11){grid-column:11;grid-row:1;}
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-mobile-play{
+    display:none !important;
+  }
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-speed-row{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:center;
+  }
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-speed-main{
+    flex:0 0 100%;
+    order:1;
+  }
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-repeat-btn{
+    order:2;
+  }
+  html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-auto-wrap{
+    order:3;
+  }
+}
 `;
         document.head.appendChild(s);
     }catch(_){ }
@@ -6630,6 +6897,26 @@ function gigmaCloseInfoPopup(){
         }
     }catch(_){ }
     gigmaResetInfoPopupState();
+}
+function gigmaBindModalHeaderInfoPopups(root){
+    try{
+        const scope = root && root.querySelector ? root : document;
+        const pairs = [
+            ['#gigma-global-accept', 'saveCloseButton'],
+            ['.gigmaWidthBtn', 'wideNarrowButton'],
+            ['#gigma-view-lock-global', 'viewLockButton'],
+            ['#gigma-scroll-top-global', 'scrollTopButton'],
+            ['#gigma-center-panes-global', 'scrollCenterButton'],
+            ['#gigma-scroll-bottom-global', 'scrollBottomButton'],
+            ['#gigma-global-help', 'helpButton'],
+            ['#gigma-global-bug', 'bugButton'],
+            ['#gigma-global-cancel', 'closeWithoutSavingButton'],
+        ];
+        for (const [selector, infoId] of pairs) {
+            const el = scope.querySelector(selector);
+            if (el) gigmaBindInfoPopupLongPress(el, infoId);
+        }
+    }catch(_){ }
 }
 function gigmaMountInfoPopup(root, autoSpeak){
     if (!root) return;
@@ -23558,6 +23845,7 @@ if (footer) {
                     cancel.addEventListener('click', handler);
                     modalEventListeners.push({ element: cancel, event: 'click', handler });
                 }
+                try { gigmaBindModalHeaderInfoPopups(dialog); } catch (_) { }
             }
         }
     } catch (_eGlobalSettings) {
