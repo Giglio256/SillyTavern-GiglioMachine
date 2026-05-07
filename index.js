@@ -35965,31 +35965,44 @@ for (const _btn of [newBtn, newBtnRight]) if (_btn && !_btn._gigma_init) { const
 			if (typeof gigmaPulseNew === 'function') {
 				gigmaPulseNew(folderEl);
 			}
-			// Decide which viewport & list to use for insertion.
-			let scroller = document.getElementById('gigma-ordering-container');
+			// Insert at the visual middle of the pane that owns the clicked New Folder button.
+			let viewportHost = listRoot;
 			let target = listRoot;
 			if (isRightButton) {
-				// In wide view the right pane hosts either the focused folder or the Unsorted list.
 				const pane = document.querySelector('.gigma-unsorted-pane');
-				if (pane) {
-					const focusContent = pane._gigmaFocusContent || pane.querySelector('.gigma-focus-pane-list');
-					// Prefer the folder list currently rendered inside the focus content.
-					const focusList = focusContent && focusContent.querySelector('.gigma-folder-list');
-					if (focusContent && focusList) {
-						scroller = focusContent;
-						target = focusList;
-					} else {
-						// Fallback: if the pane scrolls directly, use it as the viewport.
-						scroller = pane;
-					}
+				const focusContent = pane && (pane._gigmaFocusContent || pane.querySelector('.gigma-focus-pane-list'));
+				const focusList = focusContent && focusContent.querySelector('.gigma-folder-list');
+				if (focusContent && focusList) {
+					viewportHost = focusContent;
+					target = focusList;
 				}
 			}
-			const viewportHost = scroller || listRoot;
-			const viewport = viewportHost.getBoundingClientRect();
+			const viewport = (viewportHost || target).getBoundingClientRect();
 			const cy = viewport.top + viewport.height / 2;
-			// Insert the new folder at the vertical midpoint of the chosen container.
-			if (typeof insertAtY === 'function') {
-				insertAtY(target, folderEl, cy);
+			const cx = viewport.left + viewport.width / 2;
+			try {
+				const hit = document.elementFromPoint(cx, cy);
+				const hitList = hit && hit.closest ? hit.closest('.gigma-folder-list, #gigma-ordering-list') : null;
+				if (hitList && target && target.contains && (hitList === target || target.contains(hitList))) {
+					target = hitList;
+				}
+			} catch (_) {}
+			let refNode = null;
+			const items = Array.from(target.children || []).filter(n =>
+				n !== folderEl && n.classList && (n.classList.contains('gigma-row') || n.classList.contains('gigma-folder'))
+			);
+			for (const item of items) {
+				const r = item.getBoundingClientRect();
+				const midpoint = r.top + Math.max(r.height, 12) / 2;
+				if (cy < midpoint - 1) {
+					refNode = item;
+					break;
+				}
+			}
+			if (refNode && refNode.parentNode === target) {
+				target.insertBefore(folderEl, refNode);
+			} else {
+				target.appendChild(folderEl);
 			}
 			// Update folder→parent mapping (so nesting is recorded correctly).
 			if (typeof updateFolderParentMapping === 'function') {
