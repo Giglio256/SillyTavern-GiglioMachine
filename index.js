@@ -6519,7 +6519,7 @@ html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-btn{
   height:1.95em !important;
   padding:0 0.25em !important;
 }
-@media (orientation: landscape){
+@media (orientation: landscape) and (hover: none) and (pointer: coarse){
   html.gigma-mobile-fullscreen dialog:has(#gigma-info-popup-root){
     overflow:hidden !important;
   }
