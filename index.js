@@ -3994,8 +3994,108 @@ return;
   try{
     if (window.__gigmaMobileOrderingTouchNavigationInstalled) return;
     window.__gigmaMobileOrderingTouchNavigationInstalled = true;
-    
-    return; // Completely disables the laggy custom scroll engine
+
+    // Handles only the two-finger-to-one-finger scroll transition without enabling the full custom scroll engine.
+    (function gigmaTwoFingerTransitionFixOnce(){
+      try{
+        if (window.__gigmaTwoFingerTransitionFixInstalled) return;
+        window.__gigmaTwoFingerTransitionFixInstalled = true;
+
+        const state = { active: false, host: null, kind: '', lastX: 0, lastY: 0 };
+        const popupSelector = '#gigma-modal-root, #gigma-layout-preset-tree-preview-root';
+        const scrollSelector = '.gigma-lore-content-scroll, .gigma-lore-entry-text, .gigma-lore-entry-settings, .gigma-pane-search-results-list, #gigma-layout-preset-tree-preview-root .gigma-layout-preset-tree, #gigma-ordering-list, .gigma-unsorted-content, .gigma-focus-pane-list, #gigma-modal-scroll';
+
+        const clear = () => {
+          state.active = false;
+          state.host = null;
+          state.kind = '';
+          state.lastX = 0;
+          state.lastY = 0;
+        };
+        const isPopupTarget = (target) => !!(target && target.closest && target.closest(popupSelector));
+        const isScrollable = (node) => !!(node && (node.scrollHeight > node.clientHeight + 1 || node.scrollWidth > node.clientWidth + 1));
+        const getScrollHost = (target) => {
+          const node = target && target.closest ? target.closest(scrollSelector) : null;
+          return isScrollable(node) ? node : null;
+        };
+        const midpoint = (touches) => {
+          const a = touches[0];
+          const b = touches[1];
+          return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+        };
+        const applyScroll = (point) => {
+          const dx = state.lastX - point.x;
+          const dy = state.lastY - point.y;
+          if (dx) state.host.scrollLeft += dx;
+          if (dy) state.host.scrollTop += dy;
+          state.lastX = point.x;
+          state.lastY = point.y;
+        };
+        const block = (ev) => {
+          try { ev.preventDefault(); } catch (_) {}
+          try { ev.stopPropagation(); } catch (_) {}
+        };
+        const beginDouble = (ev) => {
+          if (!isPopupTarget(ev.target) || !ev.touches || ev.touches.length < 2) return false;
+          const host = getScrollHost(ev.target);
+          if (!host) return false;
+          const point = midpoint(ev.touches);
+          state.active = true;
+          state.host = host;
+          state.kind = 'double';
+          state.lastX = point.x;
+          state.lastY = point.y;
+          return true;
+        };
+
+        document.addEventListener('touchstart', (ev) => {
+          if (ev.touches && ev.touches.length === 2 && beginDouble(ev)) block(ev);
+        }, { capture: true, passive: false });
+
+        document.addEventListener('touchmove', (ev) => {
+          if (!state.active) {
+            if (ev.touches && ev.touches.length === 2 && beginDouble(ev)) block(ev);
+            return;
+          }
+          if (!ev.touches || ev.touches.length < 1) { clear(); return; }
+          if (ev.touches.length >= 2) {
+            state.kind = 'double';
+            applyScroll(midpoint(ev.touches));
+            block(ev);
+            return;
+          }
+          const touch = ev.touches[0];
+          const point = { x: touch.clientX, y: touch.clientY };
+          if (state.kind === 'double') {
+            state.kind = 'single-after-double';
+            state.lastX = point.x;
+            state.lastY = point.y;
+            block(ev);
+            return;
+          }
+          if (state.kind === 'single-after-double') {
+            applyScroll(point);
+            block(ev);
+          }
+        }, { capture: true, passive: false });
+
+        document.addEventListener('touchend', (ev) => {
+          if (!state.active) return;
+          if (!ev.touches || ev.touches.length < 1) { clear(); return; }
+          if (state.kind === 'double' && ev.touches.length === 1) {
+            const touch = ev.touches[0];
+            state.kind = 'single-after-double';
+            state.lastX = touch.clientX;
+            state.lastY = touch.clientY;
+            block(ev);
+          }
+        }, { capture: true, passive: false });
+
+        document.addEventListener('touchcancel', clear, true);
+      }catch(_){ }
+    })();
+
+    return; // Keeps the full custom scroll engine disabled.
     
     const isActive = () => !!(document.getElementById('gigma-modal-root') || document.getElementById('gigma-layout-preset-tree-preview-root'));
 
