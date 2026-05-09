@@ -5437,6 +5437,7 @@ const GIGMA_INFO_POPUPS = {
     },
     saveAsOtherPreset: {
         title: 'Save child as parent preset / Save parent as child preset',
+        titleIconSelector: '#gigma-modal-convert-child, #gigma-modal-convert-parent',
         parts: [
             'This button saves the current ',
             { text: 'layout preset', target: 'layoutPreset' },
@@ -5594,6 +5595,440 @@ const GIGMA_INFO_POPUPS = {
         ],
         speech: 'Erase all GIGMA extension settings. When uninstalling an extension from within Sillytavern, traces from that extension are left in the settings.json file. Therefore, you can use this setting to remove GIGMA without a trace. This setting erases all stored GIGMA extension settings, including all layout presets, all assignment presets and preferences. The confirmation popup also offers to remove all lorebook IDs from world JSON files. This setting merely deletes all data that was generates by the GIGMA extension, thereby removing the GIGMA extension without a trace. This setting does not remove any lorebooks, entries, characters, personas, chats, profiles, or any other user generated data, or data that is native to Sillytavern. It merely removes GIGMA without a trace.',
     },
+
+    childParentPresetToggle: {
+        title: 'Child Preset / Parent Preset toggle',
+        titleIconSelector: '#gigma-layout-preset-kind-toggle',
+        parts: [
+            'Switches the ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' section between child presets and parent presets.\n\nChild presets can inherit order and budget from parent presets.\n\nYou can set a different child preset for each character, and make them all inherit order and budget from the same parent preset. That way, if you want to apply changes to all characters, you change the parent preset. And if you want to make character-level adjustments, you change the individual child presets.',
+        ],
+    },
+    switchOrderParent: {
+        title: 'Switch to order of parent',
+        titleIconSelector: '#gigma-switch-order-parent',
+        parts: [
+            'This button appears when the current child preset inherits its lorebook order from a parent preset. Pressing it switches the ',
+            { text: 'modal', target: 'modal' },
+            ' to that parent preset and switches to ',
+            { text: 'Order mode', target: 'orderBudgetMode' },
+            ' if you\'re in ',
+            { text: 'Budget mode', target: 'orderBudgetMode' },
+            '.',
+        ],
+    },
+    switchBudgetParent: {
+        title: 'Switch to budget of parent',
+        titleIconSelector: '#gigma-switch-budget-parent',
+        parts: [
+            'This button appears when the current child preset inherits its lorebook budget from a parent preset. Pressing it switches the ',
+            { text: 'modal', target: 'modal' },
+            ' to that parent preset and switches to ',
+            { text: 'Budget mode', target: 'orderBudgetMode' },
+            ' if you\'re in ',
+            { text: 'Order mode', target: 'orderBudgetMode' },
+            '.',
+        ],
+    },
+    editableChainedLorebooks: {
+        title: 'Editable chained lorebooks',
+        titleIconSelector: '#gigma-editable-chained-child, #gigma-editable-chained-parent',
+        parts: [
+            'Controls whether chained lorebooks can be edited. Chained lorebooks are lorebooks whose order or budget is inherited from a parent preset. When enabled, the order or budget of the chained lorebooks can be edited. When disabled, chained lorebooks are uneditable.',
+        ],
+    },
+    dimChainedLorebooks: {
+        title: 'Dim chained lorebooks',
+        titleIconSelector: '#gigma-modal-dim-chained-child, #gigma-modal-dim-chained-parent',
+        parts: [
+            'Controls whether chained lorebooks are visually dimmed. Helps to find unchained lorebooks more easily.',
+        ],
+    },
+    dimUnchainedLorebooks: {
+        title: 'Dim unchained lorebooks',
+        titleIconSelector: '#gigma-modal-dim-unchained-child, #gigma-modal-dim-unchained-parent',
+        parts: [
+            'Controls whether unchained lorebooks are visually dimmed. Helps to find chained lorebooks more easily.',
+        ],
+    },
+    editableUnchainedLorebooks: {
+        title: 'Editable unchained lorebooks',
+        titleIconSelector: '#gigma-editable-unchained-child, #gigma-editable-unchained-parent',
+        parts: [
+            'Controls whether unchained lorebooks can be edited. Unchained lorebooks are lorebooks that don\'t inherit their order or budget values from a parent preset. When enabled, the order or budget of the unchained lorebooks can be edited. When disabled, unchained lorebooks are uneditable.',
+        ],
+    },
+    orderBudgetMode: {
+        title: 'Order / Budget',
+        titleIconSelector: '#gigma-budget-mode-child, #gigma-budget-mode-parent',
+        parts: [
+            'Switches the ',
+            { text: 'modal', target: 'modal' },
+            ' between Order mode and Budget mode. In order mode, you can adjust the order in which all your lorebooks are inserted into the final prompt that gets sent to the API. You can decide which lorebook will be sent first, last, any in between. In budget mode, you can limit lorebooks to a certain token or entry budget. When this budget is exceeded, lorebooks get trimmed. By default, lorebooks only get trimmed when the world info budget is exceeded.',
+        ],
+    },
+    undoRedoButton: {
+        title: 'Undo and redo',
+        titleIconSelector: '#gigma-child-preset-undo, #gigma-parent-preset-undo, #gigma-assignment-preset-undo, #gigma-child-preset-redo, #gigma-parent-preset-redo, #gigma-assignment-preset-redo',
+        parts: [
+            'Undoes or redoes the last ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' or ',
+            { text: 'assignment preset', target: 'assignmentPreset' },
+            ' change made in the ',
+            { text: 'modal', target: 'modal' },
+            '. You can set the amount of undo & redo steps that GIGMA saves in the setting: ',
+            { text: 'Undo history steps', target: 'undoHistorySteps' },
+            '. Currently, ',
+            { value: 'undoHistorySteps' },
+            ' undo & redo steps get saved.',
+        ],
+    },
+    restoreLayoutPreset: {
+        title: 'Restore layout preset',
+        titleIconSelector: '#gigma-child-preset-restore, #gigma-parent-preset-restore',
+        parts: [
+            'Restores the currently active ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' to its last saved state. Unsaved changes to the current layout preset get lost.',
+        ],
+    },
+    newLayoutPreset: {
+        title: 'New layout preset',
+        titleIconSelector: '#gigma-child-preset-new, #gigma-parent-preset-new',
+        parts: [
+            'Creates a new ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' of the currently active preset type (child or parent preset). The default layout for new layout presets is: All lorebooks are sorted alphabetically in the Unsorted Folder. All lorebooks have default budget settings. Unsaved changes to the current layout preset get lost.',
+        ],
+    },
+    quicksaveLayoutPreset: {
+        title: 'Quicksave layout preset',
+        titleIconSelector: '#gigma-child-preset-quicksave, #gigma-parent-preset-quicksave',
+        parts: [
+            'Saves the current lorebook order, folder layout, pane state, and budget settings as the current ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ', under its current name, without asking for confirmation. If no layout preset is active, GIGMA falls back to the normal ',
+            { text: 'Save layout preset', target: 'saveLayoutPreset' },
+            ' button behavior.',
+        ],
+    },
+    saveLayoutPreset: {
+        title: 'Save layout preset',
+        titleIconSelector: '#gigma-child-preset-save, #gigma-parent-preset-save',
+        parts: [
+            'Saves the current lorebook order, folder layout, pane state, and budget settings as the current ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ', under its current name, requiring confirmation. GIGMA asks for a preset name, and assumes the current name by default. If a layout preset with that name already exists, GIGMA asks before overwriting it.',
+        ],
+    },
+    renameLayoutPreset: {
+        title: 'Rename layout preset',
+        titleIconSelector: '#gigma-child-preset-edit, #gigma-parent-preset-edit',
+        parts: [
+            'Renames the currently selected ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            '. If another layout preset already uses the new name, GIGMA asks before overwriting that preset.',
+        ],
+    },
+    deleteLayoutPreset: {
+        title: 'Delete layout preset',
+        titleIconSelector: '#gigma-child-preset-delete, #gigma-parent-preset-delete',
+        parts: [
+            'Deletes the currently selected ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' after confirmation. Deleting a layout preset cannot be undone. After deletion, GIGMA switches to the next available layout preset, if one exists.',
+        ],
+    },
+    createFolder: {
+        title: 'Create folder',
+        titleIconSelector: '#gigma-new-folder, #gigma-new-folder-right',
+        parts: [
+            'Creates a new folder in the lorebook pane. A normal click on the "Create folder" button opens a popup where you can enter the folder name. If you leave the name empty, the folder is named “New Folder”. You can also press and drag from this button into the pane to create a new folder directly where you drop it.',
+        ],
+    },
+    expandAllFolders: {
+        title: 'Expand all folders',
+        titleIconSelector: '#gigma-expand-folders, #gigma-expand-folders-right',
+        parts: [
+            'Expands all folders in this pane, so their contained lorebooks and subfolders become visible. In the left pane, this also defocuses the currently ',
+            { text: 'focused folder', target: 'focusedFolderShortcut' },
+            '.',
+        ],
+    },
+    collapseAllFolders: {
+        title: 'Collapse all folders',
+        titleIconSelector: '#gigma-collapse-folders, #gigma-collapse-folders-right',
+        parts: [
+            'Collapses all folders in this pane, so their contained lorebooks and subfolders are hidden. In the left pane, this also defocuses the currently ',
+            { text: 'focused folder', target: 'focusedFolderShortcut' },
+            '.',
+        ],
+    },
+    restoreFolderStates: {
+        title: 'Restore folder states',
+        titleIconSelector: '#gigma-restore-folders, #gigma-restore-folders-right',
+        parts: [
+            'Restores the folder expansion states in this pane to the saved folder states from the current ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            '. Use this button to undo ',
+            { text: 'Expand all folders', target: 'expandAllFolders' },
+            ' and ',
+            { text: 'Collapse all folders', target: 'collapseAllFolders' },
+            ' changes made by those buttons.',
+        ],
+    },
+    resetListBudgetParent: {
+        title: 'Reset List / Reset budget / Reset to parent',
+        titleIconSelector: '#gigma-ordering-load',
+        parts: [
+            'This button changes behavior depending on the current mode and inheritance state. In ',
+            { text: 'Order mode', target: 'orderBudgetMode' },
+            ', it resets the lorebook list back into a single Unsorted Folder, in which all lorebooks are sorted alphabetically. If the child preset inherits order from a parent preset, it will instead reset the child order to the parent’s order. In ',
+            { text: 'Budget mode', target: 'orderBudgetMode' },
+            ', it resets lorebook budgets to Default. If the child preset inherits budget settings from a parent preset, it will instead reset the child budget settings to the parent’s budget settings.',
+        ],
+    },
+    previewLayoutPreset: {
+        title: 'Preview layout preset',
+        titleIconSelector: '#gigma-ordering-preview',
+        parts: [
+            'Opens a preview of the current ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' as a tree. The preview shows the current folder structure, lorebook order, chained and unchained lorebooks, and budget information without editing the actual ',
+            { text: 'modal', target: 'modal' },
+            ' layout. Read only. This popup is optimized for readability and overview, as opposed to the modal, which is optimized for editability.',
+        ],
+    },
+    globalWiStatisticsSettings: {
+        title: 'Global WI statistics settings',
+        titleIconSelector: '#gigma-modal-global-wi-stats, #gigma-modal-global-wi-stats-right',
+        parts: [
+            'Opens the global WI statistics settings dropdown menu to set the settings for the WI statistics panel. In this dropdown menu, you can decide which global statistics you want to have permanently displayed in the ',
+            { text: 'modal', target: 'modal' },
+            '.',
+        ],
+    },
+    generateStatistics: {
+        title: 'Generate statistics',
+        titleIconSelector: '#gigma-modal-stats-refresh, #gigma-modal-stats-refresh-right, #gigma-modal-ordering-refresh',
+        parts: [
+            'Runs a dry World Info scan to refresh Activated and Included statistics for all lorebooks. After the dry scan is finished, you can expand the content of lorebooks. You will then see an "A" to the left of entries that were activated via keyword activation, and an "I" to the left of entries that will actually be included and not get trimmed by the budget settings that you set for this lorebook. Keep in mind that by default, lorebooks only get trimmed once the world info budget is exceeded, and only as much as is necessary to stay below the world info budget. This can be changed in the setting "',
+            { text: 'Only Trim When WI Budget Exceeded', target: 'trimWhenWiBudgetExceeded' },
+            '".',
+        ],
+    },
+    lorebookStatisticsSettings: {
+        title: 'Lorebook statistics settings',
+        titleIconSelector: '#gigma-modal-stats-cats, #gigma-modal-stats-cats-right',
+        parts: [
+            'Opens the lorebook statistics settings dropdown menu to set the settings for the lorebook statistics panel. In this dropdown menu, you can decide which lorebook statistics you want to have displayed in the lorebook rows, such as entry counts, token counts, raw stats, activated stats, included stats, and category-specific stats.',
+        ],
+    },
+    expandCollapseStatisticsDisplay: {
+        title: 'Expand / collapse statistics display',
+        titleIconSelector: '#gigma-modal-global-wi-stats-collapse, #gigma-modal-stats-collapse, #gigma-modal-stats-collapse-right',
+        parts: [
+            'Expands or collapses the visible statistics display without disabling the statistics feature itself.',
+        ],
+    },
+    focusedFolderShortcut: {
+        title: 'Focused folder shortcut',
+        titleIconSelector: '#gigma-unsorted-title',
+        parts: [
+            'Shortcut to the position of the focused folder in the left pane. Clicking it scrolls the focused folder into the vertical center of the left pane. This is useful when a folder is currently opened in the right pane and you want to quickly find its original position in the left pane.',
+        ],
+    },
+    folderName: {
+        title: 'Folder name',
+        titleIconSelector: '.gigma-folder-title',
+        parts: [
+            'Clicking a folder name lets you rename the folder. Press Enter to confirm the new name. Press Escape to cancel the rename. The Unsorted Folder cannot be renamed.',
+        ],
+    },
+    removeFolder: {
+        title: 'Remove folder',
+        titleIconSelector: '.gigma-folder-remove',
+        parts: [
+            'Deletes this folder. Lorebooks inside the folder are not deleted. They are moved up to the folder’s parent level. Nested folders are removed, but their lorebooks are kept. Lorebooks never get deleted.',
+        ],
+    },
+    collapseFolder: {
+        title: 'Collapse folder',
+        titleIconSelector: '.gigma-folder-toggle',
+        parts: [
+            'Collapses this folder so its contained lorebooks and subfolders are hidden. The folder itself stays visible.',
+        ],
+    },
+    expandFolder: {
+        title: 'Expand folder',
+        titleIconSelector: '.gigma-folder-toggle',
+        parts: [
+            'Expands this folder so its contained lorebooks and subfolders become visible. In wide view, if the folder is currently focused in the right pane, expanding it returns the folder contents to the left pane and defocuses the right pane.',
+        ],
+    },
+    focusFolder: {
+        title: 'Focus folder',
+        titleIconSelector: '.gigma-show-right',
+        parts: [
+            'Opens this folder in the right pane while using wide view. This lets you work inside one folder separately while still keeping the full folder tree visible on the left. The focused folder is the folder which has its contents displayed in the right pane.',
+        ],
+    },
+    defocusFolder: {
+        title: 'Defocus folder',
+        titleIconSelector: '.gigma-show-right',
+        parts: [
+            'Returns the focused folder to the state it had before becoming focused - expanded or collapsed, and moves the focused folder\'s contents back to the left pane, leaving the right pane empty.',
+        ],
+    },
+    previewAssignmentPreset: {
+        title: 'Preview assignment preset',
+        titleIconSelector: '#gigma-assignment-preview-button',
+        parts: [
+            'Opens a preview of the currently selected ',
+            { text: 'assignment preset', target: 'assignmentPreset' },
+            '. The preview shows which characters are assigned to which ',
+            { text: 'layout presets', target: 'layoutPreset' },
+            ', including whether each assigned layout preset is a child preset or a parent preset.',
+        ],
+    },
+    restoreAssignmentPreset: {
+        title: 'Restore assignment preset',
+        titleIconSelector: '#gigma-assignment-preset-restore',
+        parts: [
+            'Restores the currently active ',
+            { text: 'assignment preset', target: 'assignmentPreset' },
+            ' to its last saved state. Unsaved changes to the current assignment preset get lost.',
+        ],
+    },
+    newAssignmentPreset: {
+        title: 'New assignment preset',
+        titleIconSelector: '#gigma-assignment-preset-new',
+        parts: [
+            'Creates a new ',
+            { text: 'assignment preset', target: 'assignmentPreset' },
+            '. The default assignment preset starts with the special ',
+            { text: 'All unassigned characters', target: 'allUnassignedCharactersSection' },
+            ' section, which controls what ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' is used for characters that do not have their own assignment section. Unsaved changes to the current assignment preset get lost.',
+        ],
+    },
+    quicksaveAssignmentPreset: {
+        title: 'Quicksave assignment preset',
+        titleIconSelector: '#gigma-assignment-preset-quicksave',
+        parts: [
+            'Saves the current character-to-layout assignments as the current ',
+            { text: 'assignment preset', target: 'assignmentPreset' },
+            ', under its current name, without asking for confirmation. If no assignment preset is active, GIGMA falls back to the normal ',
+            { text: 'Save assignment preset', target: 'saveAssignmentPreset' },
+            ' button behavior.',
+        ],
+    },
+    saveAssignmentPreset: {
+        title: 'Save assignment preset',
+        titleIconSelector: '#gigma-assignment-preset-save',
+        parts: [
+            'Saves the current character-to-layout assignments as the current ',
+            { text: 'assignment preset', target: 'assignmentPreset' },
+            ', under its current name, requiring confirmation. GIGMA asks for a preset name, and assumes the current name by default. If an assignment preset with that name already exists, GIGMA asks before overwriting it.',
+        ],
+    },
+    renameAssignmentPreset: {
+        title: 'Rename assignment preset',
+        titleIconSelector: '#gigma-assignment-preset-edit',
+        parts: [
+            'Renames the currently selected ',
+            { text: 'assignment preset', target: 'assignmentPreset' },
+            '. If another assignment preset already uses the new name, GIGMA does not overwrite it automatically.',
+        ],
+    },
+    deleteAssignmentPreset: {
+        title: 'Delete assignment preset',
+        titleIconSelector: '#gigma-assignment-preset-delete',
+        parts: [
+            'Deletes the currently selected ',
+            { text: 'assignment preset', target: 'assignmentPreset' },
+            ' after confirmation. Deleting an assignment preset cannot be undone. After deletion, GIGMA switches to the next available assignment preset, if one exists.',
+        ],
+    },
+    addAssignmentSection: {
+        title: 'Add assignment section',
+        titleIconSelector: '#gigma-assignment-section-add',
+        parts: [
+            'Adds a new assignment section. Each assignment section lets you choose one or more characters and assign them to a child preset or parent preset.',
+        ],
+    },
+    deleteAssignmentSection: {
+        title: 'Delete assignment section',
+        titleIconSelector: '.gigma-assignment-section-delete',
+        parts: [
+            'Deletes this assignment section. If the section already assigns characters to a ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ', GIGMA asks for confirmation first. Deleting an assignment section cannot be undone.',
+        ],
+    },
+    assignmentSectionCharacters: {
+        title: 'Assignment section characters',
+        parts: [
+            'Assigns the selected characters to the ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' of this assignment section. Each character can only be assigned to one ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            '.\n\nUse this to decide which ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' should be used for any given character. This way, each speaker can use a different lorebook order and lorebook budget.',
+        ],
+    },
+    assignmentSectionChildParentToggle: {
+        title: 'Assignment section Child Preset / Parent Preset toggle',
+        titleIconSelector: '.gigma-assignment-section-layout-preset-kind-toggle',
+        parts: [
+            'Switches this assignment section between assigning a child preset and assigning a parent preset. After switching, the preset dropdown updates to show presets of the selected type.',
+        ],
+    },
+    allUnassignedCharactersSection: {
+        title: 'All unassigned characters section',
+        titleIconSelector: '.gigma-assignment-section[data-gigma-unassigned="1"] .gigma-assignment-section-layout-preset-kind-toggle',
+        parts: [
+            'This special assignment section controls which ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' is used for characters that are not assigned in any other assignment section. It cannot be deleted. By default, it uses the last opened parent preset when available.',
+        ],
+    },
+    settingsButton: {
+        title: 'Settings',
+        titleIconSelector: '#gigma-modal-settings-toggle',
+        parts: [
+            'Opens the settings dropdown menu.\n\nThis dropdown contains GIGMA settings that affect the ',
+            { text: 'modal', target: 'modal' },
+            ', info popups, ',
+            { text: 'Lorebook statistics settings', target: 'lorebookStatisticsSettings' },
+            ', preset management, folder cleanup, ',
+            { text: 'Undo history steps', target: 'undoHistorySteps' },
+            ', lorebook ID handling, and extension cleanup.\n\nLong press the buttons inside this dropdown to open info popups for the individual settings, such as ',
+            { text: 'LB ID assignment & removal popup', target: 'lorebookIdProcessDialog' },
+            ' or ',
+            { text: 'Erase all GIGMA extension settings', target: 'eraseGigmaSettings' },
+            '.',
+        ],
+    },
+    lorebookContentButtons: {
+        title: 'Lorebook content buttons',
+        titleIconSelector: '#gigma-modal-lore-content-toggle',
+        parts: [
+            'Controls whether lorebook content buttons are shown in the lorebook rows.\n\nWhen enabled, each lorebook row gets a button that lets you expand the lorebook and inspect its entries directly inside the ',
+            { text: 'modal', target: 'modal' },
+            ' or ',
+            { text: 'Preview layout preset', target: 'previewLayoutPreset' },
+            '.\n\nExpanded lorebooks show their entries and entry text. If ',
+            { text: 'Detailed lorebook entries', target: 'detailedLorebookEntries' },
+            ' are enabled, expanded entries also show their settings, such as keys, probability, trigger type, position, role, order, depth, recursion settings, matching settings, groups, filters, and tags.\n\nAfter ',
+            { text: 'Generate statistics', target: 'generateStatistics' },
+            ', expanded lorebooks can also show which entries were activated and which entries were included.',
+        ],
+    },
     wideNarrowButton: {
         title: 'Wide / Narrow button',
         titleIconSelector: '.gigmaWidthBtn',
@@ -5730,23 +6165,61 @@ function gigmaSetInfoPopupDelaySecondsPref(value){
 }
 function gigmaNormalizeInfoPopupTextAlignment(value){
     const v = String(value || '').toLowerCase();
-    return (v === 'column' || v === 'centered') ? v : 'left';
+    return (v === 'left' || v === 'centered') ? v : 'column';
 }
 function gigmaGetInfoPopupTextAlignmentPref(){
     try{ return gigmaNormalizeInfoPopupTextAlignment(gigmaExtensionSettings && gigmaExtensionSettings.infoPopupTextAlignment); }
-    catch(_){ return 'left'; }
+    catch(_){ return 'column'; }
 }
 function gigmaSetInfoPopupTextAlignmentPref(value){
     try{
         const next = gigmaNormalizeInfoPopupTextAlignment(value);
         if (gigmaExtensionSettings && typeof gigmaExtensionSettings === 'object') {
-            if (next === 'left') delete gigmaExtensionSettings.infoPopupTextAlignment;
+            if (next === 'column') delete gigmaExtensionSettings.infoPopupTextAlignment;
             else gigmaExtensionSettings.infoPopupTextAlignment = next;
         }
         gigmaApplyInfoPopupTextAlignmentClass(GIGMA_INFO_POPUP_STATE.root);
         if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
         return next;
-    }catch(_){ return 'left'; }
+    }catch(_){ return 'column'; }
+}
+function gigmaGetInfoPopupTextAlignmentLabel(value){
+    const v = gigmaNormalizeInfoPopupTextAlignment(value);
+    if (v === 'column') return 'Column';
+    if (v === 'centered') return 'Centered';
+    return 'Left';
+}
+function gigmaGetInfoPopupTextAlignmentIconClass(value){
+    const v = gigmaNormalizeInfoPopupTextAlignment(value);
+    if (v === 'column') return 'fa-align-justify';
+    if (v === 'centered') return 'fa-align-center';
+    return 'fa-align-left';
+}
+function gigmaGetNextInfoPopupTextAlignment(value){
+    const v = gigmaNormalizeInfoPopupTextAlignment(value);
+    if (v === 'left') return 'column';
+    if (v === 'column') return 'centered';
+    return 'left';
+}
+function gigmaUpdateInfoPopupTextAlignmentButtonUi(btn){
+    try{
+        if (!btn) return;
+        const current = gigmaGetInfoPopupTextAlignmentPref();
+        const next = gigmaGetNextInfoPopupTextAlignment(current);
+        const title = 'Info popup text alignment: ' + gigmaGetInfoPopupTextAlignmentLabel(current) + ' (click to switch to ' + gigmaGetInfoPopupTextAlignmentLabel(next) + ')';
+        btn.innerHTML = '<i class="fa-solid ' + gigmaGetInfoPopupTextAlignmentIconClass(current) + '" aria-hidden="true"></i>';
+        btn.title = title;
+        btn.setAttribute('aria-label', title);
+        if (btn.dataset) btn.dataset.gigmaInfoPopupAlignment = current;
+    }catch(_){ }
+}
+function gigmaHandleInfoPopupTextAlignmentToggleClick(ev){
+    try{ ev?.preventDefault?.(); ev?.stopPropagation?.(); }catch(_){ }
+    try{
+        const btn = ev && ev.currentTarget ? ev.currentTarget : null;
+        gigmaSetInfoPopupTextAlignmentPref(gigmaGetNextInfoPopupTextAlignment(gigmaGetInfoPopupTextAlignmentPref()));
+        gigmaUpdateInfoPopupTextAlignmentButtonUi(btn || document.getElementById('gigma-modal-settings-info-popup-alignment-btn'));
+    }catch(_){ }
 }
 function gigmaGetInfoPopupTextAlignmentClass(){
     return 'gigma-info-align-' + gigmaGetInfoPopupTextAlignmentPref();
@@ -5817,23 +6290,77 @@ function gigmaSetInfoPopupTtsSpeedPref(value){
 function gigmaEscapeInfoPopupText(value){
     return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 }
+function gigmaHyphenateInfoPopupLinkText(value){
+    try{
+        return String(value ?? '').replace(/[^\s]+/gu, word => Array.from(word).join('\u00AD'));
+    }catch(_){
+        return String(value ?? '');
+    }
+}
+function gigmaGetInfoPopupTitleFallbackIconClass(info){
+    try{
+        const title = String((info && info.title) || '').toLowerCase();
+        if (title === 'collapse folder') return 'fa-chevron-down';
+        if (title === 'expand folder') return 'fa-chevron-up';
+        if (title === 'remove folder') return 'fa-trash-can';
+        if (title === 'focus folder') return 'fa-arrow-left';
+        if (title === 'defocus folder') return 'fa-arrow-right';
+        if (title === 'preview layout preset' || title === 'assignment preset preview') return 'fa-eye';
+    }catch(_){ }
+    return '';
+}
 function gigmaBuildInfoPopupTitleIconHtml(info){
     try{
         const selector = info && info.titleIconSelector;
-        if (!selector) return '';
-        const source = document.querySelector(selector);
-        if (!source) return '';
-        const clone = source.cloneNode(true);
-        clone.removeAttribute('id');
-        for (const node of clone.querySelectorAll('[id]')) node.removeAttribute('id');
-        return `<span class="gigma-info-title-icon" aria-hidden="true">${clone.innerHTML || gigmaEscapeInfoPopupText(clone.textContent || '')}</span>`;
+        const fallbackIconClass = gigmaGetInfoPopupTitleFallbackIconClass(info);
+        if (!selector && !fallbackIconClass) return '';
+        const source = selector ? document.querySelector(selector) : null;
+        let html = '';
+        let extraClass = '';
+        if (source) {
+            const clone = source.cloneNode(true);
+            clone.removeAttribute('id');
+            clone.removeAttribute('title');
+            clone.removeAttribute('aria-label');
+            for (const node of clone.querySelectorAll('[id]')) node.removeAttribute('id');
+            for (const node of clone.querySelectorAll('[title],[aria-label]')) {
+                node.removeAttribute('title');
+                node.removeAttribute('aria-label');
+            }
+            const iconSelector = 'i, svg, img, .fa, .fa-solid, .fa-regular, .fa-brands, .gigma-global-icon-svg, .gigma-iconized-button-glyph, .gigma-width-btn-glyph, .gigma-width-btn-pair';
+            const hasIcon = !!(clone.matches(iconSelector) || clone.querySelector(iconSelector));
+            if (hasIcon) {
+                const walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT);
+                const textNodes = [];
+                while (walker.nextNode()) textNodes.push(walker.currentNode);
+                for (const node of textNodes) node.textContent = '';
+            }
+            if (!hasIcon && fallbackIconClass) {
+                html = `<i class="fa-solid ${fallbackIconClass}" aria-hidden="true"></i>`;
+            } else {
+                html = clone.innerHTML || gigmaEscapeInfoPopupText(clone.textContent || '');
+                if (!hasIcon && !fallbackIconClass) extraClass += ' gigma-info-title-icon-text';
+            }
+            if (source.classList && source.classList.contains('gigmaWidthBtn')) extraClass += ' gigma-info-title-icon-wide';
+        } else if (fallbackIconClass) {
+            html = `<i class="fa-solid ${fallbackIconClass}" aria-hidden="true"></i>`;
+        }
+        if (!String(html || '').trim()) return '';
+        return `<span class="gigma-info-title-icon${extraClass}" aria-hidden="true">${html}</span>`;
     }catch(_){ return ''; }
+}
+function gigmaBuildInfoPopupValueText(part){
+    try{
+        if (part && part.value === 'undoHistorySteps') return String(gigmaGetModalUndoHistoryStepsPref());
+    }catch(_){ }
+    return '';
 }
 function gigmaBuildInfoPopupPartHtml(part){
     if (part && part.strong) return `<strong>${gigmaEscapeInfoPopupText(part.text)}</strong>`;
     if (part && part.icon === 'giglioModalButton') return `<img class="gigma-info-inline-modal-icon" src="${gigmaEscapeInfoPopupText(GIGLIO_ICON_SRC)}" alt="" aria-hidden="true" />`;
+    if (part && part.value) return gigmaEscapeInfoPopupText(gigmaBuildInfoPopupValueText(part));
     const target = GIGMA_INFO_POPUPS[part.target] ? part.target : GIGMA_INFO_POPUP_DEFAULT_ID;
-    return `<button type="button" class="gigma-info-link" data-gigma-info-target="${gigmaEscapeInfoPopupText(target)}">${gigmaEscapeInfoPopupText(part.text)}</button>`;
+    return `<span role="button" tabindex="0" class="gigma-info-link" data-gigma-info-target="${gigmaEscapeInfoPopupText(target)}">${gigmaEscapeInfoPopupText(gigmaHyphenateInfoPopupLinkText(part.text))}</span>`;
 }
 function gigmaBuildInfoPopupBodyPartsHtml(parts){
     return (parts || []).map(part => {
@@ -5849,9 +6376,15 @@ function gigmaBuildInfoPopupBodyHtml(infoId){
         <div class="gigma-info-copy" lang="en">${body}</div>
     `;
 }
+function gigmaGetInfoPopupPartSpeechText(part){
+    if (typeof part === 'string') return part;
+    if (part && part.value) return gigmaBuildInfoPopupValueText(part);
+    if (part && part.text) return part.text;
+    return '';
+}
 function gigmaGetInfoPopupSpeechText(infoId){
     const info = GIGMA_INFO_POPUPS[infoId] || GIGMA_INFO_POPUPS[GIGMA_INFO_POPUP_DEFAULT_ID];
-    return String(info.speech || `${info.title}. ${(info.parts || []).map(part => typeof part === 'string' ? part : part.text).join('')}`);
+    return String(info.speech || `${info.title}. ${(info.parts || []).map(gigmaGetInfoPopupPartSpeechText).join('')}`);
 }
 function gigmaFormatInfoPopupAudioTime(seconds){
     const n = Number(seconds);
@@ -6425,18 +6958,24 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
   line-height:1.15;
   font-weight:700;
   display:flex;
+  flex-wrap:wrap;
   align-items:center;
   justify-content:center;
-  gap:0.45em;
+  gap:0.32em 0.45em;
   text-align:center;
 }
 #gigma-info-popup-root .gigma-info-title-text{
   min-width:0;
+  max-width:100%;
 }
 #gigma-info-popup-root .gigma-info-title-icon{
+  width:var(--gigma-hdr-btn, 2.2em);
   min-width:var(--gigma-hdr-btn, 2.2em);
+  max-width:var(--gigma-hdr-btn, 2.2em);
   height:var(--gigma-hdr-btn, 2.2em);
-  padding:0 0.45em;
+  padding:0;
+  flex:0 0 auto;
+  overflow:hidden;
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -6449,6 +6988,17 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
   line-height:1;
   white-space:nowrap;
 }
+#gigma-info-popup-root .gigma-info-title-icon-text{
+  width:max-content;
+  min-width:var(--gigma-hdr-btn, 2.2em);
+  max-width:100%;
+  padding:0 0.7em;
+}
+#gigma-info-popup-root .gigma-info-title-icon-wide{
+  width:calc(var(--gigma-hdr-btn, 2.2em) * 2);
+  min-width:calc(var(--gigma-hdr-btn, 2.2em) * 2);
+  max-width:calc(var(--gigma-hdr-btn, 2.2em) * 2);
+}
 #gigma-info-popup-root .gigma-info-title-icon .gigma-global-icon-svg{
   width:1.05em;
   height:1.05em;
@@ -6456,6 +7006,16 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
 }
 #gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-label{
   display:none;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-iconized-button-label{
+  display:none;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-iconized-button-glyph{
+  position:static;
+  inset:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
 }
 #gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-glyph{
   position:static;
@@ -6550,9 +7110,15 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
   color:#61a8ff;
   text-decoration:underline;
   cursor:pointer;
+  display:inline;
   padding:0;
   margin:0;
   font:inherit;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  hyphens:manual;
+  -webkit-hyphens:manual;
 }
 #gigma-info-popup-root .gigma-info-link:hover,
 #gigma-info-popup-root .gigma-info-link:focus-visible{
@@ -6791,13 +7357,28 @@ html.gigma-mobile-fullscreen dialog:has(#gigma-info-popup-root){
   height:100dvh !important;
   max-height:100dvh !important;
   margin:0 !important;
+  padding:0 !important;
   border-radius:0 !important;
+  box-sizing:border-box !important;
+}
+html.gigma-mobile-fullscreen dialog:has(#gigma-info-popup-root) :is(.popup-body,.popup-content,.popup-content-wrapper){
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
 }
 html.gigma-mobile-fullscreen #gigma-info-popup-root{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
   height:100dvh;
   padding:calc(env(safe-area-inset-top) + 0.75em) calc(env(safe-area-inset-right) + 0.75em) calc(env(safe-area-inset-bottom) + 0.75em) calc(env(safe-area-inset-left) + 0.75em);
 }
 html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-content{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
   padding:0.85em;
 }
 html.gigma-mobile-fullscreen #gigma-info-popup-root .gigma-info-tts-section{
@@ -7279,7 +7860,7 @@ function gigmaBindModalSettingsInfoPopups(popup){
             ['#gigma-modal-settings-hide-undo-redo-desktop-btn', 'hideUndoRedoDesktop'],
             ['#gigma-modal-settings-info-popup-long-press-btn', 'longPressInfoPopup'],
             ['#gigma-modal-settings-info-popup-delay-input', 'infoPopupDelay'],
-            ['#gigma-modal-settings-info-popup-alignment-select', 'infoPopupTextAlignment'],
+            ['#gigma-modal-settings-info-popup-alignment-btn', 'infoPopupTextAlignment'],
             ['#gigma-modal-settings-info-popup-tts-btn', 'autoTtsInfoText'],
             ['#gigma-modal-settings-show-lorebook-id-dialog-btn', 'lorebookIdProcessDialog'],
             ['#gigma-modal-settings-erase-lorebook-ids-btn', 'eraseLorebookIds'],
@@ -7294,21 +7875,83 @@ function gigmaBindModalSettingsInfoPopups(popup){
         }
     }catch(_){ }
 }
+
+function gigmaBindModalButtonInfoPopups(root){
+    try{
+        const scope = root && root.querySelectorAll ? root : document;
+        const pairs = [
+            ['#gigma-modal-settings-toggle', 'settingsButton'],
+            ['#gigma-modal-lore-content-toggle', 'lorebookContentButtons'],
+            ['#gigma-modal-convert-parent, #gigma-modal-convert-child', 'saveAsOtherPreset'],
+            ['#gigma-layout-preset-kind-toggle', 'childParentPresetToggle'],
+            ['#gigma-switch-order-parent', 'switchOrderParent'],
+            ['#gigma-switch-budget-parent', 'switchBudgetParent'],
+            ['#gigma-editable-chained-parent, #gigma-editable-chained-child', 'editableChainedLorebooks'],
+            ['#gigma-modal-dim-chained-parent, #gigma-modal-dim-chained-child', 'dimChainedLorebooks'],
+            ['#gigma-modal-dim-unchained-parent, #gigma-modal-dim-unchained-child', 'dimUnchainedLorebooks'],
+            ['#gigma-editable-unchained-parent, #gigma-editable-unchained-child', 'editableUnchainedLorebooks'],
+            ['#gigma-budget-mode-parent, #gigma-budget-mode-child', 'orderBudgetMode'],
+            ['#gigma-parent-preset-undo, #gigma-child-preset-undo, #gigma-assignment-preset-undo, #gigma-parent-preset-redo, #gigma-child-preset-redo, #gigma-assignment-preset-redo', 'undoRedoButton'],
+            ['#gigma-parent-preset-restore, #gigma-child-preset-restore', 'restoreLayoutPreset'],
+            ['#gigma-parent-preset-new, #gigma-child-preset-new', 'newLayoutPreset'],
+            ['#gigma-parent-preset-quicksave, #gigma-child-preset-quicksave', 'quicksaveLayoutPreset'],
+            ['#gigma-parent-preset-save, #gigma-child-preset-save', 'saveLayoutPreset'],
+            ['#gigma-parent-preset-edit, #gigma-child-preset-edit', 'renameLayoutPreset'],
+            ['#gigma-parent-preset-delete, #gigma-child-preset-delete', 'deleteLayoutPreset'],
+            ['#gigma-new-folder, #gigma-new-folder-right', 'createFolder'],
+            ['#gigma-expand-folders, #gigma-expand-folders-right', 'expandAllFolders'],
+            ['#gigma-collapse-folders, #gigma-collapse-folders-right', 'collapseAllFolders'],
+            ['#gigma-restore-folders, #gigma-restore-folders-right', 'restoreFolderStates'],
+            ['#gigma-ordering-load', 'resetListBudgetParent'],
+            ['#gigma-ordering-preview', 'previewLayoutPreset'],
+            ['#gigma-modal-global-wi-stats, #gigma-modal-global-wi-stats-right', 'globalWiStatisticsSettings'],
+            ['#gigma-modal-stats-refresh, #gigma-modal-stats-refresh-right, #gigma-modal-ordering-refresh', 'generateStatistics'],
+            ['#gigma-modal-stats-cats, #gigma-modal-stats-cats-right', 'lorebookStatisticsSettings'],
+            ['#gigma-modal-global-wi-stats-collapse, #gigma-modal-stats-collapse, #gigma-modal-stats-collapse-right', 'expandCollapseStatisticsDisplay'],
+            ['#gigma-unsorted-title', 'focusedFolderShortcut'],
+            ['.gigma-folder-title', 'folderName'],
+            ['.gigma-folder-remove', 'removeFolder'],
+            ['.gigma-show-right', 'focusFolder'],
+            ['#gigma-assignment-preview-button', 'previewAssignmentPreset'],
+            ['#gigma-assignment-preset-restore', 'restoreAssignmentPreset'],
+            ['#gigma-assignment-preset-new', 'newAssignmentPreset'],
+            ['#gigma-assignment-preset-quicksave', 'quicksaveAssignmentPreset'],
+            ['#gigma-assignment-preset-save', 'saveAssignmentPreset'],
+            ['#gigma-assignment-preset-edit', 'renameAssignmentPreset'],
+            ['#gigma-assignment-preset-delete', 'deleteAssignmentPreset'],
+            ['#gigma-assignment-section-add', 'addAssignmentSection'],
+            ['.gigma-assignment-section-delete', 'deleteAssignmentSection'],
+            ['.gigma-assignment-section-characters, .gigma-assignment-section-characters + .select2-container', 'assignmentSectionCharacters'],
+            ['.gigma-assignment-section-layout-preset-kind-toggle', 'assignmentSectionChildParentToggle'],
+            ['.gigma-all-unassigned-characters-info', 'allUnassignedCharactersSection'],
+        ];
+        for (const [selector, infoId] of pairs) {
+            const nodes = scope.querySelectorAll(selector);
+            for (const node of nodes) {
+                if (!node) continue;
+                const bindTarget = node.matches && node.matches('.gigma-folder-toggle')
+                    ? node
+                    : (node.closest && node.closest('label') ? node.closest('label') : node);
+                gigmaBindInfoPopupLongPress(bindTarget, infoId);
+            }
+        }
+    }catch(_){ }
+}
 function gigmaMountInfoPopup(root, autoSpeak){
     if (!root) return;
     GIGMA_INFO_POPUP_STATE.root = root;
     gigmaApplyInfoPopupTextAlignmentClass(root);
     root.addEventListener('click', (ev) => {
         try{
-            const target = ev.target && ev.target.closest ? ev.target.closest('button') : null;
-            if (!target || !root.contains(target)) return;
-            const link = target.closest('.gigma-info-link');
-            if (link) {
+            const link = ev.target && ev.target.closest ? ev.target.closest('.gigma-info-link') : null;
+            if (link && root.contains(link)) {
                 ev.preventDefault();
                 ev.stopPropagation();
                 gigmaInfoPopupGoTo(link.getAttribute('data-gigma-info-target'));
                 return;
             }
+            const target = ev.target && ev.target.closest ? ev.target.closest('button') : null;
+            if (!target || !root.contains(target)) return;
             if (target.id === 'gigma-info-back') {
                 ev.preventDefault();
                 ev.stopPropagation();
@@ -7368,6 +8011,16 @@ function gigmaMountInfoPopup(root, autoSpeak){
             }
         }catch(_){ }
     });
+    root.addEventListener('keydown', (ev) => {
+        try{
+            const link = ev.target && ev.target.closest ? ev.target.closest('.gigma-info-link') : null;
+            if (!link || !root.contains(link)) return;
+            if (ev.key !== 'Enter' && ev.key !== ' ') return;
+            ev.preventDefault();
+            ev.stopPropagation();
+            gigmaInfoPopupGoTo(link.getAttribute('data-gigma-info-target'));
+        }catch(_){ }
+    });
     gigmaRenderInfoPopupCurrent(autoSpeak);
 }
 function gigmaShowInfoPopup(infoId){
@@ -7419,7 +8072,8 @@ function gigmaBindInfoPopupLongPress(element, infoId){
             timer = setTimeout(() => {
                 timer = 0;
                 triggered = true;
-                gigmaShowInfoPopup(infoId);
+                const nextInfoId = (typeof infoId === 'function') ? infoId(element) : infoId;
+                gigmaShowInfoPopup(nextInfoId);
             }, Math.round(gigmaGetInfoPopupDelaySecondsPref() * 1000));
         };
         const cancel = () => clearTimer();
@@ -15516,6 +16170,7 @@ const ensure = (toolbarSelector, suffix) => {
                 try { ev.preventDefault(); ev.stopPropagation(); } catch (_eStop) { }
                 scheduleBackground(() => gigmaRefreshLastGenerationUsageSnapshot({ source: 'modal-ordering-row' }));
             });
+            try { gigmaBindInfoPopupLongPress(btnOrderingRefresh, 'generateStatistics'); } catch (_eInfoGen) { }
             btnGlobalWi = mkBtn('gigma-modal-global-wi-stats' + suffix, '', 'Global WI statistics');
             try { btnGlobalWi.classList.add('gigma-icon-btn', 'gigma-global-wi-stats-btn'); } catch (_e) {}
             btnGlobalWi.innerHTML = GIGMA_GLOBAL_WI_STATS_ICON_HTML;
@@ -15891,6 +16546,7 @@ const ensure = (toolbarSelector, suffix) => {
 
         ensure('#gigma-toolbar', '');
         ensure('#gigma-toolbar-right', '-right');
+        try { gigmaBindModalButtonInfoPopups(root); } catch (_eInfo) { }
 
         gigmaUpdateOrderingModalStatsControlsUi();
         gigmaUpdateManualUsageRefreshButtonsUi();
@@ -20217,11 +20873,6 @@ function gigmaInstallModalSettingsPopupStylesOnce() {
   width:7.4em;
   min-width:7.4em;
 }
-#gigma-modal-root #gigma-modal-settings-popup #gigma-modal-settings-info-popup-alignment-select{
-  width:auto !important;
-  min-width:0 !important;
-  max-width:max-content !important;
-}
 dialog:has(#gigma-erase-settings-confirm-root){
   width:34em !important;
 }
@@ -21256,28 +21907,17 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
 
         const slotInfoPopupAlignment = popup.querySelector('#gigma-modal-settings-slot-info-popup-alignment');
         if (slotInfoPopupAlignment) {
-            let select = popup.querySelector('#gigma-modal-settings-info-popup-alignment-select');
-            if (!select) {
-                select = document.createElement('select');
-                select.id = 'gigma-modal-settings-info-popup-alignment-select';
-                select.className = 'text_pole textarea_compact gigma-modal-settings-select';
-                const options = [
-                    ['left', 'Left'],
-                    ['column', 'Column'],
-                    ['centered', 'Centered'],
-                ];
-                for (const [value, label] of options) {
-                    const option = document.createElement('option');
-                    option.value = value;
-                    option.textContent = label;
-                    select.appendChild(option);
-                }
-                select.addEventListener('change', () => {
-                    select.value = gigmaSetInfoPopupTextAlignmentPref(select.value);
-                });
+            let b = popup.querySelector('#gigma-modal-settings-info-popup-alignment-btn');
+            if (!b) {
+                b = document.createElement('button');
+                b.id = 'gigma-modal-settings-info-popup-alignment-btn';
+                b.type = 'button';
+                b.className = 'menu_button gigma-icon-btn gigma-budget-side-toggle gigma-info-popup-alignment-toggle';
+                b.addEventListener('click', gigmaHandleInfoPopupTextAlignmentToggleClick);
             }
-            select.value = gigmaGetInfoPopupTextAlignmentPref();
-            slotInfoPopupAlignment.replaceChildren(select);
+            slotInfoPopupAlignment.replaceChildren(b);
+            try { gigmaSquareButtonToHeight(b); } catch (_e) { }
+            gigmaUpdateInfoPopupTextAlignmentButtonUi(b);
         }
 
         const slotInfoPopupTts = popup.querySelector('#gigma-modal-settings-slot-info-popup-tts');
@@ -24263,6 +24903,7 @@ if (footer) {
                     modalEventListeners.push({ element: cancel, event: 'click', handler });
                 }
                 try { gigmaBindModalHeaderInfoPopups(dialog); } catch (_) { }
+                try { gigmaBindModalButtonInfoPopups(dialog); } catch (_) { }
             }
         }
     } catch (_eGlobalSettings) {
@@ -25520,12 +26161,18 @@ function populateCharacterSelect(select) {
                             // Rebuild options for all *other* rows while keeping this dropdown open
                             refreshAllAssignmentSectionCharacterSelects(select);
                         });
+                        try {
+                            gigmaBindInfoPopupLongPress(select, 'assignmentSectionCharacters');
+                            const select2Container = $sel.data('select2') && $sel.data('select2').$container ? $sel.data('select2').$container[0] : null;
+                            if (select2Container) gigmaBindInfoPopupLongPress(select2Container, 'assignmentSectionCharacters');
+                        } catch (_eInfoChars) { }
                     } else {
                         // Fallback for plain <select> without Select2
                         try {
                             select.removeEventListener('change', refreshAllAssignmentSectionCharacterSelects);
                         } catch (_eRem) {}
                         select.addEventListener('change', () => refreshAllAssignmentSectionCharacterSelects(select));
+                        try { gigmaBindInfoPopupLongPress(select, 'assignmentSectionCharacters'); } catch (_eInfoCharsPlain) { }
                     }
                 } catch (_eSel2Init) {
                     // Non-fatal if Select2 wiring fails.
@@ -25872,6 +26519,7 @@ function createUnassignedAssignmentSection() {
     header.appendChild(label);
     const info = document.createElement('div');
     info.textContent = 'All unassigned characters';
+    info.className = 'gigma-all-unassigned-characters-info';
     info.style.display = 'block';
     info.style.fontSize = '0.9em';
     info.style.opacity = '0.9';
@@ -25935,6 +26583,12 @@ function createUnassignedAssignmentSection() {
             refreshAllAssignmentSectionLayoutPresetSelects(presetSelect);
         });
     } catch (_ePresetChangeUnassigned) {}
+    try{
+        if (typeof gigmaBindInfoPopupLongPress === 'function') {
+            gigmaBindInfoPopupLongPress(info, 'allUnassignedCharactersSection');
+            gigmaBindInfoPopupLongPress(kindBtn, 'assignmentSectionChildParentToggle');
+        }
+    }catch(_eInfo){}
     return row;
 }
         function createAssignmentSection() {
@@ -25956,7 +26610,7 @@ function createUnassignedAssignmentSection() {
             header.style.marginBottom = '0.25em';
             const deleteBtn = document.createElement('button');
             deleteBtn.type = 'button';
-            deleteBtn.className = 'menu_button';
+            deleteBtn.className = 'menu_button gigma-assignment-section-delete';
             deleteBtn.textContent = '×';
             deleteBtn.title = 'Delete this assignment section';
             deleteBtn.style.padding = '0';
@@ -25965,6 +26619,7 @@ function createUnassignedAssignmentSection() {
             deleteBtn.style.lineHeight = '1.8em';
             deleteBtn.style.fontSize = '0.9em';
             deleteBtn.style.marginRight = '0.5em';
+            try { gigmaBindInfoPopupLongPress(deleteBtn, 'deleteAssignmentSection'); } catch (_eInfoDeleteSection) { }
             const label = document.createElement('label');
             label.textContent = 'Characters:';
             label.style.display = 'block';
@@ -28502,11 +29157,23 @@ if (folder && folder.unsorted) {
             if (orderingContainer && !orderingContainer.contains(f._gigmaUnsortedPane)) {
                 orderingContainer.appendChild(f._gigmaUnsortedPane);
                 try{ if (typeof gigmaInitOrderingModalStatsUi === 'function') gigmaInitOrderingModalStatsUi((EXTENSION_STATE && EXTENSION_STATE._gigmaModalEventListeners) ? EXTENSION_STATE._gigmaModalEventListeners : []); }catch(_e){}
+                try{ if (typeof gigmaBindModalButtonInfoPopups === 'function') gigmaBindModalButtonInfoPopups(orderingContainer); }catch(_eInfo){}
             }
         }
 
 // Apply empty-state UI on initial render depending on collapsed/expanded + content
         gigmaEnsureEmptyDrop(f);
+        try{ if (typeof gigmaBindInfoPopupLongPress === 'function') {
+            gigmaBindInfoPopupLongPress(title, 'folderName');
+            gigmaBindInfoPopupLongPress(removeBtn, 'removeFolder');
+            gigmaBindInfoPopupLongPress(toggle, (el) => String((el && el.textContent) || '').trim() === 'Expand' ? 'expandFolder' : 'collapseFolder');
+            gigmaBindInfoPopupLongPress(showBtn, () => {
+                try{
+                    const activeId = (typeof window.gigmaRightPaneActiveFolderId === 'string') ? window.gigmaRightPaneActiveFolderId : 'none';
+                    return folder && folder.id && activeId === folder.id ? 'defocusFolder' : 'focusFolder';
+                }catch(_){ return 'focusFolder'; }
+            });
+        } }catch(_eInfo){}
         return f;
     };
     // Expose folder builder for reuse in in-place operations (avoids full list rebuilds)
@@ -36827,6 +37494,7 @@ if (changed) {
                     btn.title = title;
                     btn.setAttribute('aria-label', title);
                     afterBtn.insertAdjacentElement('afterend', btn);
+                    try{ if (typeof gigmaBindInfoPopupLongPress === 'function') gigmaBindInfoPopupLongPress(btn, 'restoreFolderStates'); }catch(_eInfo){}
                 }
             }catch(_){}
         }
