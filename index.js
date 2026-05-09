@@ -5435,11 +5435,172 @@ const GIGMA_INFO_POPUPS = {
         ],
         speech: 'Only Scan Needed Replacements. Reduces WI scan work without changing the final prompt. When enabled, GIGMA only sets as many entries past the WI budget to ignore the WI budget as are necessary to fill the gap left by trimming. When disabled, GIGMA sets every lorebook entry to ignore the WI budget, which costs more processing power for the same final prompt.',
     },
+    saveAsOtherPreset: {
+        title: 'Save child as parent preset / Save parent as child preset',
+        parts: [
+            'This button saves the current ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' as the other preset type. When you are currently editing a child preset, it saves the current layout as a parent preset. When you are currently editing a parent preset, it saves the current layout as a child preset. The original ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' is not deleted.',
+        ],
+        speech: 'Save child as parent preset / Save parent as child preset. This button saves the current layout preset as the other preset type. When you are currently editing a child preset, it saves the current layout as a parent preset. When you are currently editing a parent preset, it saves the current layout as a child preset. The original layout preset is not deleted.',
+    },
+    deleteMultipleLayoutPresets: {
+        title: 'Delete multiple layout presets',
+        parts: [
+            'Opens a popup where you can select multiple ',
+            { text: 'layout presets', target: 'layoutPreset' },
+            ' to delete. You can switch between child presets and parent presets inside the popup. You can use shift click to select a range of presets, control click to select several, individual presets, and control A to select all visible presets. After you press Delete, GIGMA asks for a final confirmation. Deleting presets cannot be undone.',
+        ],
+        speech: 'Delete multiple layout presets. Opens a popup where you can select multiple layout presets to delete. You can switch between child presets and parent presets inside the popup. You can use shift click to select a range of presets, control click to select several, individual presets, and control A to select all visible presets. After you press Delete, GIGMA asks for a final confirmation. Deleting presets cannot be undone.',
+    },
+    deleteMultipleAssignmentPresets: {
+        title: 'Delete multiple assignment presets',
+        parts: [
+            'Opens a popup where you can select multiple ',
+            { text: 'assignment presets', target: 'assignmentPreset' },
+            ' to delete. You can use shift click to select a range of presets, control click to select several, individual presets, and control A to select all visible presets. After you press Delete, GIGMA asks for a final confirmation. Deleting presets cannot be undone.',
+        ],
+        speech: 'Delete multiple assignment presets. Opens a popup where you can select multiple assignment presets to delete. You can use shift click to select a range of presets, control click to select several, individual presets, and control A to select all visible presets. After you press Delete, GIGMA asks for a final confirmation. Deleting presets cannot be undone.',
+    },
+    removeEmptyFoldersLeft: {
+        title: 'Remove all empty folders (left pane)',
+        parts: [
+            'Removes empty folders from the left lorebook pane. A folder is treated as empty when it contains no lorebooks. The unsorted folder will never be removed, no matter if it is empty or not.',
+        ],
+        speech: 'Remove all empty folders (left pane). Removes empty folders from the left lorebook pane. A folder is treated as empty when it contains no lorebooks. The unsorted folder will never be removed, no matter if it is empty or not.',
+    },
+    removeEmptyFoldersRight: {
+        title: 'Remove all empty folders (right pane)',
+        parts: [
+            'Removes empty folders from the right, focused folder lorebook pane. This option is only available in wide view, when there is a left and right lorebook pane.',
+        ],
+        speech: 'Remove all empty folders (right pane). Removes empty folders from the right, focused folder lorebook pane. This option is only available in wide view, when there is a left and right lorebook pane.',
+    },
+    budgetSettingsAlignment: {
+        title: 'Budget settings alignment',
+        parts: [
+            'Changes on which side of the lorebook row the budget controls appear on when in budget mode. When set to the left, the budget controls appear before the lorebook name. When set to the right, they appear after the lorebook name.',
+        ],
+        speech: 'Budget settings alignment. Changes on which side of the lorebook row the budget controls appear on when in budget mode. When set to the left, the budget controls appear before the lorebook name. When set to the right, they appear after the lorebook name.',
+    },
+    countNewlineSeparator: {
+        title: 'Count \\n separator in tokens',
+        parts: [
+            'Sillytavern inserts newlines in between entries of lorebooks when it assembles the prompt that gets sent to the API. This setting controls whether these newlines between the lorebook entries are being counted when calculating entry token counts and lorebook token counts, or not. When enabled, token totals include the newline that Sillytavern inserts between enabled, non-empty entries. When disabled, each entry is counted by its own token count only, and newlines between entries are disregarded.\n\n',
+            'The purpose of this setting is to provide more accurate token counts, since the newlines, which Sillytavern inserts between entries when it assembles the final prompt, get counted.',
+        ],
+        speech: 'Count \\n separator in tokens. Sillytavern inserts newlines in between entries of lorebooks when it assembles the prompt that gets sent to the API. This setting controls whether these newlines between the lorebook entries are being counted when calculating entry token counts and lorebook token counts, or not. When enabled, token totals include the newline that Sillytavern inserts between enabled, non-empty entries. When disabled, each entry is counted by its own token count only, and newlines between entries are disregarded. The purpose of this setting is to provide more accurate token counts, since the newlines, which Sillytavern inserts between entries when it assembles the final prompt, get counted.',
+    },
+    detailedLorebookEntries: {
+        title: 'Detailed lorebook entries',
+        parts: [
+            "Controls whether lorebook entries show their settings when expanded in GIGMA'S lorebook content view. When enabled, expanded entries show detailed settings such as keys, probability, trigger type, position, role, order, depth, recursion settings, matching settings, groups, filters, and tags. When disabled, the entries only display their text content when expanded.",
+        ],
+        speech: "Detailed lorebook entries. Controls whether lorebook entries show their settings when expanded in GIGMA'S lorebook content view. When enabled, expanded entries show detailed settings such as keys, probability, trigger type, position, role, order, depth, recursion settings, matching settings, groups, filters, and tags. When disabled, the entries only display their text content when expanded.",
+    },
+    debugLogs: {
+        title: 'Debug logs',
+        parts: [
+            'Debug logs for debugging. Useful for troubleshooting why entries were kept or trimmed. Use for testing and debugging, otherwise keep disabled.',
+        ],
+        speech: 'Debug logs. Debug logs for debugging. Useful for troubleshooting why entries were kept or trimmed. Use for testing and debugging, otherwise keep disabled.',
+    },
+    autoUpdateEntryOrderInWiUi: {
+        title: 'Auto-update entry order in WI UI',
+        parts: [
+            'When enabled, if order in the native WI UI is set to "custom", and you drag entries, they automatically update their order values from highest to lowest. The entry with the highest order value is inserted in the very top of your lorebook, the entry with the second highest order value comes thereafter and so on, until the entry with the lowest order value. The order values are incremental. Meaning, if the highest order value of an entry in your lorebook is for example 600, then the following entries will get the order values: 599, 588, 587 etc.',
+        ],
+        speech: 'Auto-update entry order in WI UI. When enabled, if order in the native WI UI is set to "custom", and you drag entries, they automatically update their order values from highest to lowest. The entry with the highest order value is inserted in the very top of your lorebook, the entry with the second highest order value comes thereafter and so on, until the entry with the lowest order value. The order values are incremental. Meaning, if the highest order value of an entry in your lorebook is for example 600, then the following entries will get the order values: 599, 588, 587 etc.',
+    },
+    undoHistorySteps: {
+        title: 'Undo history steps',
+        parts: [
+            'Decides how many undo steps GIGMA saves. Undo / Redo history is limited to changes done to ',
+            { text: 'layout presets', target: 'layoutPreset' },
+            ' or ',
+            { text: 'assignment presets', target: 'assignmentPreset' },
+            '. Higher values use more memory. Undo a change by pressing control + z. Redo a change by pressing control + shift + z or control + y.\n\nMinimum undo steps: 1\nMaximum undo steps: 99',
+        ],
+        speech: 'Undo history steps. Decides how many undo steps GIGMA saves. Undo / Redo history is limited to changes done to layout presets or assignment presets. Higher values use more memory. Undo a change by pressing control + z. Redo a change by pressing control + shift + z or control + y. Minimum undo steps: 1. Maximum undo steps: 99.',
+    },
+    hideUndoRedoDesktop: {
+        title: 'Hide undo & redo buttons on desktop',
+        parts: [
+            'Hides the Undo and Redo buttons in the preset control rows while using desktop layout. Useful since undo and redo can be accessed via keyboard shortcuts on desktop. The keyboard shortcuts for undo & redo on a desktop device are:\n\nUndo: Control + z.\nRedo: Control + shift + z or control + y.',
+        ],
+        speech: 'Hide undo & redo buttons on desktop. Hides the Undo and Redo buttons in the preset control rows while using desktop layout. Useful since undo and redo can be accessed via keyboard shortcuts on desktop. The keyboard shortcuts for undo and redo on a desktop device are: Undo: Control + z. Redo: Control + shift + z or control + y.',
+    },
+    longPressInfoPopup: {
+        title: 'Long button press opens information popup',
+        parts: [
+            'Decides whether info popups that explain the functions of buttons should appear when a button is pressed for an extended period of time. When enabled, long pressing a button opens up an info popup which explains the functionality of the button. This setting is useful to understand how GIGMA works.',
+        ],
+        speech: 'Long button press opens information popup. Decides whether info popups that explain the functions of buttons should appear when a button is pressed for an extended period of time. When enabled, long pressing a button opens up an info popup which explains the functionality of the button. This setting is useful to understand how GIGMA works.',
+    },
+    infoPopupDelay: {
+        title: 'Information popup opens after',
+        parts: [
+            'Decides how long you must hold a button or setting before its information popup opens. The value is measured in seconds and can be set from 0.5 to 9.9 seconds.',
+        ],
+        speech: 'Information popup opens after. Decides how long you must hold a button or setting before its information popup opens. The value is measured in seconds and can be set from 0.5 to 9.9 seconds.',
+    },
+    infoPopupTextAlignment: {
+        title: 'Alignment of info popup text',
+        parts: [
+            'Decides how the text inside information popups is aligned. Left keeps the text aligned to the left. Column uses justified paragraph text. Centered centers the text.',
+        ],
+        speech: 'Alignment of info popup text. Decides how the text inside information popups is aligned. Left keeps the text aligned to the left. Column uses justified paragraph text. Centered centers the text.',
+    },
+    autoTtsInfoText: {
+        title: 'Auto-TTS info text',
+        parts: [
+            'Controls whether information popups automatically read their text aloud when opened. When enabled, the popup starts TTS automatically. When disabled, the popup still opens, but it does not automatically read out the text of the info popup. The TTS can still be manually activated. This setting is also the same as the "auto-tts" checkmark in the TTS section of each info popup, and it is synchronized to that checkmark.',
+        ],
+        speech: 'Auto-TTS info text. Controls whether information popups automatically read their text aloud when opened. When enabled, the popup starts TTS automatically. When disabled, the popup still opens, but it does not automatically read out the text of the info popup. The TTS can still be manually activated. This setting is also the same as the auto-tts checkmark in the TTS section of each info popup, and it is synchronized to that checkmark.',
+    },
+    lorebookIdProcessDialog: {
+        title: 'LB ID assignment & removal popup',
+        parts: [
+            'GIGMA assigns a lorebook ID to each lorebook, and writes those lorebook IDs into all your lorebook JSON files, in order to track those lorebooks in the extension.\n\n',
+            'This setting controls whether GIGMA shows a progress popup while it is automatically assigning or removing lorebook IDs from lorebook JSON files. The popup shows the current lorebook file, progress counts, and an Abort button. This setting only controls whether the progress of the lorebook ID assignment or removal is being shown in a dedicated popup; it has no impact on functionality. This is merely a visual setting and does not impact whether lorebook IDs are assigned or deleted.',
+        ],
+        speech: 'LB ID assignment & removal popup. GIGMA assigns a lorebook ID to each lorebook, and writes those lorebook IDs into all your lorebook JSON files, in order to track those lorebooks in the extension. This setting controls whether GIGMA shows a progress popup while it is automatically assigning or removing lorebook IDs from lorebook JSON files. The popup shows the current lorebook file, progress counts, and an Abort button. This setting only controls whether the progress of the lorebook ID assignment or removal is being shown in a dedicated popup; it has no impact on functionality. This is merely a visual setting and does not impact whether lorebook IDs are assigned or deleted.',
+    },
+    eraseLorebookIds: {
+        title: 'Erase all LB IDs from world json files',
+        parts: [
+            'GIGMA assigns a lorebook ID to each lorebook, and writes those lorebook IDs into all your lorebook JSON files, in order to track those lorebooks in the extension. This setting removes all those lorebook IDs from all your world JSON files, thereby resetting your lorebook JSON files to the way they would be without GIGMA installed. This does not delete lorebooks or lorebook entries.\n\n',
+            'GIGMA also writes lorebook IDs for all lorebooks into your settings.json file. This setting does ',
+            { text: 'not', strong: true },
+            ' delete any lorebook IDs from your settings.json file.\n\n',
+            'So, your lorebook IDs will still be saved in the settings.json file, and will be automatically written back into your lorebook json files if GIGMA remains installed.\n\n',
+            'This setting is useful for testing purposes, or when you want to uninstall GIGMA without leaving any traces.',
+        ],
+        speech: 'Erase all LB IDs from world json files. GIGMA assigns a lorebook ID to each lorebook, and writes those lorebook IDs into all your lorebook JSON files, in order to track those lorebooks in the extension. This setting removes all those lorebook IDs from all your world JSON files, thereby resetting your lorebook JSON files to the way they would be without GIGMA installed. This does not delete lorebooks or lorebook entries. GIGMA also writes lorebook IDs for all lorebooks into your settings.json file. This setting does not delete any lorebook IDs from your settings.json file. So, your lorebook IDs will still be saved in the settings.json file, and will be automatically written back into your lorebook json files if GIGMA remains installed. This setting is useful for testing purposes, or when you want to uninstall GIGMA without leaving any traces.',
+    },
+    eraseGigmaSettings: {
+        title: 'Erase all GIGMA extension settings',
+        parts: [
+            'When uninstalling an extension from within Sillytavern, traces from that extension are left in the settings.json file. Therefore, you can use this setting to remove GIGMA without a trace.\n\n',
+            'This setting erases all stored GIGMA extension settings, including all ',
+            { text: 'layout presets', target: 'layoutPreset' },
+            ', all ',
+            { text: 'assignment presets', target: 'assignmentPreset' },
+            ' and preferences. The confirmation popup also offers to remove all lorebook IDs from world JSON files. This setting merely deletes all data that was generates by the GIGMA extension, thereby removing the GIGMA extension without a trace. This setting does ',
+            { text: 'not', strong: true },
+            ' remove any lorebooks, entries, characters, personas, chats, profiles, or any other user generated data, or data that is native to Sillytavern. It merely removes GIGMA without a trace.',
+        ],
+        speech: 'Erase all GIGMA extension settings. When uninstalling an extension from within Sillytavern, traces from that extension are left in the settings.json file. Therefore, you can use this setting to remove GIGMA without a trace. This setting erases all stored GIGMA extension settings, including all layout presets, all assignment presets and preferences. The confirmation popup also offers to remove all lorebook IDs from world JSON files. This setting merely deletes all data that was generates by the GIGMA extension, thereby removing the GIGMA extension without a trace. This setting does not remove any lorebooks, entries, characters, personas, chats, profiles, or any other user generated data, or data that is native to Sillytavern. It merely removes GIGMA without a trace.',
+    },
     wideNarrowButton: {
         title: 'Wide / Narrow button',
         titleIconSelector: '.gigmaWidthBtn',
         parts: [
-            'This button switches the modal between narrow view and wide view. The only difference between narrow and wide view is that in wide view, there are two lorebook panes instead of one. Two lorebook panes make it easier to drag items between folders. Think of it like two explorer windows or two finder windows side by side, in split screen. Makes it easier to move an item from one folder to another.',
+            'This button switches the ',
+            { text: 'modal', target: 'modal' },
+            ' between narrow view and wide view. The only difference between narrow and wide view is that in wide view, there are two lorebook panes instead of one. Two lorebook panes make it easier to drag items between folders. Think of it like two explorer windows or two finder windows side by side, in split screen. Makes it easier to move an item from one folder to another.',
         ],
         speech: 'Wide / Narrow button. This button switches the modal between narrow view and wide view. The only difference between narrow and wide view is that in wide view, there are two lorebook panes instead of one. Two lorebook panes make it easier to drag items between folders. Think of it like two explorer windows or two finder windows side by side, in split screen. Makes it easier to move an item from one folder to another.',
     },
@@ -5447,7 +5608,13 @@ const GIGMA_INFO_POPUPS = {
         title: 'View lock button',
         titleIconSelector: '#gigma-view-lock-global',
         parts: [
-            'This button locks or unlocks the modal’s current scroll position. When view lock is enabled, the main modal stays at the same scroll position, which helps prevent accidental scrolling while you work. Scrollable controls inside the modal can still scroll when they have their own scroll area.',
+            'This button locks or unlocks the ',
+            { text: 'modal', target: 'modal' },
+            '’s current scroll position. When view lock is enabled, the main ',
+            { text: 'modal', target: 'modal' },
+            ' stays at the same scroll position, which helps prevent accidental scrolling while you work. Scrollable controls inside the ',
+            { text: 'modal', target: 'modal' },
+            ' can still scroll when they have their own scroll area.',
         ],
         speech: 'View lock button. This button locks or unlocks the modal’s current scroll position. When view lock is enabled, the main modal stays at the same scroll position, which helps prevent accidental scrolling while you work. Scrollable controls inside the modal can still scroll when they have their own scroll area.',
     },
@@ -5455,7 +5622,13 @@ const GIGMA_INFO_POPUPS = {
         title: 'Scroll to top button',
         titleIconSelector: '#gigma-scroll-top-global',
         parts: [
-            'This button scrolls the modal to the top preset section, where the child/parent layout preset controls are located. Use it when you want to quickly return to the layout preset area without manually scrolling upward.',
+            'This button scrolls the ',
+            { text: 'modal', target: 'modal' },
+            ' to the top preset section, where the child/parent ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' controls are located. Use it when you want to quickly return to the ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' area without manually scrolling upward.',
         ],
         speech: 'Scroll to top button. This button scrolls the modal to the top preset section, where the child/parent layout preset controls are located. Use it when you want to quickly return to the layout preset area without manually scrolling upward.',
     },
@@ -5463,7 +5636,11 @@ const GIGMA_INFO_POPUPS = {
         title: 'Scroll to center button',
         titleIconSelector: '#gigma-center-panes-global',
         parts: [
-            'This button scrolls the modal until the lorebook ordering area is centered in the visible part of the modal. Use it when you want to quickly return to the main lorebook ordering and budget area.',
+            'This button scrolls the ',
+            { text: 'modal', target: 'modal' },
+            ' until the lorebook ordering area is centered in the visible part of the ',
+            { text: 'modal', target: 'modal' },
+            '. Use it when you want to quickly return to the main lorebook ordering and budget area.',
         ],
         speech: 'Scroll to center button. This button scrolls the modal until the lorebook ordering area is centered in the visible part of the modal. Use it when you want to quickly return to the main lorebook ordering and budget area.',
     },
@@ -5471,7 +5648,13 @@ const GIGMA_INFO_POPUPS = {
         title: 'Scroll to bottom button',
         titleIconSelector: '#gigma-scroll-bottom-global',
         parts: [
-            'This button scrolls the modal to the assignment preset section near the bottom. Use it when you want to quickly edit which layout preset should be used for each speaker.',
+            'This button scrolls the ',
+            { text: 'modal', target: 'modal' },
+            ' to the ',
+            { text: 'assignment preset', target: 'assignmentPreset' },
+            ' section near the bottom. Use it when you want to quickly edit which ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' should be used for each speaker.',
         ],
         speech: 'Scroll to bottom button. This button scrolls the modal to the assignment preset section near the bottom. Use it when you want to quickly edit which layout preset should be used for each speaker.',
     },
@@ -5495,7 +5678,15 @@ const GIGMA_INFO_POPUPS = {
         title: 'Close without saving button',
         titleIconSelector: '#gigma-global-cancel',
         parts: [
-            'This button closes the modal without pressing the quicksave buttons first. Use it when you want to leave the modal without saving the current layout preset and assignment preset under their current names.',
+            'This button closes the ',
+            { text: 'modal', target: 'modal' },
+            ' without pressing the quicksave buttons first. Use it when you want to leave the ',
+            { text: 'modal', target: 'modal' },
+            ' without saving the current ',
+            { text: 'layout preset', target: 'layoutPreset' },
+            ' and ',
+            { text: 'assignment preset', target: 'assignmentPreset' },
+            ' under their current names.',
         ],
         speech: 'Close without saving button. This button closes the modal without pressing the quicksave buttons first. Use it when you want to leave the modal without saving the current layout preset and assignment preset under their current names.',
     },
@@ -5536,6 +5727,36 @@ function gigmaSetInfoPopupDelaySecondsPref(value){
         if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
         return next;
     }catch(_){ return 1; }
+}
+function gigmaNormalizeInfoPopupTextAlignment(value){
+    const v = String(value || '').toLowerCase();
+    return (v === 'column' || v === 'centered') ? v : 'left';
+}
+function gigmaGetInfoPopupTextAlignmentPref(){
+    try{ return gigmaNormalizeInfoPopupTextAlignment(gigmaExtensionSettings && gigmaExtensionSettings.infoPopupTextAlignment); }
+    catch(_){ return 'left'; }
+}
+function gigmaSetInfoPopupTextAlignmentPref(value){
+    try{
+        const next = gigmaNormalizeInfoPopupTextAlignment(value);
+        if (gigmaExtensionSettings && typeof gigmaExtensionSettings === 'object') {
+            if (next === 'left') delete gigmaExtensionSettings.infoPopupTextAlignment;
+            else gigmaExtensionSettings.infoPopupTextAlignment = next;
+        }
+        gigmaApplyInfoPopupTextAlignmentClass(GIGMA_INFO_POPUP_STATE.root);
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+        return next;
+    }catch(_){ return 'left'; }
+}
+function gigmaGetInfoPopupTextAlignmentClass(){
+    return 'gigma-info-align-' + gigmaGetInfoPopupTextAlignmentPref();
+}
+function gigmaApplyInfoPopupTextAlignmentClass(root){
+    try{
+        if (!root || !root.classList) return;
+        root.classList.remove('gigma-info-align-left', 'gigma-info-align-column', 'gigma-info-align-centered');
+        root.classList.add(gigmaGetInfoPopupTextAlignmentClass());
+    }catch(_){ }
 }
 function gigmaGetReadInfoPopupTtsPref(){
     try{
@@ -5608,14 +5829,21 @@ function gigmaBuildInfoPopupTitleIconHtml(info){
         return `<span class="gigma-info-title-icon" aria-hidden="true">${clone.innerHTML || gigmaEscapeInfoPopupText(clone.textContent || '')}</span>`;
     }catch(_){ return ''; }
 }
+function gigmaBuildInfoPopupPartHtml(part){
+    if (part && part.strong) return `<strong>${gigmaEscapeInfoPopupText(part.text)}</strong>`;
+    if (part && part.icon === 'giglioModalButton') return `<img class="gigma-info-inline-modal-icon" src="${gigmaEscapeInfoPopupText(GIGLIO_ICON_SRC)}" alt="" aria-hidden="true" />`;
+    const target = GIGMA_INFO_POPUPS[part.target] ? part.target : GIGMA_INFO_POPUP_DEFAULT_ID;
+    return `<button type="button" class="gigma-info-link" data-gigma-info-target="${gigmaEscapeInfoPopupText(target)}">${gigmaEscapeInfoPopupText(part.text)}</button>`;
+}
+function gigmaBuildInfoPopupBodyPartsHtml(parts){
+    return (parts || []).map(part => {
+        if (typeof part === 'string') return gigmaEscapeInfoPopupText(part).replace(/\r\n?/g, '\n');
+        return gigmaBuildInfoPopupPartHtml(part);
+    }).join('');
+}
 function gigmaBuildInfoPopupBodyHtml(infoId){
     const info = GIGMA_INFO_POPUPS[infoId] || GIGMA_INFO_POPUPS[GIGMA_INFO_POPUP_DEFAULT_ID];
-    const body = (info.parts || []).map(part => {
-        if (typeof part === 'string') return gigmaEscapeInfoPopupText(part);
-        if (part && part.icon === 'giglioModalButton') return `<img class="gigma-info-inline-modal-icon" src="${gigmaEscapeInfoPopupText(GIGLIO_ICON_SRC)}" alt="" aria-hidden="true" />`;
-        const target = GIGMA_INFO_POPUPS[part.target] ? part.target : GIGMA_INFO_POPUP_DEFAULT_ID;
-        return `<button type="button" class="gigma-info-link" data-gigma-info-target="${gigmaEscapeInfoPopupText(target)}">${gigmaEscapeInfoPopupText(part.text)}</button>`;
-    }).join('');
+    const body = gigmaBuildInfoPopupBodyPartsHtml(info.parts || []);
     return `
         <h2 class="gigma-info-title"><span class="gigma-info-title-text">${gigmaEscapeInfoPopupText(info.title)}</span>${gigmaBuildInfoPopupTitleIconHtml(info)}</h2>
         <div class="gigma-info-copy" lang="en">${body}</div>
@@ -6039,7 +6267,7 @@ function gigmaSeekInfoPopupAudio(deltaSeconds){
 }
 function gigmaBuildInfoPopupShellHtml(){
     return `
-        <div id="gigma-info-popup-root">
+        <div id="gigma-info-popup-root" class="${gigmaGetInfoPopupTextAlignmentClass()}">
             <div class="gigma-info-header">
                 <div class="gigma-info-nav">
                     <button id="gigma-info-back" class="menu_button gigma-info-square-btn" type="button" aria-label="Previous information popup" title="Previous information popup"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
@@ -6290,13 +6518,23 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
   column-count:1;
   font-size:1em;
   line-height:1.45;
-  text-align:justify;
-  text-align-last:auto;
-  white-space:normal;
+  white-space:pre-line;
   overflow-wrap:normal;
   word-break:normal;
   hyphens:auto;
   -webkit-hyphens:auto;
+}
+#gigma-info-popup-root.gigma-info-align-left .gigma-info-copy{
+  text-align:left;
+  text-align-last:auto;
+}
+#gigma-info-popup-root.gigma-info-align-column .gigma-info-copy{
+  text-align:justify;
+  text-align-last:auto;
+}
+#gigma-info-popup-root.gigma-info-align-centered .gigma-info-copy{
+  text-align:center;
+  text-align-last:center;
 }
 #gigma-info-popup-root .gigma-info-inline-modal-icon{
   width:1.25em;
@@ -7020,9 +7258,46 @@ function gigmaBindModalHeaderInfoPopups(root){
         }
     }catch(_){ }
 }
+function gigmaBindModalSettingsInfoPopups(popup){
+    try{
+        const scope = popup && popup.querySelector ? popup : document;
+        const pairs = [
+            ['#gigma-modal-convert-parent', 'saveAsOtherPreset'],
+            ['#gigma-modal-convert-child', 'saveAsOtherPreset'],
+            ['#gigma-modal-settings-multi-delete-btn', 'deleteMultipleLayoutPresets'],
+            ['#gigma-modal-settings-assignment-delete-btn', 'deleteMultipleAssignmentPresets'],
+            ['#gigma-clear-folders', 'removeEmptyFoldersLeft'],
+            ['#gigma-clear-folders-right', 'removeEmptyFoldersRight'],
+            ['#gigma-modal-settings-budget-side-btn', 'budgetSettingsAlignment'],
+            ['#gigma-modal-settings-newline-btn', 'countNewlineSeparator'],
+            ['#gigma-modal-settings-detailed-btn', 'detailedLorebookEntries'],
+            ['#gigma-modal-settings-ignore-budget-bypass-btn', 'trimWhenWiBudgetExceeded'],
+            ['#gigma-modal-settings-ignore-budget-bypass-selective-btn', 'onlyBypassNeededReplacements'],
+            ['#gigma-modal-settings-budget-debug-logs-btn', 'debugLogs'],
+            ['#gigma-modal-settings-auto-wi-order-btn', 'autoUpdateEntryOrderInWiUi'],
+            ['#gigma-modal-settings-undo-limit-input', 'undoHistorySteps'],
+            ['#gigma-modal-settings-hide-undo-redo-desktop-btn', 'hideUndoRedoDesktop'],
+            ['#gigma-modal-settings-info-popup-long-press-btn', 'longPressInfoPopup'],
+            ['#gigma-modal-settings-info-popup-delay-input', 'infoPopupDelay'],
+            ['#gigma-modal-settings-info-popup-alignment-select', 'infoPopupTextAlignment'],
+            ['#gigma-modal-settings-info-popup-tts-btn', 'autoTtsInfoText'],
+            ['#gigma-modal-settings-show-lorebook-id-dialog-btn', 'lorebookIdProcessDialog'],
+            ['#gigma-modal-settings-erase-lorebook-ids-btn', 'eraseLorebookIds'],
+            ['#gigma-modal-settings-erase-all-btn', 'eraseGigmaSettings'],
+        ];
+        for (const [selector, infoId] of pairs) {
+            const nodes = scope.querySelectorAll(selector);
+            for (const node of nodes) {
+                const bindTarget = node.closest && node.closest('label') ? node.closest('label') : node;
+                gigmaBindInfoPopupLongPress(bindTarget, infoId);
+            }
+        }
+    }catch(_){ }
+}
 function gigmaMountInfoPopup(root, autoSpeak){
     if (!root) return;
     GIGMA_INFO_POPUP_STATE.root = root;
+    gigmaApplyInfoPopupTextAlignmentClass(root);
     root.addEventListener('click', (ev) => {
         try{
             const target = ev.target && ev.target.closest ? ev.target.closest('button') : null;
@@ -19938,6 +20213,15 @@ function gigmaInstallModalSettingsPopupStylesOnce() {
   min-width:4.8em;
   text-align:center;
 }
+#gigma-modal-root #gigma-modal-settings-popup .gigma-settings-slot .gigma-modal-settings-select{
+  width:7.4em;
+  min-width:7.4em;
+}
+#gigma-modal-root #gigma-modal-settings-popup #gigma-modal-settings-info-popup-alignment-select{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:max-content !important;
+}
 dialog:has(#gigma-erase-settings-confirm-root){
   width:34em !important;
 }
@@ -20623,6 +20907,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Hide undo & redo buttons on desktop', 'gigma-modal-settings-slot-hide-undo-redo-desktop');
             addRow('Long button press opens information popup', 'gigma-modal-settings-slot-info-popup-long-press');
             addRow('Information popup opens after', 'gigma-modal-settings-slot-info-popup-delay');
+            addRow('Alignment of info popup text', 'gigma-modal-settings-slot-info-popup-alignment');
             addRow('Auto-TTS info text', 'gigma-modal-settings-slot-info-popup-tts');
             addRow('LB ID assignment & removal popup', 'gigma-modal-settings-slot-show-lorebook-id-dialog');
             addRow('Erase all LB IDs from world json files', 'gigma-modal-settings-slot-erase-lorebook-ids');
@@ -20969,6 +21254,32 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             slotInfoPopupDelay.replaceChildren(wrap);
         }
 
+        const slotInfoPopupAlignment = popup.querySelector('#gigma-modal-settings-slot-info-popup-alignment');
+        if (slotInfoPopupAlignment) {
+            let select = popup.querySelector('#gigma-modal-settings-info-popup-alignment-select');
+            if (!select) {
+                select = document.createElement('select');
+                select.id = 'gigma-modal-settings-info-popup-alignment-select';
+                select.className = 'text_pole textarea_compact gigma-modal-settings-select';
+                const options = [
+                    ['left', 'Left'],
+                    ['column', 'Column'],
+                    ['centered', 'Centered'],
+                ];
+                for (const [value, label] of options) {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = label;
+                    select.appendChild(option);
+                }
+                select.addEventListener('change', () => {
+                    select.value = gigmaSetInfoPopupTextAlignmentPref(select.value);
+                });
+            }
+            select.value = gigmaGetInfoPopupTextAlignmentPref();
+            slotInfoPopupAlignment.replaceChildren(select);
+        }
+
         const slotInfoPopupTts = popup.querySelector('#gigma-modal-settings-slot-info-popup-tts');
         if (slotInfoPopupTts) {
             let b = popup.querySelector('#gigma-modal-settings-info-popup-tts-btn');
@@ -21068,6 +21379,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
         }
 
         gigmaUpdateModalSettingsConvertButtonVisibility(root);
+        try { gigmaBindModalSettingsInfoPopups(popup); } catch (_eInfoSettings) { }
 
         if (!(root.dataset && root.dataset.gigmaModalSettingsPopupWired === '1')) {
             if (root.dataset) root.dataset.gigmaModalSettingsPopupWired = '1';
