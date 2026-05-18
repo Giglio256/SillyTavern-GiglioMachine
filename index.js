@@ -5404,6 +5404,19 @@ const GIGMA_INFO_POPUPS = {
         ],
         speech: 'Modal. The modal is the main popup which opens when you click the GIGMA cat icon in the top center of the native SillyTavern world info UI.',
     },
+    openGigmaButton: {
+        title: 'Open GIGMA',
+        titleIconSelector: '#lorebook_ordering_button',
+        parts: [
+            'Opens the GIGMA ',
+            { text: 'modal', target: 'modal' },
+            '.\n\nUse this button to open the main extension popup, called the modal. In it, you can set the order and budget of your lorebooks, view lorebook and global token statistics, and manage ',
+            { text: 'layout presets', target: 'layoutPreset' },
+            ' and ',
+            { text: 'assignment presets', target: 'assignmentPreset' },
+            '.',
+        ],
+    },
     assignmentPreset: {
         title: 'Assignment preset',
         parts: [
@@ -5803,20 +5816,18 @@ const GIGMA_INFO_POPUPS = {
     },
     globalWiStatisticsSettings: {
         title: 'Global WI statistics settings',
-        titleIconSelector: '#gigma-modal-global-wi-stats, #gigma-modal-global-wi-stats-right',
+        titleIconSelector: '#gigma-modal-global-wi-stats, #gigma-modal-global-wi-stats-right, #gigma-worldinfo-global-wi-stats',
         parts: [
-            'Opens the global WI statistics settings dropdown menu to set the settings for the WI statistics panel. In this dropdown menu, you can decide which global statistics you want to have permanently displayed in the ',
-            { text: 'modal', target: 'modal' },
-            '.',
+            'Opens the global WI statistics settings dropdown menu. In it, you can modify which global WI statistics are displayed.\n\nThe global statistics settings are divided into the sections Budget & Context, Lorebooks & Folders, Raw, Activated, and Included.\n\nWhen both Entries and Tokens are displayed, each statistic is shown as Entries/Tokens: the entry count appears before the slash, and the token count appears after the slash.',
         ],
     },
     generateStatistics: {
         title: 'Generate statistics',
-        titleIconSelector: '#gigma-modal-stats-refresh, #gigma-modal-stats-refresh-right, #gigma-modal-ordering-refresh',
+        titleIconSelector: '#gigma-modal-stats-refresh, #gigma-modal-stats-refresh-right, #gigma-modal-ordering-refresh, #gigma-worldinfo-usage-refresh',
         parts: [
-            'Runs a dry World Info scan to refresh Activated and Included statistics for all lorebooks. After the dry scan is finished, you can expand the content of lorebooks. You will then see an "A" to the left of entries that were activated via keyword activation, and an "I" to the left of entries that will actually be included and not get trimmed by the budget settings that you set for this lorebook. Keep in mind that by default, lorebooks only get trimmed once the world info budget is exceeded, and only as much as is necessary to stay below the world info budget. This can be changed in the setting "',
+            'Runs a dry World Info scan to generate entry markers that show which lorebook entries activate through keywords and which entries are included in the final prompt after GIGMA\'s budget settings are applied.\n\nBy default, GIGMA\'s budget settings are only applied when the World Info budget is exceeded. You can change this with the setting "',
             { text: 'Only Trim When WI Budget Exceeded', target: 'trimWhenWiBudgetExceeded' },
-            '".',
+            '".\n\nEntries that activate through keywords receive an "A" marker. Entries that are included in the final prompt sent to the API receive an "I" marker.',
         ],
     },
     lorebookStatisticsSettings: {
@@ -7934,6 +7945,21 @@ function gigmaBindModalButtonInfoPopups(root){
                     : (node.closest && node.closest('label') ? node.closest('label') : node);
                 gigmaBindInfoPopupLongPress(bindTarget, infoId);
             }
+        }
+    }catch(_){ }
+}
+
+function gigmaBindNativeWorldInfoInfoPopups(root){
+    try{
+        const scope = root && root.querySelectorAll ? root : document;
+        const pairs = [
+            ['#lorebook_ordering_button', 'openGigmaButton'],
+            ['#gigma-worldinfo-usage-refresh', 'generateStatistics'],
+            ['#gigma-worldinfo-global-wi-stats', 'globalWiStatisticsSettings'],
+        ];
+        for (const [selector, infoId] of pairs) {
+            const nodes = scope.querySelectorAll(selector);
+            for (const node of nodes) gigmaBindInfoPopupLongPress(node, infoId);
         }
     }catch(_){ }
 }
@@ -22951,6 +22977,7 @@ function addGiglioMachineButton() {
 
 
         if (hasOrdering && hasUsageRefresh && hasGlobalWiStatsBtn && hasGlobalWiStatsPanel && hasLorebookStatsBtn && hasLorebookStatsPanel) {
+            try { gigmaBindNativeWorldInfoInfoPopups(document); } catch (_eInfoNativeExisting) { }
             gigmaUpdateManualUsageRefreshButtonsUi();
             gigmaEnsureWorldInfoTokenObserver();
             try{ gigmaUpdateGlobalWiStatsControlsUi('wi'); }catch(_e){}
@@ -22998,6 +23025,7 @@ function addGiglioMachineButton() {
             button.addEventListener('click', async () => {
                 await openLorebookSettings();
             });
+            try { gigmaBindInfoPopupLongPress(button, 'openGigmaButton'); } catch (_eInfoOpenGigma) { }
             worldInfoSearch.parentNode.insertBefore(button, worldInfoSearch);
         }
 
@@ -23027,6 +23055,7 @@ function addGiglioMachineButton() {
                 try { ev.preventDefault(); ev.stopPropagation(); } catch { }
                 scheduleBackground(() => gigmaRefreshLastGenerationUsageSnapshot({ source: 'world-info-ui' }));
             });
+            try { gigmaBindInfoPopupLongPress(rBtn, 'generateStatistics'); } catch (_eInfoNativeGen) { }
             worldInfoSearch.parentNode.insertBefore(rBtn, worldInfoSearch);
         }
 
@@ -23169,6 +23198,7 @@ function addGiglioMachineButton() {
             }
 
             if (btn.parentNode !== globalWrap) globalWrap.appendChild(btn);
+            try { gigmaBindInfoPopupLongPress(btn, 'globalWiStatisticsSettings'); } catch (_eInfoNativeGlobalStats) { }
             if (globalCollapseBtn.parentNode !== globalWrap) globalWrap.appendChild(globalCollapseBtn);
             if (panel.parentNode !== globalWrap) globalWrap.appendChild(panel);
 
@@ -23250,6 +23280,7 @@ function addGiglioMachineButton() {
             }catch(_eDoc){}
         } catch (_eWiBtn) { }
 
+        try { gigmaBindNativeWorldInfoInfoPopups(document); } catch (_eInfoNativeDone) { }
         gigmaUpdateWorldInfoTokenAlignButton();
         gigmaUpdateWorldInfoUsageToggleButtons();
         gigmaUpdateManualUsageRefreshButtonsUi();
