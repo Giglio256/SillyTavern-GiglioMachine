@@ -5816,14 +5816,14 @@ const GIGMA_INFO_POPUPS = {
     },
     globalWiStatisticsSettings: {
         title: 'Global WI statistics settings',
-        titleIconSelector: '#gigma-modal-global-wi-stats, #gigma-modal-global-wi-stats-right, #gigma-worldinfo-global-wi-stats',
+        titleIconSelector: '#gigma-modal-global-wi-stats, #gigma-modal-global-wi-stats-right, #gigma-layout-preset-tree-global-wi-stats, #gigma-worldinfo-global-wi-stats',
         parts: [
             'Opens the global WI statistics settings dropdown menu. In it, you can modify which global WI statistics are displayed.\n\nThe global statistics settings are divided into the sections Budget & Context, Lorebooks & Folders, Raw, Activated, and Included.\n\nWhen both Entries and Tokens are displayed, each statistic is shown as Entries/Tokens: the entry count appears before the slash, and the token count appears after the slash.',
         ],
     },
     generateStatistics: {
         title: 'Generate statistics',
-        titleIconSelector: '#gigma-modal-stats-refresh, #gigma-modal-stats-refresh-right, #gigma-modal-ordering-refresh, #gigma-worldinfo-usage-refresh',
+        titleIconSelector: '#gigma-modal-stats-refresh, #gigma-modal-stats-refresh-right, #gigma-modal-ordering-refresh, #gigma-layout-preset-tree-stats-refresh, #gigma-worldinfo-usage-refresh',
         parts: [
             'Runs a dry World Info scan to generate entry markers that show which lorebook entries activate through keywords and which entries are included in the final prompt after GIGMA\'s budget settings are applied.\n\nBy default, GIGMA\'s budget settings are only applied when the World Info budget is exceeded. You can change this with the setting "',
             { text: 'Only Trim When WI Budget Exceeded', target: 'trimWhenWiBudgetExceeded' },
@@ -5832,16 +5832,30 @@ const GIGMA_INFO_POPUPS = {
     },
     lorebookStatisticsSettings: {
         title: 'Lorebook statistics settings',
-        titleIconSelector: '#gigma-modal-stats-cats, #gigma-modal-stats-cats-right',
+        titleIconSelector: '#gigma-modal-stats-cats, #gigma-modal-stats-cats-right, #gigma-layout-preset-tree-stats-cats, #gigma-worldinfo-lorebook-stats',
         parts: [
-            'Opens the lorebook statistics settings dropdown menu to set the settings for the lorebook statistics panel. In this dropdown menu, you can decide which lorebook statistics you want to have displayed in the lorebook rows, such as entry counts, token counts, raw stats, activated stats, included stats, and category-specific stats.',
+            'Opens the lorebook statistics settings dropdown menu. In it, you can modify which lorebook statistics are displayed.\n\nThe lorebook statistics settings are divided into the sections Raw, Activated, and Included.\n\nWhen both Entries and Tokens are displayed, each statistic is shown as Entries/Tokens: the entry count appears before the slash, and the token count appears after the slash.',
         ],
     },
-    expandCollapseStatisticsDisplay: {
-        title: 'Expand / collapse statistics display',
-        titleIconSelector: '#gigma-modal-global-wi-stats-collapse, #gigma-modal-stats-collapse, #gigma-modal-stats-collapse-right',
+    expandCollapseGlobalWiStatistics: {
+        title: 'Expand / collapse global WI statistics',
+        titleIconSelector: '#gigma-modal-global-wi-stats-collapse, #gigma-layout-preset-tree-global-wi-stats-collapse, #gigma-worldinfo-global-wi-collapse',
         parts: [
-            'Expands or collapses the visible statistics display without disabling the statistics feature itself.',
+            'Expands or collapses the global WI statistics display, without enabling or disabling global WI statistics.',
+        ],
+    },
+    expandCollapseLorebookStatistics: {
+        title: 'Expand / collapse lorebook statistics',
+        titleIconSelector: '#gigma-modal-stats-collapse, #gigma-modal-stats-collapse-right, #gigma-layout-preset-tree-stats-collapse, #gigma-worldinfo-lorebook-collapse',
+        parts: [
+            'Expands or collapses the lorebook statistics display, without enabling or disabling lorebook statistics.',
+        ],
+    },
+    duplicateSentences: {
+        title: 'Duplicate Sentences',
+        titleIconSelector: '#gigma-duplicate-sentences-open',
+        parts: [
+            'Opens the Duplicate Sentences Removal tool.\n\nUse this tool to scan lorebooks for duplicate sentences and remove all duplicate copies except the last one. You can choose which lorebooks to scan, which duplicate sentences to remove, and the minimum sentence length required for duplicates to appear in the results. The default minimum length is 15 characters.\n\nThis tool performs destructive actions by modifying the contents of lorebook entries.',
         ],
     },
     focusedFolderShortcut: {
@@ -7918,7 +7932,8 @@ function gigmaBindModalButtonInfoPopups(root){
             ['#gigma-modal-global-wi-stats, #gigma-modal-global-wi-stats-right', 'globalWiStatisticsSettings'],
             ['#gigma-modal-stats-refresh, #gigma-modal-stats-refresh-right, #gigma-modal-ordering-refresh', 'generateStatistics'],
             ['#gigma-modal-stats-cats, #gigma-modal-stats-cats-right', 'lorebookStatisticsSettings'],
-            ['#gigma-modal-global-wi-stats-collapse, #gigma-modal-stats-collapse, #gigma-modal-stats-collapse-right', 'expandCollapseStatisticsDisplay'],
+            ['#gigma-modal-global-wi-stats-collapse', 'expandCollapseGlobalWiStatistics'],
+            ['#gigma-modal-stats-collapse, #gigma-modal-stats-collapse-right', 'expandCollapseLorebookStatistics'],
             ['#gigma-unsorted-title', 'focusedFolderShortcut'],
             ['.gigma-folder-title', 'folderName'],
             ['.gigma-folder-remove', 'removeFolder'],
@@ -7956,6 +7971,10 @@ function gigmaBindNativeWorldInfoInfoPopups(root){
             ['#lorebook_ordering_button', 'openGigmaButton'],
             ['#gigma-worldinfo-usage-refresh', 'generateStatistics'],
             ['#gigma-worldinfo-global-wi-stats', 'globalWiStatisticsSettings'],
+            ['#gigma-worldinfo-lorebook-stats', 'lorebookStatisticsSettings'],
+            ['#gigma-worldinfo-global-wi-collapse', 'expandCollapseGlobalWiStatistics'],
+            ['#gigma-worldinfo-lorebook-collapse', 'expandCollapseLorebookStatistics'],
+            ['#gigma-duplicate-sentences-open', 'duplicateSentences'],
         ];
         for (const [selector, infoId] of pairs) {
             const nodes = scope.querySelectorAll(selector);
@@ -18468,6 +18487,14 @@ try{
 
 try{ gigmaEnsureLayoutPresetTreePreviewGlobalWiStatsRightAligned(root); }catch(_e){}
 
+try{
+    gigmaBindInfoPopupLongPress(root.querySelector('#gigma-layout-preset-tree-stats-refresh'), 'generateStatistics');
+    gigmaBindInfoPopupLongPress(root.querySelector('#gigma-layout-preset-tree-global-wi-stats'), 'globalWiStatisticsSettings');
+    gigmaBindInfoPopupLongPress(root.querySelector('#gigma-layout-preset-tree-global-wi-stats-collapse'), 'expandCollapseGlobalWiStatistics');
+    gigmaBindInfoPopupLongPress(root.querySelector('#gigma-layout-preset-tree-stats-cats'), 'lorebookStatisticsSettings');
+    gigmaBindInfoPopupLongPress(root.querySelector('#gigma-layout-preset-tree-stats-collapse'), 'expandCollapseLorebookStatistics');
+}catch(_eInfoPreviewStats){}
+
         if (!controls.__gigmaPreviewStatsWired) {
             controls.__gigmaPreviewStatsWired = true;
             controls.addEventListener('click', (ev) => {
@@ -23125,7 +23152,9 @@ function addGiglioMachineButton() {
             }
 
             if (loreBtn.parentNode !== loreWrap) loreWrap.appendChild(loreBtn);
+            try { gigmaBindInfoPopupLongPress(loreBtn, 'lorebookStatisticsSettings'); } catch (_eInfoNativeLoreStats) { }
             if (loreCollapseBtn.parentNode !== loreWrap) loreWrap.appendChild(loreCollapseBtn);
+            try { gigmaBindInfoPopupLongPress(loreCollapseBtn, 'expandCollapseLorebookStatistics'); } catch (_eInfoNativeLoreCollapse) { }
             if (lorePanel.parentNode !== loreWrap) loreWrap.appendChild(lorePanel);
 
             if (loreBtn.dataset.gigmaHooked !== '1') {
@@ -23200,6 +23229,7 @@ function addGiglioMachineButton() {
             if (btn.parentNode !== globalWrap) globalWrap.appendChild(btn);
             try { gigmaBindInfoPopupLongPress(btn, 'globalWiStatisticsSettings'); } catch (_eInfoNativeGlobalStats) { }
             if (globalCollapseBtn.parentNode !== globalWrap) globalWrap.appendChild(globalCollapseBtn);
+            try { gigmaBindInfoPopupLongPress(globalCollapseBtn, 'expandCollapseGlobalWiStatistics'); } catch (_eInfoNativeGlobalCollapse) { }
             if (panel.parentNode !== globalWrap) globalWrap.appendChild(panel);
 
             const closeGlobal = () => {
@@ -45037,6 +45067,7 @@ function gigmaEnsureDuplicateSentenceToolbarButton() {
             if (host.parentElement !== refreshButton.parentElement || host.previousElementSibling !== refreshButton) {
                 refreshButton.insertAdjacentElement('afterend', host);
             }
+            try { gigmaBindInfoPopupLongPress(host.querySelector('#gigma-duplicate-sentences-open'), 'duplicateSentences'); } catch (_eInfoDedupe) { }
             return;
         }
 
@@ -45044,6 +45075,7 @@ function gigmaEnsureDuplicateSentenceToolbarButton() {
         if (parent && host.parentElement !== parent) {
             parent.appendChild(host);
         }
+        try { gigmaBindInfoPopupLongPress(host.querySelector('#gigma-duplicate-sentences-open'), 'duplicateSentences'); } catch (_eInfoDedupe) { }
     } catch (_eDuplicateSentenceToolbarButton) { }
 }
 
