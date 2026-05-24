@@ -5322,6 +5322,92 @@ function gigmaSetShowLorebookIdProcessDialogPref(enabled){
     }catch(_){ }
 }
 
+function gigmaGetShowWelcomeInfoPopupPref(){
+    try{
+        return !!gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.showWelcomeInfoPopup, true);
+    }catch(_){ return true; }
+}
+function gigmaSetShowWelcomeInfoPopupPref(enabled){
+    try{
+        const next = !!enabled;
+        gigmaPersistBinaryExtensionSetting('showWelcomeInfoPopup', next, 1);
+        if (next) {
+            window.__gigmaWelcomeInfoPopupShownThisSession = false;
+            window.__gigmaWelcomeInfoPopupScheduled = false;
+        }
+        gigmaSyncShowWelcomeInfoPopupControls();
+        if (typeof saveSettingsDebounced === 'function') saveSettingsDebounced();
+        if (next) {
+            if (gigmaIsGigmaModalOpen()) gigmaScheduleWelcomeInfoPopupAfterModalClosed();
+            else setTimeout(() => { try { gigmaMaybeShowWelcomeInfoPopup(); } catch (_eWelcomeReenable) { } }, 0);
+        }
+    }catch(_){ }
+}
+function gigmaSyncShowWelcomeInfoPopupControls(){
+    try{
+        const b = document.getElementById('gigma-modal-settings-show-welcome-info-popup-btn');
+        if (b) b.checked = !!gigmaGetShowWelcomeInfoPopupPref();
+    }catch(_){ }
+}
+function gigmaIsGigmaModalOpen(){
+    try{
+        const root = document.getElementById('gigma-modal-root');
+        if (!root) return false;
+        const dlg = root.closest && root.closest('dialog');
+        if (dlg && 'open' in dlg) return !!dlg.open;
+        return true;
+    }catch(_){ return false; }
+}
+function gigmaScheduleWelcomeInfoPopupAfterModalClosed(){
+    try{
+        if (window.__gigmaWelcomeInfoPopupAfterModalCloseScheduled) return;
+        window.__gigmaWelcomeInfoPopupAfterModalCloseScheduled = true;
+        const retry = (attempt) => {
+            setTimeout(() => {
+                try{
+                    if (!gigmaGetShowWelcomeInfoPopupPref()) {
+                        window.__gigmaWelcomeInfoPopupAfterModalCloseScheduled = false;
+                        return;
+                    }
+                    if (gigmaIsGigmaModalOpen()) {
+                        if (attempt < 8) return retry(attempt + 1);
+                        window.__gigmaWelcomeInfoPopupAfterModalCloseScheduled = false;
+                        return;
+                    }
+                    window.__gigmaWelcomeInfoPopupAfterModalCloseScheduled = false;
+                    gigmaMaybeShowWelcomeInfoPopup();
+                }catch(_eWelcomeAfterModal){
+                    try{ window.__gigmaWelcomeInfoPopupAfterModalCloseScheduled = false; }catch(_eFlag){ }
+                }
+            }, attempt === 0 ? 120 : 250);
+        };
+        retry(0);
+    }catch(_){ }
+}
+function gigmaMaybeShowWelcomeInfoPopup(){
+    try{
+        if (!gigmaGetShowWelcomeInfoPopupPref()) return;
+        if (window.__gigmaWelcomeInfoPopupScheduled || window.__gigmaWelcomeInfoPopupShownThisSession) return;
+        if (gigmaIsGigmaModalOpen()) { gigmaScheduleWelcomeInfoPopupAfterModalClosed(); return; }
+        if (!document.getElementById(SELECTORS && SELECTORS.LOREBOOK_ORDERING_BUTTON ? SELECTORS.LOREBOOK_ORDERING_BUTTON : 'lorebook_ordering_button')) return;
+        window.__gigmaWelcomeInfoPopupScheduled = true;
+        setTimeout(() => {
+            try{
+                window.__gigmaWelcomeInfoPopupScheduled = false;
+                if (!gigmaGetShowWelcomeInfoPopupPref()) return;
+                if (window.__gigmaWelcomeInfoPopupShownThisSession) return;
+                if (gigmaIsGigmaModalOpen()) { gigmaScheduleWelcomeInfoPopupAfterModalClosed(); return; }
+                try{ if (typeof gigmaEnsureDuplicateSentenceToolbarButton === 'function') gigmaEnsureDuplicateSentenceToolbarButton(); }catch(_eDedupeWelcome){ }
+                if (!document.getElementById(SELECTORS && SELECTORS.LOREBOOK_ORDERING_BUTTON ? SELECTORS.LOREBOOK_ORDERING_BUTTON : 'lorebook_ordering_button')) return;
+                window.__gigmaWelcomeInfoPopupShownThisSession = true;
+                gigmaShowInfoPopup('welcomeGigma');
+            }catch(_eShowWelcome){
+                try{ window.__gigmaWelcomeInfoPopupScheduled = false; }catch(_eFlag){ }
+            }
+        }, 350);
+    }catch(_){ }
+}
+
 function gigmaGetHideUndoRedoDesktopPref(){
     try{
         return gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.hideUndoRedoDesktop, true);
@@ -5355,6 +5441,7 @@ const GIGMA_INFO_POPUP_STATE = {
     history: [],
     index: -1,
     audioCleanup: null,
+    welcomeCloseConfirmed: false,
     systemSpeech: {
         text: '',
         duration: 0,
@@ -5372,6 +5459,42 @@ const GIGMA_INFO_POPUP_STATE = {
 };
 
 const GIGMA_INFO_POPUPS = {
+    welcomeGigma: {
+        title: 'Gigliomachine (GIGMA)',
+        titleIconSelector: '#lorebook_ordering_button',
+        parts: [
+            'Welcome to Gigliomachine. Thank you for installing the extension. Please read this short introduction to the extension\'s functionality.\n\nGIGMA is a SillyTavern extension for controlling lorebook order and lorebook budget.\n\nLorebook ',
+            { text: 'order', target: 'orderBudgetMode' },
+            ' controls the order in which lorebooks are inserted into the final prompt sent to the API. Lorebook ',
+            { text: 'budget', target: 'orderBudgetMode' },
+            ' controls how much of a lorebook is included in the prompt sent to the API, using token or entry limits.\n\nGIGMA also displays token consumption statistics for all lorebooks. Statistics displays are controlled with the ',
+            { text: 'Lorebook statistics', target: 'lorebookStatisticsSettings' },
+            ' button ',
+            { iconSelector: '#gigma-worldinfo-lorebook-stats, #gigma-modal-stats-cats, #gigma-modal-stats-cats-right, #gigma-layout-preset-tree-stats-cats' },
+            ' and the ',
+            { text: 'Global WI statistics', target: 'globalWiStatisticsSettings' },
+            ' button ',
+            { iconSelector: '#gigma-worldinfo-global-wi-stats, #gigma-modal-global-wi-stats, #gigma-modal-global-wi-stats-right, #gigma-layout-preset-tree-global-wi-stats' },
+            '.\n\nThe ',
+            { text: 'Generate statistics', target: 'generateStatistics' },
+            ' button ',
+            { labelIcon: 'Gen' },
+            ' allows us to see which entries get keyword activated, and which entries get included in the final prompt after GIGMA\'s budget limits are applied. When the button is pressed, keyword activated entries receive an "A" marker and entries included in the final prompt after budget settings are applied receive an "I" marker.\n\nThe ',
+            { text: 'Duplicate Sentences', target: 'duplicateSentences' },
+            ' button ',
+            { iconSelector: '#gigma-duplicate-sentences-open' },
+            ' opens the Duplicate Sentences Removal tool, which detects duplicate sentences across all lorebooks and removes all duplicate sentences, apart from the last one.\n\n',
+            { sectionStart: 'gigma-welcome-button-info-section' },
+            'Long-press any GIGMA button to open an info popup that explains the button\'s function.\n\nClose this welcome info popup by long-pressing the X button in the top-right corner, in order to confirm that you have read the introduction.',
+            { sectionEnd: true },
+        ],
+    },
+    showWelcomeInfoPopup: {
+        title: 'Show welcome info popup',
+        parts: [
+            'Controls whether the welcome info popup is shown in the native World Info UI.\n\nThis setting is enabled by default. It is disabled automatically after the welcome info popup is closed by long-pressing its X button.',
+        ],
+    },
     saveCloseButton: {
         title: 'Save and close button',
         titleIconSelector: '#gigma-global-accept',
@@ -6498,9 +6621,45 @@ function gigmaBuildInfoPopupValueText(part){
     }catch(_){ }
     return '';
 }
+function gigmaBuildInfoPopupInlineIconHtml(part){
+    try{
+        const selector = part && part.iconSelector;
+        if (!selector || !document.querySelector) return '';
+        const source = document.querySelector(selector);
+        if (!source) return '';
+        const clone = source.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.removeAttribute('title');
+        clone.removeAttribute('aria-label');
+        clone.removeAttribute('aria-expanded');
+        clone.removeAttribute('data-gigma-info-long-press-bound');
+        for (const node of clone.querySelectorAll('[id]')) node.removeAttribute('id');
+        for (const node of clone.querySelectorAll('[title],[aria-label],[aria-expanded]')) {
+            node.removeAttribute('title');
+            node.removeAttribute('aria-label');
+            node.removeAttribute('aria-expanded');
+        }
+        const iconSelector = 'i, svg, img, .fa, .fa-solid, .fa-regular, .fa-brands, .gigma-global-icon-svg, .gigma-iconized-button-glyph, .gigma-width-btn-glyph, .gigma-width-btn-pair, .gigma-dedupe-toolbar-icon';
+        const hasIcon = !!(clone.matches(iconSelector) || clone.querySelector(iconSelector));
+        if (hasIcon) {
+            const walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT);
+            const textNodes = [];
+            while (walker.nextNode()) textNodes.push(walker.currentNode);
+            for (const node of textNodes) node.textContent = '';
+        }
+        const html = clone.innerHTML || gigmaEscapeInfoPopupText(clone.textContent || '');
+        if (!String(html || '').trim()) return '';
+        const extraClass = String(selector).includes('gigma-duplicate-sentences-open') ? ' gigma-info-inline-button-icon-dedupe' : '';
+        return `<span class="gigma-info-inline-button-icon${extraClass}" aria-hidden="true">${html}</span>`;
+    }catch(_){ return ''; }
+}
 function gigmaBuildInfoPopupPartHtml(part){
+    if (part && part.sectionStart) return `<span id="${gigmaEscapeInfoPopupText(part.sectionStart)}" class="gigma-info-section">`;
+    if (part && part.sectionEnd) return '</span>';
     if (part && part.strong) return `<strong>${gigmaEscapeInfoPopupText(part.text)}</strong>`;
     if (part && part.icon === 'giglioModalButton') return `<img class="gigma-info-inline-modal-icon" src="${gigmaEscapeInfoPopupText(GIGLIO_ICON_SRC)}" alt="" aria-hidden="true" />`;
+    if (part && part.iconSelector) return gigmaBuildInfoPopupInlineIconHtml(part);
+    if (part && part.labelIcon) return `<span class="gigma-info-inline-button-icon gigma-info-inline-button-label" aria-hidden="true">${gigmaEscapeInfoPopupText(part.labelIcon)}</span>`;
     if (part && part.value) return gigmaEscapeInfoPopupText(gigmaBuildInfoPopupValueText(part));
     const target = GIGMA_INFO_POPUPS[part.target] ? part.target : GIGMA_INFO_POPUP_DEFAULT_ID;
     return `<span role="button" tabindex="0" class="gigma-info-link" data-gigma-info-target="${gigmaEscapeInfoPopupText(target)}">${gigmaEscapeInfoPopupText(gigmaHyphenateInfoPopupLinkText(part.text))}</span>`;
@@ -7142,6 +7301,39 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
   min-width:calc(var(--gigma-hdr-btn, 2.2em) * 2);
   max-width:calc(var(--gigma-hdr-btn, 2.2em) * 2);
 }
+#gigma-info-popup-root .gigma-info-title-icon .gigma-global-wi-stats-iconwrap{
+  width:1em !important;
+  min-width:1em !important;
+  max-width:1em !important;
+  height:1em !important;
+  min-height:1em !important;
+  max-height:1em !important;
+  transform:scale(0.88);
+  transform-origin:center center;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-global-wi-stats-icon{
+  width:1em !important;
+  min-width:1em !important;
+  max-width:1em !important;
+  height:1em !important;
+  min-height:1em !important;
+  max-height:1em !important;
+  font-size:1em !important;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-global-wi-stats-globe{
+  width:0.68em !important;
+  min-width:0.68em !important;
+  max-width:0.68em !important;
+  height:0.68em !important;
+  min-height:0.68em !important;
+  max-height:0.68em !important;
+  right:-0.12em !important;
+  bottom:-0.12em !important;
+  border-width:0.12em !important;
+}
+#gigma-info-popup-root .gigma-info-title-icon .gigma-global-wi-stats-globe i{
+  font-size:0.5em !important;
+}
 #gigma-info-popup-root .gigma-info-title-icon .gigma-global-icon-svg,
 #gigma-info-popup-root .gigma-info-title-icon svg,
 #gigma-info-popup-root .gigma-info-title-icon img{
@@ -7252,6 +7444,115 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
   object-fit:contain;
   vertical-align:-0.28em;
   margin:0 0.1em;
+}
+#gigma-info-popup-root .gigma-info-inline-button-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:1.35em;
+  min-width:1.35em;
+  max-width:1.35em;
+  height:1.35em;
+  min-height:1.35em;
+  max-height:1.35em;
+  vertical-align:-0.07em;
+  margin:0 0.16em;
+  overflow:hidden;
+}
+#gigma-info-popup-root .gigma-info-inline-button-icon-dedupe{
+  vertical-align:-0.24em;
+  margin:0 0.08em;
+}
+#gigma-info-popup-root .gigma-info-inline-button-label{
+  width:auto;
+  min-width:0;
+  max-width:none;
+  height:1.45em;
+  min-height:1.45em;
+  max-height:1.45em;
+  padding:0 0.38em;
+  border:0.08em solid rgba(255,255,255,0.35);
+  border-radius:0.35em;
+  background:rgba(255,255,255,0.08);
+  font-size:0.88em;
+  font-weight:700;
+  line-height:1;
+  vertical-align:0.05em;
+}
+#gigma-info-popup-root .gigma-info-inline-button-icon .gigma-global-wi-stats-iconwrap{
+  width:1.2em !important;
+  min-width:1.2em !important;
+  max-width:1.2em !important;
+  height:1.2em !important;
+  min-height:1.2em !important;
+  max-height:1.2em !important;
+  transform:scale(0.96);
+  transform-origin:center center;
+}
+#gigma-info-popup-root .gigma-info-inline-button-icon .gigma-global-wi-stats-icon{
+  width:1.2em !important;
+  min-width:1.2em !important;
+  max-width:1.2em !important;
+  height:1.2em !important;
+  min-height:1.2em !important;
+  max-height:1.2em !important;
+  font-size:1.2em !important;
+}
+#gigma-info-popup-root .gigma-info-inline-button-icon .gigma-global-wi-stats-globe{
+  width:0.78em !important;
+  min-width:0.78em !important;
+  max-width:0.78em !important;
+  height:0.78em !important;
+  min-height:0.78em !important;
+  max-height:0.78em !important;
+  right:-0.13em !important;
+  bottom:-0.13em !important;
+  border-width:0.12em !important;
+}
+#gigma-info-popup-root .gigma-info-inline-button-icon .gigma-global-wi-stats-globe i{
+  font-size:0.58em !important;
+}
+#gigma-info-popup-root .gigma-info-inline-button-icon svg,
+#gigma-info-popup-root .gigma-info-inline-button-icon img,
+#gigma-info-popup-root .gigma-info-inline-button-icon .gigma-global-icon-svg,
+#gigma-info-popup-root .gigma-info-inline-button-icon .gigma-dedupe-toolbar-icon{
+  width:1.24em !important;
+  min-width:1.24em !important;
+  max-width:1.24em !important;
+  height:1.24em !important;
+  min-height:1.24em !important;
+  max-height:1.24em !important;
+  display:inline-block !important;
+  flex:0 0 auto !important;
+}
+#gigma-info-popup-root .gigma-info-inline-button-icon .menu_button,
+#gigma-info-popup-root .gigma-info-inline-button-icon button,
+#gigma-info-popup-root .gigma-info-inline-button-icon div{
+  width:1.35em !important;
+  min-width:1.35em !important;
+  max-width:1.35em !important;
+  height:1.35em !important;
+  min-height:1.35em !important;
+  max-height:1.35em !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  color:currentColor !important;
+}
+#gigma-info-popup-root .gigma-info-section{
+  display:inline;
+}
+#gigma-info-popup-root .gigma-info-section.gigma-info-highlight-section{
+  display:block;
+  border-radius:0.55em;
+  outline:2px solid var(--SmartThemeQuoteColor, currentColor);
+  background:color-mix(in srgb, var(--SmartThemeQuoteColor, currentColor) 20%, transparent);
+  padding:0.35em 0.5em;
+  margin:0.1em 0;
 }
 #gigma-info-popup-root .gigma-info-link{
   appearance:none;
@@ -7669,6 +7970,71 @@ function gigmaUpdateInfoPopupNavButtons(root){
         if (forward) forward.disabled = !(GIGMA_INFO_POPUP_STATE.index >= 0 && GIGMA_INFO_POPUP_STATE.index < GIGMA_INFO_POPUP_STATE.history.length - 1);
     }catch(_){ }
 }
+function gigmaGetCurrentInfoPopupId(){
+    try{
+        return GIGMA_INFO_POPUP_STATE.history[GIGMA_INFO_POPUP_STATE.index] || GIGMA_INFO_POPUP_DEFAULT_ID;
+    }catch(_){ return GIGMA_INFO_POPUP_DEFAULT_ID; }
+}
+function gigmaRejectWelcomeInfoPopupClose(root){
+    try{
+        if (!root) root = GIGMA_INFO_POPUP_STATE.root;
+        const section = root && root.querySelector ? root.querySelector('#gigma-welcome-button-info-section') : null;
+        if (!section) return;
+        try{ section.scrollIntoView({ behavior: 'smooth', block: 'center' }); }catch(_eScroll){ try{ section.scrollIntoView(); }catch(_eScroll2){ } }
+        section.classList.add('gigma-info-highlight-section');
+        clearTimeout(section.__gigmaWelcomeHighlightTimer || 0);
+        section.__gigmaWelcomeHighlightTimer = 0;
+    }catch(_){ }
+}
+function gigmaConfirmWelcomeInfoPopupClose(){
+    try{
+        if (gigmaGetCurrentInfoPopupId() !== 'welcomeGigma') return;
+        GIGMA_INFO_POPUP_STATE.welcomeCloseConfirmed = true;
+        gigmaSetShowWelcomeInfoPopupPref(false);
+        gigmaCloseInfoPopup();
+    }catch(_){ }
+}
+function gigmaBindWelcomeInfoPopupCloseRequirement(root, infoId){
+    try{
+        if (!root || !root.querySelector) return;
+        const isWelcome = infoId === 'welcomeGigma';
+        root.classList.toggle('gigma-info-welcome', isWelcome);
+        const close = root.querySelector('#gigma-info-close');
+        if (!close) return;
+        if (!isWelcome) return;
+        close.title = 'Long-press to close welcome info popup';
+        close.setAttribute('aria-label', 'Long-press to close welcome info popup');
+        if (close.dataset && close.dataset.gigmaWelcomeCloseBound === '1') return;
+        if (close.dataset) close.dataset.gigmaWelcomeCloseBound = '1';
+        let timer = 0;
+        let triggered = false;
+        const clearTimer = () => {
+            if (timer) clearTimeout(timer);
+            timer = 0;
+        };
+        const start = (ev) => {
+            if (gigmaGetCurrentInfoPopupId() !== 'welcomeGigma') return;
+            if (ev && ev.pointerType === 'mouse' && ev.button !== 0) return;
+            clearTimer();
+            triggered = false;
+            timer = setTimeout(() => {
+                timer = 0;
+                triggered = true;
+                gigmaConfirmWelcomeInfoPopupClose();
+            }, Math.round(gigmaGetInfoPopupDelaySecondsPref() * 1000));
+        };
+        const cancel = () => {
+            if (gigmaGetCurrentInfoPopupId() !== 'welcomeGigma') return;
+            const hadTimer = !!timer;
+            clearTimer();
+            if (hadTimer && !triggered) gigmaRejectWelcomeInfoPopupClose(root);
+        };
+        close.addEventListener('pointerdown', start, { passive: true, capture: true });
+        close.addEventListener('pointerup', cancel, { passive: true, capture: true });
+        close.addEventListener('pointercancel', cancel, { passive: true, capture: true });
+        close.addEventListener('pointerleave', cancel, { passive: true, capture: true });
+    }catch(_){ }
+}
 function gigmaRenderInfoPopupCurrent(autoSpeak){
     try{
         const root = GIGMA_INFO_POPUP_STATE.root;
@@ -7684,6 +8050,7 @@ function gigmaRenderInfoPopupCurrent(autoSpeak){
         }
         gigmaUpdateInfoPopupNavButtons(root);
         gigmaBindInfoPopupTtsUi(root);
+        gigmaBindWelcomeInfoPopupCloseRequirement(root, infoId);
         if (autoSpeak) void gigmaSpeakInfoPopupText(infoId);
     }catch(_){ }
 }
@@ -7955,6 +8322,7 @@ function gigmaResetInfoPopupState(){
     GIGMA_INFO_POPUP_STATE.root = null;
     GIGMA_INFO_POPUP_STATE.history = [];
     GIGMA_INFO_POPUP_STATE.index = -1;
+    GIGMA_INFO_POPUP_STATE.welcomeCloseConfirmed = false;
     GIGMA_INFO_POPUP_STATE.systemSpeech.text = '';
     GIGMA_INFO_POPUP_STATE.systemSpeech.duration = 0;
 }
@@ -8008,6 +8376,7 @@ function gigmaBindModalSettingsInfoPopups(popup){
             ['#gigma-modal-settings-auto-wi-order-btn', 'autoUpdateEntryOrderInWiUi'],
             ['#gigma-modal-settings-undo-limit-input', 'undoHistorySteps'],
             ['#gigma-modal-settings-hide-undo-redo-desktop-btn', 'hideUndoRedoDesktop'],
+            ['#gigma-modal-settings-show-welcome-info-popup-btn', 'showWelcomeInfoPopup'],
             ['#gigma-modal-settings-info-popup-long-press-btn', 'longPressInfoPopup'],
             ['#gigma-modal-settings-info-popup-delay-input', 'infoPopupDelay'],
             ['#gigma-modal-settings-info-popup-alignment-btn', 'infoPopupTextAlignment'],
@@ -8169,6 +8538,10 @@ function gigmaMountInfoPopup(root, autoSpeak){
             if (target.id === 'gigma-info-close') {
                 ev.preventDefault();
                 ev.stopPropagation();
+                if (gigmaGetCurrentInfoPopupId() === 'welcomeGigma' && !GIGMA_INFO_POPUP_STATE.welcomeCloseConfirmed) {
+                    gigmaRejectWelcomeInfoPopupClose(root);
+                    return;
+                }
                 gigmaCloseInfoPopup();
                 return;
             }
@@ -8246,6 +8619,10 @@ function gigmaShowInfoPopup(infoId){
                 gigmaMountInfoPopup(root, gigmaGetReadInfoPopupTtsPref());
             },
             onClosing: () => {
+                if (gigmaGetCurrentInfoPopupId() === 'welcomeGigma' && !GIGMA_INFO_POPUP_STATE.welcomeCloseConfirmed) {
+                    gigmaRejectWelcomeInfoPopupClose(GIGMA_INFO_POPUP_STATE.root);
+                    return false;
+                }
                 gigmaResetInfoPopupState();
                 return true;
             },
@@ -21767,6 +22144,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Auto-update entry order in WI UI', 'gigma-modal-settings-slot-auto-wi-order');
             addRow('Undo history steps', 'gigma-modal-settings-slot-undo-history');
             addRow('Hide undo & redo buttons on desktop', 'gigma-modal-settings-slot-hide-undo-redo-desktop');
+            addRow('Show welcome info popup', 'gigma-modal-settings-slot-show-welcome-info-popup');
             addRow('Long button press opens information popup', 'gigma-modal-settings-slot-info-popup-long-press');
             addRow('Information popup opens after', 'gigma-modal-settings-slot-info-popup-delay');
             addRow('Alignment of info popup text', 'gigma-modal-settings-slot-info-popup-alignment');
@@ -22056,6 +22434,29 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             gigmaUpdateHideUndoRedoDesktopButtonUi(b);
         }
 
+
+        const slotShowWelcomeInfoPopup = popup.querySelector('#gigma-modal-settings-slot-show-welcome-info-popup');
+        if (slotShowWelcomeInfoPopup) {
+            let b = popup.querySelector('#gigma-modal-settings-show-welcome-info-popup-btn');
+            if (!b) {
+                const control = gigmaCreatePrettySwitch(
+                    gigmaGetShowWelcomeInfoPopupPref(),
+                    'Show welcome info popup',
+                    'Show welcome info popup',
+                    (ev) => {
+                        try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
+                        gigmaSetShowWelcomeInfoPopupPref(ev.currentTarget.checked);
+                        ev.currentTarget.checked = !!gigmaGetShowWelcomeInfoPopupPref();
+                    },
+                );
+                b = control.input;
+                b.id = 'gigma-modal-settings-show-welcome-info-popup-btn';
+                slotShowWelcomeInfoPopup.appendChild(control.switchLabel);
+            } else if (b.closest('label')?.parentElement !== slotShowWelcomeInfoPopup) {
+                slotShowWelcomeInfoPopup.appendChild(b.closest('label'));
+            }
+            b.checked = !!gigmaGetShowWelcomeInfoPopupPref();
+        }
 
         const slotInfoPopupLongPress = popup.querySelector('#gigma-modal-settings-slot-info-popup-long-press');
         if (slotInfoPopupLongPress) {
@@ -23167,6 +23568,7 @@ function addGiglioMachineButton() {
 
         if (hasOrdering && hasUsageRefresh && hasGlobalWiStatsBtn && hasGlobalWiStatsPanel && hasLorebookStatsBtn && hasLorebookStatsPanel) {
             try { gigmaBindNativeWorldInfoInfoPopups(document); } catch (_eInfoNativeExisting) { }
+            try { gigmaMaybeShowWelcomeInfoPopup(); } catch (_eWelcomeExisting) { }
             gigmaUpdateManualUsageRefreshButtonsUi();
             gigmaEnsureWorldInfoTokenObserver();
             try{ gigmaUpdateGlobalWiStatsControlsUi('wi'); }catch(_e){}
@@ -23473,6 +23875,7 @@ function addGiglioMachineButton() {
         } catch (_eWiBtn) { }
 
         try { gigmaBindNativeWorldInfoInfoPopups(document); } catch (_eInfoNativeDone) { }
+        try { gigmaMaybeShowWelcomeInfoPopup(); } catch (_eWelcomeDone) { }
         gigmaUpdateWorldInfoTokenAlignButton();
         gigmaUpdateWorldInfoUsageToggleButtons();
         gigmaUpdateManualUsageRefreshButtonsUi();
@@ -25017,6 +25420,7 @@ try {
                                         resolve(null);
                     cleanupModalListeners();
                     try { if (typeof gigmaSyncLorebookDrawerLockBoxFromCache === 'function') gigmaSyncLorebookDrawerLockBoxFromCache(); } catch (_e) {}
+                    try { if (typeof gigmaScheduleWelcomeInfoPopupAfterModalClosed === 'function') gigmaScheduleWelcomeInfoPopupAfterModalClosed(); } catch (_eWelcomeAfterModalClose) {}
                     return true; // Allow popup to close
 
                 }
