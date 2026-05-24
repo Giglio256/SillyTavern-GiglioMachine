@@ -5648,37 +5648,55 @@ const GIGMA_INFO_POPUPS = {
         title: 'Editable chained lorebooks',
         titleIconSelector: '#gigma-editable-chained-child, #gigma-editable-chained-parent',
         parts: [
-            'Controls whether chained lorebooks can be edited. Chained lorebooks are lorebooks whose order or budget is inherited from a parent preset. When enabled, the order or budget of the chained lorebooks can be edited. When disabled, chained lorebooks are uneditable.',
+            'Controls whether ',
+            { text: 'chained lorebooks', target: 'chainedLorebooks' },
+            ' can be edited. When enabled, the order or budget of the ',
+            { text: 'chained lorebooks', target: 'chainedLorebooks' },
+            ' can be edited. When disabled, ',
+            { text: 'chained lorebooks', target: 'chainedLorebooks' },
+            ' are uneditable.',
         ],
     },
     dimChainedLorebooks: {
         title: 'Dim chained lorebooks',
-        titleIconSelector: '#gigma-modal-dim-chained-child, #gigma-modal-dim-chained-parent',
+        titleIconSelector: '#gigma-modal-dim-chained-child, #gigma-modal-dim-chained-parent, #gigma-layout-preset-tree-chained-dim-toggle',
         parts: [
-            'Controls whether chained lorebooks are visually dimmed. Helps to find unchained lorebooks more easily.',
+            'Controls whether ',
+            { text: 'chained lorebooks', target: 'chainedLorebooks' },
+            ' are visually dimmed. Helps to find ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            ' more easily.',
         ],
     },
     dimUnchainedLorebooks: {
         title: 'Dim unchained lorebooks',
-        titleIconSelector: '#gigma-modal-dim-unchained-child, #gigma-modal-dim-unchained-parent',
+        titleIconSelector: '#gigma-modal-dim-unchained-child, #gigma-modal-dim-unchained-parent, #gigma-layout-preset-tree-unchained-dim-toggle',
         parts: [
-            'Controls whether unchained lorebooks are visually dimmed. Helps to find chained lorebooks more easily.',
+            'Controls whether ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            ' are visually dimmed. Helps to find ',
+            { text: 'chained lorebooks', target: 'chainedLorebooks' },
+            ' more easily.',
         ],
     },
     editableUnchainedLorebooks: {
         title: 'Editable unchained lorebooks',
         titleIconSelector: '#gigma-editable-unchained-child, #gigma-editable-unchained-parent',
         parts: [
-            'Controls whether unchained lorebooks can be edited. Unchained lorebooks are lorebooks that don\'t inherit their order or budget values from a parent preset. When enabled, the order or budget of the unchained lorebooks can be edited. When disabled, unchained lorebooks are uneditable.',
+            'Controls whether ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            ' can be edited. When enabled, the order or budget of the ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            ' can be edited. When disabled, ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            ' are uneditable.',
         ],
     },
     orderBudgetMode: {
         title: 'Order / Budget',
-        titleIconSelector: '#gigma-budget-mode-child, #gigma-budget-mode-parent',
+        titleIconSelector: '#gigma-budget-mode-child, #gigma-budget-mode-parent, #gigma-layout-preset-tree-viewmode-toggle',
         parts: [
-            'Switches the ',
-            { text: 'modal', target: 'modal' },
-            ' between Order mode and Budget mode. In order mode, you can adjust the order in which all your lorebooks are inserted into the final prompt that gets sent to the API. You can decide which lorebook will be sent first, last, any in between. In budget mode, you can limit lorebooks to a certain token or entry budget. When this budget is exceeded, lorebooks get trimmed. By default, lorebooks only get trimmed when the world info budget is exceeded.',
+            'Switches between Order mode and Budget mode. In Order mode, you can adjust the order in which all your lorebooks are inserted into the final prompt that gets sent to the API. You can decide which lorebook will be sent first, last, or anywhere in between. In Budget mode, you can limit lorebooks to a certain token or entry budget. When this budget is exceeded, lorebooks get trimmed. By default, lorebooks only get trimmed when the world info budget is exceeded.',
         ],
     },
     undoRedoButton: {
@@ -5763,33 +5781,37 @@ const GIGMA_INFO_POPUPS = {
     },
     expandAllFolders: {
         title: 'Expand all folders',
-        titleIconSelector: '#gigma-expand-folders, #gigma-expand-folders-right',
+        titleIconSelector: '#gigma-expand-folders, #gigma-expand-folders-right, #gigma-layout-preset-tree-expand-all',
         parts: [
-            'Expands all folders in this pane, so their contained lorebooks and subfolders become visible. In the left pane, this also defocuses the currently ',
+            'Expands all folders in the current lorebook tree, so their contained lorebooks and subfolders become visible. In the modal left pane, this also defocuses the currently ',
             { text: 'focused folder', target: 'focusedFolderShortcut' },
+            '. In the layout preset tree preview, GIGMA remembers the current folder expansion state before expanding folders, so it can be restored with ',
+            { text: 'Restore folder states', target: 'restoreFolderStates' },
             '.',
         ],
     },
     collapseAllFolders: {
         title: 'Collapse all folders',
-        titleIconSelector: '#gigma-collapse-folders, #gigma-collapse-folders-right',
+        titleIconSelector: '#gigma-collapse-folders, #gigma-collapse-folders-right, #gigma-layout-preset-tree-collapse-all',
         parts: [
-            'Collapses all folders in this pane, so their contained lorebooks and subfolders are hidden. In the left pane, this also defocuses the currently ',
+            'Collapses all folders in the current lorebook tree, so their contained lorebooks and subfolders are hidden. In the modal left pane, this also defocuses the currently ',
             { text: 'focused folder', target: 'focusedFolderShortcut' },
+            '. In the layout preset tree preview, GIGMA remembers the current folder expansion state before collapsing folders, so it can be restored with ',
+            { text: 'Restore folder states', target: 'restoreFolderStates' },
             '.',
         ],
     },
     restoreFolderStates: {
         title: 'Restore folder states',
-        titleIconSelector: '#gigma-restore-folders, #gigma-restore-folders-right',
+        titleIconSelector: '#gigma-restore-folders, #gigma-restore-folders-right, #gigma-layout-preset-tree-restore-folders',
         parts: [
-            'Restores the folder expansion states in this pane to the saved folder states from the current ',
+            'Restores folder expansion states in the current lorebook tree. In the modal, this restores the saved folder states from the current ',
             { text: 'layout preset', target: 'layoutPreset' },
-            '. Use this button to undo ',
+            '. In the layout preset tree preview, this restores the temporary folder state from before you used ',
             { text: 'Expand all folders', target: 'expandAllFolders' },
-            ' and ',
+            ' or ',
             { text: 'Collapse all folders', target: 'collapseAllFolders' },
-            ' changes made by those buttons.',
+            '.',
         ],
     },
     resetListBudgetParent: {
@@ -5856,6 +5878,93 @@ const GIGMA_INFO_POPUPS = {
         titleIconSelector: '#gigma-duplicate-sentences-open',
         parts: [
             'Opens the Duplicate Sentences Removal tool.\n\nUse this tool to scan lorebooks for duplicate sentences and remove all duplicate copies except the last one. You can choose which lorebooks to scan, which duplicate sentences to remove, and the minimum sentence length required for duplicates to appear in the results. The default minimum length is 15 characters.\n\nThis tool performs destructive actions by modifying the contents of lorebook entries.',
+        ],
+    },
+    resetPreviewControls: {
+        title: 'Reset',
+        titleIconSelector: '#gigma-layout-preset-tree-reset',
+        parts: [
+            'Resets the preview controls for the current preview mode (Order or Budget).\n\nThis restores the following buttons to their default state:\n\n',
+            { text: 'Show / hide chained lorebooks', target: 'showHideChainedLorebooks' },
+            '\n',
+            { text: 'Show / hide unchained lorebooks', target: 'showHideUnchainedLorebooks' },
+            '\n',
+            { text: 'Dim chained lorebooks', target: 'dimChainedLorebooks' },
+            '\n',
+            { text: 'Dim unchained lorebooks', target: 'dimUnchainedLorebooks' },
+            '\n',
+            { text: 'Expand all folders', target: 'expandAllFolders' },
+            ' / ',
+            { text: 'Collapse all folders', target: 'collapseAllFolders' },
+        ],
+    },
+    showHideChainedLorebooks: {
+        title: 'Show / hide chained lorebooks',
+        titleIconSelector: '#gigma-layout-preset-tree-chained-toggle',
+        parts: [
+            'Controls whether ',
+            { text: 'chained lorebooks', target: 'chainedLorebooks' },
+            ' are shown. Helps to find ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            '.',
+        ],
+    },
+    chainedLorebooks: {
+        title: 'Chained lorebooks',
+        titleIconSelector: '#gigma-layout-preset-tree-chained-toggle',
+        parts: [
+            'Chained lorebooks are lorebooks whose order or budget is inherited from a parent preset.',
+        ],
+    },
+    showHideUnchainedLorebooks: {
+        title: 'Show / hide unchained lorebooks',
+        titleIconSelector: '#gigma-layout-preset-tree-unchained-toggle',
+        parts: [
+            'Controls which ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            ' are shown, if any.\n\nIn child preset previews, this switches between showing and hiding ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            '.\n\nIn parent preset previews, this cycles through hiding ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            ', showing ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            ' from selected child presets, showing ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            ' from unselected child presets, and showing all ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            '.',
+        ],
+    },
+    unchainedLorebooks: {
+        title: 'Unchained lorebooks',
+        titleIconSelector: '#gigma-layout-preset-tree-unchained-toggle',
+        parts: [
+            'Unchained lorebooks are lorebooks whose order or budget is decoupled and not inherited from any parent preset.',
+        ],
+    },
+    searchLorebooksAndFolders: {
+        title: 'Search',
+        titleIconSelector: '#gigma-layout-preset-tree-search, #gigma-search-folders, #gigma-search-folders-right',
+        parts: [
+            'Opens the search bar for the current lorebook tree.\n\nUse it to find lorebooks and folders. Search results can be clicked to jump to the matching lorebook or folder.\n\nThe search filters limit results by type and assignment: folders, lorebooks, ',
+            { text: 'chained lorebooks', target: 'chainedLorebooks' },
+            ', ',
+            { text: 'unchained lorebooks', target: 'unchainedLorebooks' },
+            ', global lorebooks, character-tied lorebooks, chat-tied lorebooks, persona-tied lorebooks, and untied lorebooks.\n\nThe filter controls switch between single-select and multi-select filtering, invert the active filters, turn all filters on or off, and show or hide the filter buttons.',
+        ],
+    },
+    closePreview: {
+        title: 'Close preview',
+        titleIconSelector: '#gigma-layout-preset-tree-close',
+        parts: [
+            'Closes the preview popup.\n\nBefore closing, GIGMA saves the current preview control state for the current preset type and preview mode.\n\nThe saved preview control state includes:\n\n',
+            { text: 'Show / hide chained lorebooks', target: 'showHideChainedLorebooks' },
+            '\n',
+            { text: 'Show / hide unchained lorebooks', target: 'showHideUnchainedLorebooks' },
+            '\n',
+            { text: 'Dim chained lorebooks', target: 'dimChainedLorebooks' },
+            '\n',
+            { text: 'Dim unchained lorebooks', target: 'dimUnchainedLorebooks' },
         ],
     },
     focusedFolderShortcut: {
@@ -6040,18 +6149,27 @@ const GIGMA_INFO_POPUPS = {
         ],
     },
     lorebookContentButtons: {
-        title: 'Lorebook content buttons',
-        titleIconSelector: '#gigma-modal-lore-content-toggle',
+        title: 'Show / hide lorebook content buttons',
+        titleIconSelector: '#gigma-modal-lore-content-toggle, #gigma-preview-lore-content-toggle',
         parts: [
-            'Controls whether lorebook content buttons are shown in the lorebook rows.\n\nWhen enabled, each lorebook row gets a button that lets you expand the lorebook and inspect its entries directly inside the ',
+            'Controls whether lorebook content buttons are shown in lorebook rows.\n\nWhen enabled, each lorebook row gets an ',
+            { text: 'Expand / collapse lorebook content', target: 'expandCollapseLorebookContent' },
+            ' button that lets you inspect that lorebook\'s entries directly inside the ',
             { text: 'modal', target: 'modal' },
             ' or ',
             { text: 'Preview layout preset', target: 'previewLayoutPreset' },
-            '.\n\nExpanded lorebooks show their entries and entry text. If ',
+            ' popup.',
+        ],
+    },
+    expandCollapseLorebookContent: {
+        title: 'Expand / collapse lorebook content',
+        titleIconSelector: '.gigma-lore-content-expander',
+        parts: [
+            'Expands or collapses the selected lorebook\'s content.\n\nExpanded lorebook content shows the lorebook\'s entries and entry text. If ',
             { text: 'Detailed lorebook entries', target: 'detailedLorebookEntries' },
-            ' are enabled, expanded entries also show their settings, such as keys, probability, trigger type, position, role, order, depth, recursion settings, matching settings, groups, filters, and tags.\n\nAfter ',
+            ' is enabled, expanded entries also show their settings, such as keys, probability, trigger type, position, role, order, depth, recursion settings, matching settings, groups, filters, and tags.\n\nAfter you run ',
             { text: 'Generate statistics', target: 'generateStatistics' },
-            ', expanded lorebooks can also show which entries were activated and which entries were included.',
+            ', expanded lorebook content displays each entry\'s activation status with an "A" marker and inclusion status with an "I" marker.',
         ],
     },
     wideNarrowButton: {
@@ -7024,10 +7142,17 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
   min-width:calc(var(--gigma-hdr-btn, 2.2em) * 2);
   max-width:calc(var(--gigma-hdr-btn, 2.2em) * 2);
 }
-#gigma-info-popup-root .gigma-info-title-icon .gigma-global-icon-svg{
-  width:1.05em;
-  height:1.05em;
-  display:inline-block;
+#gigma-info-popup-root .gigma-info-title-icon .gigma-global-icon-svg,
+#gigma-info-popup-root .gigma-info-title-icon svg,
+#gigma-info-popup-root .gigma-info-title-icon img{
+  width:1.05em !important;
+  min-width:1.05em !important;
+  max-width:1.05em !important;
+  height:1.05em !important;
+  min-height:1.05em !important;
+  max-height:1.05em !important;
+  display:inline-block !important;
+  flex:0 0 auto !important;
 }
 #gigma-info-popup-root .gigma-info-title-icon .gigma-width-btn-label{
   display:none;
@@ -7907,6 +8032,7 @@ function gigmaBindModalButtonInfoPopups(root){
         const pairs = [
             ['#gigma-modal-settings-toggle', 'settingsButton'],
             ['#gigma-modal-lore-content-toggle', 'lorebookContentButtons'],
+            ['.gigma-lore-content-expander', 'expandCollapseLorebookContent'],
             ['#gigma-modal-convert-parent, #gigma-modal-convert-child', 'saveAsOtherPreset'],
             ['#gigma-layout-preset-kind-toggle', 'childParentPresetToggle'],
             ['#gigma-switch-order-parent', 'switchOrderParent'],
@@ -7927,6 +8053,7 @@ function gigmaBindModalButtonInfoPopups(root){
             ['#gigma-expand-folders, #gigma-expand-folders-right', 'expandAllFolders'],
             ['#gigma-collapse-folders, #gigma-collapse-folders-right', 'collapseAllFolders'],
             ['#gigma-restore-folders, #gigma-restore-folders-right', 'restoreFolderStates'],
+            ['#gigma-search-folders, #gigma-search-folders-right', 'searchLorebooksAndFolders'],
             ['#gigma-ordering-load', 'resetListBudgetParent'],
             ['#gigma-ordering-preview', 'previewLayoutPreset'],
             ['#gigma-modal-global-wi-stats, #gigma-modal-global-wi-stats-right', 'globalWiStatisticsSettings'],
@@ -7982,6 +8109,36 @@ function gigmaBindNativeWorldInfoInfoPopups(root){
         }
     }catch(_){ }
 }
+function gigmaBindLayoutPresetTreePreviewInfoPopups(root){
+    try{
+        const scope = root && root.querySelectorAll ? root : document;
+        const pairs = [
+            ['#gigma-preview-lore-content-toggle', 'lorebookContentButtons'],
+            ['.gigma-lore-content-expander', 'expandCollapseLorebookContent'],
+            ['#gigma-layout-preset-tree-reset', 'resetPreviewControls'],
+            ['#gigma-layout-preset-tree-chained-dim-toggle', 'dimChainedLorebooks'],
+            ['#gigma-layout-preset-tree-chained-toggle', 'showHideChainedLorebooks'],
+            ['#gigma-layout-preset-tree-unchained-toggle', 'showHideUnchainedLorebooks'],
+            ['#gigma-layout-preset-tree-unchained-dim-toggle', 'dimUnchainedLorebooks'],
+            ['#gigma-layout-preset-tree-expand-all', 'expandAllFolders'],
+            ['#gigma-layout-preset-tree-collapse-all', 'collapseAllFolders'],
+            ['#gigma-layout-preset-tree-restore-folders', 'restoreFolderStates'],
+            ['#gigma-layout-preset-tree-search', 'searchLorebooksAndFolders'],
+            ['#gigma-layout-preset-tree-stats-refresh', 'generateStatistics'],
+            ['#gigma-layout-preset-tree-global-wi-stats', 'globalWiStatisticsSettings'],
+            ['#gigma-layout-preset-tree-global-wi-stats-collapse', 'expandCollapseGlobalWiStatistics'],
+            ['#gigma-layout-preset-tree-stats-cats', 'lorebookStatisticsSettings'],
+            ['#gigma-layout-preset-tree-stats-collapse', 'expandCollapseLorebookStatistics'],
+            ['#gigma-layout-preset-tree-viewmode-toggle', 'orderBudgetMode'],
+            ['#gigma-layout-preset-tree-close', 'closePreview'],
+        ];
+        for (const [selector, infoId] of pairs) {
+            const nodes = scope.querySelectorAll(selector);
+            for (const node of nodes) gigmaBindInfoPopupLongPress(node, infoId);
+        }
+    }catch(_){ }
+}
+
 function gigmaMountInfoPopup(root, autoSpeak){
     if (!root) return;
     GIGMA_INFO_POPUP_STATE.root = root;
@@ -8133,7 +8290,7 @@ function gigmaBindInfoPopupLongPress(element, infoId){
             try{ ev.stopPropagation(); }catch(_){ }
             try{ ev.stopImmediatePropagation(); }catch(_){ }
         };
-        element.addEventListener('pointerdown', start, { passive: true });
+        element.addEventListener('pointerdown', start, { passive: true, capture: true });
         element.addEventListener('pointerup', cancel, { passive: true });
         element.addEventListener('pointercancel', cancel, { passive: true });
         element.addEventListener('pointerleave', cancel, { passive: true });
@@ -18493,6 +18650,7 @@ try{
     gigmaBindInfoPopupLongPress(root.querySelector('#gigma-layout-preset-tree-global-wi-stats-collapse'), 'expandCollapseGlobalWiStatistics');
     gigmaBindInfoPopupLongPress(root.querySelector('#gigma-layout-preset-tree-stats-cats'), 'lorebookStatisticsSettings');
     gigmaBindInfoPopupLongPress(root.querySelector('#gigma-layout-preset-tree-stats-collapse'), 'expandCollapseLorebookStatistics');
+    try{ if (typeof gigmaBindLayoutPresetTreePreviewInfoPopups === 'function') gigmaBindLayoutPresetTreePreviewInfoPopups(root); }catch(_eInfoPreviewButtons){}
 }catch(_eInfoPreviewStats){}
 
         if (!controls.__gigmaPreviewStatsWired) {
@@ -22195,6 +22353,7 @@ function gigmaEnsureOrderingModalLorebookContentToggleButton(rootOverride) {
         }
 
         try { gigmaSkinLorebookContentToggleButton(btn, 'Toggle lorebook content buttons in this list'); } catch (_e) { }
+        try { gigmaBindInfoPopupLongPress(btn, 'lorebookContentButtons'); } catch (_eInfoLoreToggle) { }
 
         // Keep it beside Reset/Preview without shifting the existing order too much.
         if (btn.parentElement !== row) {
@@ -22228,6 +22387,7 @@ function gigmaEnsureLayoutPresetTreePreviewLorebookContentToggleButton(rootOverr
             head.insertBefore(btn, head.firstChild);
         }
         try { gigmaSkinLorebookContentToggleButton(btn, 'Toggle lorebook content buttons in this preview'); } catch (_e) { }
+        try { gigmaBindInfoPopupLongPress(btn, 'lorebookContentButtons'); } catch (_eInfoLoreToggle) { }
         try { if (btn && btn.parentElement === head && btn !== head.firstChild) head.insertBefore(btn, head.firstChild); } catch (_e) { }
     } catch (_e) { }
 }
@@ -22337,6 +22497,7 @@ function gigmaEnsureLorebookContentExpanderOnModalRow(rowEl) {
         btn.setAttribute('aria-label', btn.title);
         btn.setAttribute('aria-expanded', 'false');
         btn.innerHTML = '<i class="fa-solid fa-caret-right" aria-hidden="true"></i>';
+        try { gigmaBindInfoPopupLongPress(btn, 'expandCollapseLorebookContent'); } catch (_eInfoLoreContent) { }
 
         const swallowDown = (ev) => {
             try { ev.preventDefault(); } catch (_e) { }
@@ -22391,6 +22552,7 @@ function gigmaEnsureLorebookContentExpanderOnPreviewRow(rowEl) {
         btn.setAttribute('aria-label', btn.title);
         btn.setAttribute('aria-expanded', 'false');
         btn.innerHTML = '<i class="fa-solid fa-caret-right" aria-hidden="true"></i>';
+        try { gigmaBindInfoPopupLongPress(btn, 'expandCollapseLorebookContent'); } catch (_eInfoLoreContent) { }
 
         const swallowDown = (ev) => {
             try { ev.preventDefault(); } catch (_e) { }
@@ -40377,6 +40539,7 @@ function openSearch(state){
           restoreBtn.insertAdjacentElement('afterend', searchBtn);
         }
         applyIcon(searchBtn);
+        try{ if (typeof gigmaBindInfoPopupLongPress === 'function') gigmaBindInfoPopupLongPress(searchBtn, 'searchLorebooksAndFolders'); }catch(_eInfoSearch){ }
 
         let distBtn = document.getElementById(distributionId);
         if (!distBtn) {
@@ -40665,6 +40828,7 @@ function openSearch(state){
           }
         }catch(_){ }
         applyIcon(searchBtn);
+        try{ if (typeof gigmaBindLayoutPresetTreePreviewInfoPopups === 'function') gigmaBindLayoutPresetTreePreviewInfoPopups(root); }catch(_eInfoPreviewButtons){ }
 
         let host = root.querySelector('.gigma-pane-search-host[data-gigma-pane="preview"]');
         if (!host) {
