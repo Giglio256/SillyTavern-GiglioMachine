@@ -5485,7 +5485,15 @@ const GIGMA_INFO_POPUPS = {
             { iconSelector: '#gigma-duplicate-sentences-open' },
             ' opens the Duplicate Sentences Removal tool, which detects duplicate sentences across all lorebooks and removes all duplicate sentences, apart from the last one.\n\n',
             { sectionStart: 'gigma-welcome-button-info-section' },
-            'Long-press any GIGMA button to open an info popup that explains the button\'s function.\n\nClose this welcome info popup by long-pressing the X button in the top-right corner, in order to confirm that you have read the introduction.',
+            'Long-press any button ',
+            { iconSelector: '#lorebook_ordering_button' },
+            ', toggle ',
+            { orderBudgetToggleIcon: true },
+            ', on/off switch ',
+            { switchIcon: true },
+            ', or checkbox ',
+            { checkboxIcon: true },
+            ' to open an info popup that explains its function.\n\nClose this welcome info popup by long-pressing the X button in the top-right corner, in order to confirm that you have read the introduction.',
             { sectionEnd: true },
         ],
     },
@@ -5670,11 +5678,19 @@ const GIGMA_INFO_POPUPS = {
         speech: 'Hide undo & redo buttons on desktop. Hides the Undo and Redo buttons in the preset control rows while using desktop layout. Useful since undo and redo can be accessed via keyboard shortcuts on desktop. The keyboard shortcuts for undo and redo on a desktop device are: Undo: Control + z. Redo: Control + shift + z or control + y.',
     },
     longPressInfoPopup: {
-        title: 'Long button press opens information popup',
+        title: 'Long button/toggle/switch/checkbox press opens information popup',
         parts: [
-            'Decides whether info popups that explain the functions of buttons should appear when a button is pressed for an extended period of time. When enabled, long pressing a button opens up an info popup which explains the functionality of the button. This setting is useful to understand how GIGMA works.',
+            'Decides whether info popups open when buttons ',
+            { iconSelector: '#lorebook_ordering_button' },
+            ', toggles ',
+            { orderBudgetToggleIcon: true },
+            ', on/off switches ',
+            { switchIcon: true },
+            ', or checkboxes ',
+            { checkboxIcon: true },
+            ' are pressed for an extended period of time. When enabled, long pressing one of these controls opens an info popup that explains its function.',
         ],
-        speech: 'Long button press opens information popup. Decides whether info popups that explain the functions of buttons should appear when a button is pressed for an extended period of time. When enabled, long pressing a button opens up an info popup which explains the functionality of the button. This setting is useful to understand how GIGMA works.',
+        speech: 'Long button, toggle, switch, or checkbox press opens information popup. Decides whether info popups open when buttons, toggles, on/off switches, or checkboxes are pressed for an extended period of time. When enabled, long pressing one of these controls opens an info popup that explains its function.',
     },
     infoPopupDelay: {
         title: 'Information popup opens after',
@@ -6264,7 +6280,7 @@ const GIGMA_INFO_POPUPS = {
             { text: 'Lorebook statistics settings', target: 'lorebookStatisticsSettings' },
             ', preset management, folder cleanup, ',
             { text: 'Undo history steps', target: 'undoHistorySteps' },
-            ', lorebook ID handling, and extension cleanup.\n\nLong press the buttons inside this dropdown to open info popups for the individual settings, such as ',
+            ', lorebook ID handling, and extension cleanup.\n\nLong press the buttons and switches inside this dropdown to open info popups for the individual settings, such as ',
             { text: 'LB ID assignment & removal popup', target: 'lorebookIdProcessDialog' },
             ' or ',
             { text: 'Erase all GIGMA extension settings', target: 'eraseGigmaSettings' },
@@ -6660,6 +6676,9 @@ function gigmaBuildInfoPopupPartHtml(part){
     if (part && part.icon === 'giglioModalButton') return `<img class="gigma-info-inline-modal-icon" src="${gigmaEscapeInfoPopupText(GIGLIO_ICON_SRC)}" alt="" aria-hidden="true" />`;
     if (part && part.iconSelector) return gigmaBuildInfoPopupInlineIconHtml(part);
     if (part && part.labelIcon) return `<span class="gigma-info-inline-button-icon gigma-info-inline-button-label" aria-hidden="true">${gigmaEscapeInfoPopupText(part.labelIcon)}</span>`;
+    if (part && part.orderBudgetToggleIcon) return '<span class="gigma-info-inline-toggle-pair" aria-hidden="true"><span class="menu_button gigma-budget-mode-toggle">Order</span><span class="menu_button gigma-budget-mode-toggle">Budget</span></span>';
+    if (part && part.switchIcon) return '<span class="gigma-info-inline-switch-wrap" aria-hidden="true"><label class="gigma-gwi-pretty-switch"><input type="checkbox" checked disabled tabindex="-1" /><span class="gigma-gwi-pretty-switch-track"><span class="gigma-gwi-pretty-switch-thumb"></span></span></label></span>';
+    if (part && part.checkboxIcon) return '<span class="gigma-info-inline-checkbox-wrap" aria-hidden="true"><input class="gigma-info-inline-checkbox" type="checkbox" checked disabled tabindex="-1" /></span>';
     if (part && part.value) return gigmaEscapeInfoPopupText(gigmaBuildInfoPopupValueText(part));
     const target = GIGMA_INFO_POPUPS[part.target] ? part.target : GIGMA_INFO_POPUP_DEFAULT_ID;
     return `<span role="button" tabindex="0" class="gigma-info-link" data-gigma-info-target="${gigmaEscapeInfoPopupText(target)}">${gigmaEscapeInfoPopupText(gigmaHyphenateInfoPopupLinkText(part.text))}</span>`;
@@ -7478,6 +7497,98 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
   font-weight:700;
   line-height:1;
   vertical-align:0.05em;
+}
+#gigma-info-popup-root .gigma-info-inline-toggle-pair{
+  display:inline-flex;
+  align-items:center;
+  gap:0.14em;
+  vertical-align:0.24em;
+  margin:0 0.14em;
+}
+#gigma-info-popup-root .gigma-info-inline-toggle-pair .gigma-budget-mode-toggle{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:none !important;
+  height:1.72em !important;
+  min-height:1.72em !important;
+  max-height:1.72em !important;
+  padding:0 0.52em !important;
+  margin:0 !important;
+  border:0 !important;
+  font-size:0.9em !important;
+  line-height:1.05 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  pointer-events:none !important;
+}
+#gigma-info-popup-root .gigma-info-inline-switch-wrap{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:2.45em;
+  height:1.38em;
+  vertical-align:0.04em;
+  margin:0 0.12em;
+}
+#gigma-info-popup-root .gigma-info-inline-switch-wrap .gigma-gwi-pretty-switch{
+  position:relative !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  width:2.25em !important;
+  height:1.15em !important;
+  margin:0 !important;
+  pointer-events:none !important;
+}
+#gigma-info-popup-root .gigma-info-inline-switch-wrap .gigma-gwi-pretty-switch input{
+  position:absolute !important;
+  opacity:0 !important;
+  width:0.0625em !important;
+  height:0.0625em !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+#gigma-info-popup-root .gigma-info-inline-switch-wrap .gigma-gwi-pretty-switch-track{
+  width:2.25em !important;
+  height:1.15em !important;
+  border-radius:999em !important;
+  background:rgba(50,170,80,0.7) !important;
+  border:0.0625em solid rgba(255,255,255,0.2) !important;
+  box-sizing:border-box !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  padding:0 0.1em !important;
+  box-shadow:inset 0 0 0 0.0625em rgba(0,0,0,0.18) !important;
+}
+#gigma-info-popup-root .gigma-info-inline-switch-wrap .gigma-gwi-pretty-switch-thumb{
+  width:0.85em !important;
+  height:0.85em !important;
+  border-radius:999em !important;
+  background:rgba(255,255,255,0.96) !important;
+  box-shadow:0 0.06em 0.18em rgba(0,0,0,0.38) !important;
+  transform:translateX(1.08em) !important;
+}
+#gigma-info-popup-root .gigma-info-inline-switch-wrap .gigma-gwi-pretty-switch input:checked + .gigma-gwi-pretty-switch-track .gigma-gwi-pretty-switch-thumb{
+  transform:translateX(1.08em) !important;
+}
+#gigma-info-popup-root .gigma-info-inline-checkbox-wrap{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:1.28em;
+  height:1.28em;
+  vertical-align:0.02em;
+  margin:0 0.1em;
+}
+#gigma-info-popup-root .gigma-info-inline-checkbox{
+  width:1.08em !important;
+  height:1.08em !important;
+  min-width:1.08em !important;
+  min-height:1.08em !important;
+  margin:0 !important;
+  padding:0 !important;
+  pointer-events:none !important;
 }
 #gigma-info-popup-root .gigma-info-inline-button-icon .gigma-global-wi-stats-iconwrap{
   width:1.2em !important;
@@ -22145,7 +22256,7 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             addRow('Undo history steps', 'gigma-modal-settings-slot-undo-history');
             addRow('Hide undo & redo buttons on desktop', 'gigma-modal-settings-slot-hide-undo-redo-desktop');
             addRow('Show welcome info popup', 'gigma-modal-settings-slot-show-welcome-info-popup');
-            addRow('Long button press opens information popup', 'gigma-modal-settings-slot-info-popup-long-press');
+            addRow('Long button/toggle/switch/checkbox press opens information popup', 'gigma-modal-settings-slot-info-popup-long-press');
             addRow('Information popup opens after', 'gigma-modal-settings-slot-info-popup-delay');
             addRow('Alignment of info popup text', 'gigma-modal-settings-slot-info-popup-alignment');
             addRow('Auto-TTS info text', 'gigma-modal-settings-slot-info-popup-tts');
@@ -22464,8 +22575,8 @@ function gigmaEnsureOrderingModalSettingsPopup(rootOverride) {
             if (!b) {
                 const control = gigmaCreatePrettySwitch(
                     gigmaGetLongPressInfoPopupPref(),
-                    'Long button press opens information popup',
-                    'Long button press opens information popup',
+                    'Long button/toggle/switch/checkbox press opens information popup',
+                    'Long button/toggle/switch/checkbox press opens information popup',
                     (ev) => {
                         try { ev.preventDefault(); ev.stopPropagation(); } catch (_e) { }
                         gigmaSetLongPressInfoPopupPref(ev.currentTarget.checked);
