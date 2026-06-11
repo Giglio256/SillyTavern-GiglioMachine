@@ -5641,7 +5641,7 @@ const GIGMA_INFO_POPUPS = {
     detailedLorebookEntries: {
         title: 'Detailed lorebook entries',
         parts: [
-            "Controls whether lorebook entries show their settings when expanded in GIGMA'S lorebook content view. When enabled, expanded entries show detailed settings such as keys, probability, trigger type, position, role, order, depth, recursion settings, matching settings, groups, filters, and tags. When disabled, the entries only display their text content when expanded.",
+            "When enabled, lorebook entries show their settings when expanded in GIGMA'S lorebook content view. When enabled, expanded entries show detailed settings such as keys, probability, trigger type, position, role, order, depth, recursion settings, matching settings, groups, filters, and tags. When disabled, the entries only display their text content when expanded.",
         ],
         speech: "Detailed lorebook entries. Controls whether lorebook entries show their settings when expanded in GIGMA'S lorebook content view. When enabled, expanded entries show detailed settings such as keys, probability, trigger type, position, role, order, depth, recursion settings, matching settings, groups, filters, and tags. When disabled, the entries only display their text content when expanded.",
     },
@@ -6002,14 +6002,492 @@ const GIGMA_INFO_POPUPS = {
         title: 'Expand / collapse global WI statistics',
         titleIconSelector: '#gigma-modal-global-wi-stats-collapse, #gigma-layout-preset-tree-global-wi-stats-collapse, #gigma-worldinfo-global-wi-collapse',
         parts: [
-            'Expands or collapses the global WI statistics display, without enabling or disabling global WI statistics.',
+            'Only expands or collapses the global WI statistics display, without turning off calculation of global WI statistics.',
         ],
     },
     expandCollapseLorebookStatistics: {
         title: 'Expand / collapse lorebook statistics',
         titleIconSelector: '#gigma-modal-stats-collapse, #gigma-modal-stats-collapse-right, #gigma-layout-preset-tree-stats-collapse, #gigma-worldinfo-lorebook-collapse',
         parts: [
-            'Expands or collapses the lorebook statistics display, without enabling or disabling lorebook statistics.',
+            'Only expands or collapses the lorebook statistics display, without turning off calculation of lorebook statistics.',
+        ],
+    },
+    globalStatsDisplaySwitch: {
+        title: 'Global WI statistics display on/off switch',
+        parts: [
+            'When enabled, global WI statistics are calculated and displayed.',
+        ],
+    },
+    lorebookStatsDisplaySwitch: {
+        title: 'Lorebook statistics display on/off switch',
+        parts: [
+            'When enabled, lorebook statistics are calculated and displayed.',
+        ],
+    },
+    globalStatsShowExpandCollapseButton: {
+        title: 'Show Expand/Collapse button on/off switch',
+        parts: [
+            'When enabled, the ',
+            { text: 'Expand / collapse global WI statistics', target: 'expandCollapseGlobalWiStatistics' },
+            ' button is shown next to the global WI statistics settings button.',
+        ],
+    },
+    lorebookStatsShowExpandCollapseButton: {
+        title: 'Show Expand/Collapse button on/off switch',
+        parts: [
+            'When enabled, the ',
+            { text: 'Expand / collapse lorebook statistics', target: 'expandCollapseLorebookStatistics' },
+            ' button is shown next to the lorebook statistics settings button.',
+        ],
+    },
+    globalStatsRemoveIrrelevantCategories: {
+        title: 'Remove irrelevant global WI statistics categories on/off switch',
+        parts: [
+            'A Raw, Activated, or Included statistics category is irrelevant when its category group has fewer than two categories with entries or tokens, or when the category itself has 0 entries and 0 tokens.',
+        ],
+    },
+    lorebookStatsRemoveIrrelevantCategories: {
+        title: 'Remove irrelevant lorebook statistics categories on/off switch',
+        parts: [
+            'A Raw, Activated, or Included statistics category is irrelevant when its category group has fewer than two categories with entries or tokens, or when the category itself has 0 entries and 0 tokens.',
+        ],
+    },
+    globalStatsRemoveZeroTokensCategories: {
+        title: 'Remove 0 tokens global WI statistics categories on/off switch',
+        parts: [
+            'When enabled, global WI statistics categories with 0 tokens are hidden.',
+        ],
+    },
+    lorebookStatsRemoveZeroTokensCategories: {
+        title: 'Remove 0 tokens lorebook statistics categories on/off switch',
+        parts: [
+            'When enabled, lorebook statistics categories with 0 tokens are hidden.',
+        ],
+    },
+    globalStatsEntries: {
+        title: 'Entries toggle',
+        parts: [
+            'When enabled, entry counts are displayed in global WI statistics.\n\nWhen Entries and Tokens are both enabled, each global WI statistic is shown as Entries/Tokens.',
+        ],
+    },
+    globalStatsTokens: {
+        title: 'Tokens toggle',
+        parts: [
+            'When enabled, token counts are displayed in global WI statistics.\n\nWhen Entries and Tokens are both enabled, each global WI statistic is shown as Entries/Tokens.',
+        ],
+    },
+    globalStatsRaw: {
+        title: 'Raw statistics toggle',
+        parts: [
+            'When enabled, the Raw global WI statistics section is displayed.\n\nRaw statistics count entries/tokens of lorebooks regardless of whether those entries get keyword activated or included in the final prompt.',
+        ],
+    },
+    globalStatsActivated: {
+        title: 'Activated statistics toggle',
+        parts: [
+            'When enabled, the Activated global WI statistics section is displayed.\n\nActivated statistics count entries/tokens of lorebooks that activated through keywords.',
+        ],
+    },
+    globalStatsIncluded: {
+        title: 'Included statistics toggle',
+        parts: [
+            "When enabled, the Included global WI statistics section is displayed.\n\nIncluded statistics count entries/tokens of lorebooks that were included in the final prompt after GIGMA's budget settings were applied.",
+        ],
+    },
+    globalStatsAll: {
+        title: 'All button',
+        parts: [
+            'Selects all global WI statistics categories in this dropdown menu.',
+        ],
+    },
+    globalStatsNone: {
+        title: 'None button',
+        parts: [
+            'Deselects all global WI statistics categories in this dropdown menu.',
+        ],
+    },
+    lorebookStatsEntries: {
+        title: 'Entries toggle',
+        parts: [
+            'When enabled, entry counts are displayed in lorebook statistics.\n\nWhen Entries and Tokens are both enabled, each lorebook statistic is shown as Entries/Tokens.',
+        ],
+    },
+    lorebookStatsTokens: {
+        title: 'Tokens toggle',
+        parts: [
+            'When enabled, token counts are displayed in lorebook statistics.\n\nWhen Entries and Tokens are both enabled, each lorebook statistic is shown as Entries/Tokens.',
+        ],
+    },
+    lorebookStatsRaw: {
+        title: 'Raw statistics toggle',
+        parts: [
+            'When enabled, the Raw lorebook statistics section is displayed.\n\nRaw statistics count entries/tokens of lorebooks regardless of whether those entries get keyword activated or included in the final prompt.',
+        ],
+    },
+    lorebookStatsActivated: {
+        title: 'Activated statistics toggle',
+        parts: [
+            'When enabled, the Activated lorebook statistics section is displayed.\n\nActivated statistics count entries/tokens of lorebooks that activated through keywords.',
+        ],
+    },
+    lorebookStatsIncluded: {
+        title: 'Included statistics toggle',
+        parts: [
+            "When enabled, the Included lorebook statistics section is displayed.\n\nIncluded statistics count entries/tokens of lorebooks that were included in the final prompt after GIGMA's budget settings were applied.",
+        ],
+    },
+    lorebookStatsAll: {
+        title: 'All button',
+        parts: [
+            'Selects all lorebook statistics categories in this dropdown menu.',
+        ],
+    },
+    lorebookStatsNone: {
+        title: 'None button',
+        parts: [
+            'Deselects all lorebook statistics categories in this dropdown menu.',
+        ],
+    },
+    globalStatsCategoryTotal: {
+        title: "Total checkbox",
+        parts: [
+            "When enabled, the Total global WI statistic is displayed.\n\nTotal counts all entries in the selected global WI statistics section.",
+        ],
+    },
+    globalStatsCategoryEnabled: {
+        title: "Enabled checkbox",
+        parts: [
+            "When enabled, the Enabled global WI statistic is displayed.\n\nEnabled counts entries that are not disabled.",
+        ],
+    },
+    globalStatsCategoryDisabled: {
+        title: "Disabled checkbox",
+        parts: [
+            "When enabled, the Disabled global WI statistic is displayed.\n\nDisabled counts entries that are disabled.",
+        ],
+    },
+    globalStatsCategoryConstant: {
+        title: "Constant checkbox",
+        parts: [
+            "When enabled, the Constant global WI statistic is displayed.\n\nConstant counts enabled entries with Constant enabled.",
+        ],
+    },
+    globalStatsCategoryNormal: {
+        title: "Normal checkbox",
+        parts: [
+            "When enabled, the Normal global WI statistic is displayed.\n\nNormal counts enabled entries that are neither Constant nor Vectorized.",
+        ],
+    },
+    globalStatsCategoryVectorized: {
+        title: "Vectorized checkbox",
+        parts: [
+            "When enabled, the Vectorized global WI statistic is displayed.\n\nVectorized counts enabled entries with Vectorized enabled.",
+        ],
+    },
+    globalStatsCategoryCharUp: {
+        title: "↑ Character Definitions checkbox",
+        parts: [
+            "When enabled, the ↑ Character Definitions global WI statistic is displayed.\n\nThis global WI statistic counts enabled entries positioned above Character Definitions.",
+        ],
+    },
+    globalStatsCategoryCharDown: {
+        title: "↓ Character Definitions checkbox",
+        parts: [
+            "When enabled, the ↓ Character Definitions global WI statistic is displayed.\n\nThis global WI statistic counts enabled entries positioned below Character Definitions.",
+        ],
+    },
+    globalStatsCategoryEmUp: {
+        title: "↑ Example Messages checkbox",
+        parts: [
+            "When enabled, the ↑ Example Messages global WI statistic is displayed.\n\nThis global WI statistic counts enabled entries positioned above Example Messages.",
+        ],
+    },
+    globalStatsCategoryEmDown: {
+        title: "↓ Example Messages checkbox",
+        parts: [
+            "When enabled, the ↓ Example Messages global WI statistic is displayed.\n\nThis global WI statistic counts enabled entries positioned below Example Messages.",
+        ],
+    },
+    globalStatsCategoryAnUp: {
+        title: "↑ Author's Note checkbox",
+        parts: [
+            "When enabled, the ↑ Author's Note global WI statistic is displayed.\n\nThis global WI statistic counts enabled entries positioned above Author's Note.",
+        ],
+    },
+    globalStatsCategoryAnDown: {
+        title: "↓ Author's Note checkbox",
+        parts: [
+            "When enabled, the ↓ Author's Note global WI statistic is displayed.\n\nThis global WI statistic counts enabled entries positioned below Author's Note.",
+        ],
+    },
+    globalStatsCategoryDepthSystem: {
+        title: "@ Depth System checkbox",
+        parts: [
+            "When enabled, the @ Depth System global WI statistic is displayed.\n\nThis global WI statistic counts enabled entries inserted at depth with the System role.",
+        ],
+    },
+    globalStatsCategoryDepthUser: {
+        title: "@ Depth User checkbox",
+        parts: [
+            "When enabled, the @ Depth User global WI statistic is displayed.\n\nThis global WI statistic counts enabled entries inserted at depth with the User role.",
+        ],
+    },
+    globalStatsCategoryDepthAssistant: {
+        title: "@ Depth Assistant checkbox",
+        parts: [
+            "When enabled, the @ Depth Assistant global WI statistic is displayed.\n\nThis global WI statistic counts enabled entries inserted at depth with the Assistant role.",
+        ],
+    },
+    globalStatsCategoryOutlet: {
+        title: "→ Outlet checkbox",
+        parts: [
+            "When enabled, the → Outlet global WI statistic is displayed.\n\nThis global WI statistic counts enabled entries with Outlet position.",
+        ],
+    },
+    lorebookStatsCategoryTotal: {
+        title: "Total checkbox",
+        parts: [
+            "When enabled, the Total lorebook statistic is displayed.\n\nTotal counts all entries in the selected lorebook statistics section.",
+        ],
+    },
+    lorebookStatsCategoryEnabled: {
+        title: "Enabled checkbox",
+        parts: [
+            "When enabled, the Enabled lorebook statistic is displayed.\n\nEnabled counts entries that are not disabled.",
+        ],
+    },
+    lorebookStatsCategoryDisabled: {
+        title: "Disabled checkbox",
+        parts: [
+            "When enabled, the Disabled lorebook statistic is displayed.\n\nDisabled counts entries that are disabled.",
+        ],
+    },
+    lorebookStatsCategoryConstant: {
+        title: "Constant checkbox",
+        parts: [
+            "When enabled, the Constant lorebook statistic is displayed.\n\nConstant counts enabled entries with Constant enabled.",
+        ],
+    },
+    lorebookStatsCategoryNormal: {
+        title: "Normal checkbox",
+        parts: [
+            "When enabled, the Normal lorebook statistic is displayed.\n\nNormal counts enabled entries that are neither Constant nor Vectorized.",
+        ],
+    },
+    lorebookStatsCategoryVectorized: {
+        title: "Vectorized checkbox",
+        parts: [
+            "When enabled, the Vectorized lorebook statistic is displayed.\n\nVectorized counts enabled entries with Vectorized enabled.",
+        ],
+    },
+    lorebookStatsCategoryCharUp: {
+        title: "↑ Character Definitions checkbox",
+        parts: [
+            "When enabled, the ↑ Character Definitions lorebook statistic is displayed.\n\nThis lorebook statistic counts enabled entries positioned above Character Definitions.",
+        ],
+    },
+    lorebookStatsCategoryCharDown: {
+        title: "↓ Character Definitions checkbox",
+        parts: [
+            "When enabled, the ↓ Character Definitions lorebook statistic is displayed.\n\nThis lorebook statistic counts enabled entries positioned below Character Definitions.",
+        ],
+    },
+    lorebookStatsCategoryEmUp: {
+        title: "↑ Example Messages checkbox",
+        parts: [
+            "When enabled, the ↑ Example Messages lorebook statistic is displayed.\n\nThis lorebook statistic counts enabled entries positioned above Example Messages.",
+        ],
+    },
+    lorebookStatsCategoryEmDown: {
+        title: "↓ Example Messages checkbox",
+        parts: [
+            "When enabled, the ↓ Example Messages lorebook statistic is displayed.\n\nThis lorebook statistic counts enabled entries positioned below Example Messages.",
+        ],
+    },
+    lorebookStatsCategoryAnUp: {
+        title: "↑ Author's Note checkbox",
+        parts: [
+            "When enabled, the ↑ Author's Note lorebook statistic is displayed.\n\nThis lorebook statistic counts enabled entries positioned above Author's Note.",
+        ],
+    },
+    lorebookStatsCategoryAnDown: {
+        title: "↓ Author's Note checkbox",
+        parts: [
+            "When enabled, the ↓ Author's Note lorebook statistic is displayed.\n\nThis lorebook statistic counts enabled entries positioned below Author's Note.",
+        ],
+    },
+    lorebookStatsCategoryDepthSystem: {
+        title: "@ Depth System checkbox",
+        parts: [
+            "When enabled, the @ Depth System lorebook statistic is displayed.\n\nThis lorebook statistic counts enabled entries inserted at depth with the System role.",
+        ],
+    },
+    lorebookStatsCategoryDepthUser: {
+        title: "@ Depth User checkbox",
+        parts: [
+            "When enabled, the @ Depth User lorebook statistic is displayed.\n\nThis lorebook statistic counts enabled entries inserted at depth with the User role.",
+        ],
+    },
+    lorebookStatsCategoryDepthAssistant: {
+        title: "@ Depth Assistant checkbox",
+        parts: [
+            "When enabled, the @ Depth Assistant lorebook statistic is displayed.\n\nThis lorebook statistic counts enabled entries inserted at depth with the Assistant role.",
+        ],
+    },
+    lorebookStatsCategoryOutlet: {
+        title: "→ Outlet checkbox",
+        parts: [
+            "When enabled, the → Outlet lorebook statistic is displayed.\n\nThis lorebook statistic counts enabled entries with Outlet position.",
+        ],
+    },
+    globalStatsBudgetContext: {
+        title: "Budget & Context toggle",
+        parts: [
+            "When enabled, the Budget & Context global WI statistics section is displayed.\n\nThis section contains context size, usable context, response tokens, World Info budget, context percentage, budget cap, tokenizer, ignored-budget entries, and dropped-budget entries.",
+        ],
+    },
+    globalStatsLorebooksFolders: {
+        title: "Lorebooks & Folders toggle",
+        parts: [
+            "When enabled, the Lorebooks & Folders global WI statistics section is displayed.\n\nThis section contains folder counts, lorebook counts, chained and unchained lorebook counts, and assignment-related lorebook counts.",
+        ],
+    },
+    globalStatsContext: {
+        title: "Context checkbox",
+        parts: [
+            "When enabled, the Context global WI statistic is displayed.\n\nContext shows the maximum context size.",
+        ],
+    },
+    globalStatsUsable: {
+        title: "Usable checkbox",
+        parts: [
+            "When enabled, the Usable global WI statistic is displayed.\n\nUsable shows the usable context size.",
+        ],
+    },
+    globalStatsResponse: {
+        title: "Response checkbox",
+        parts: [
+            "When enabled, the Response global WI statistic is displayed.\n\nResponse shows the maximum response token amount.",
+        ],
+    },
+    globalStatsWorldInfoBudget: {
+        title: "World Info Budget checkbox",
+        parts: [
+            "When enabled, the World Info Budget global WI statistic is displayed.\n\nWorld Info Budget shows the calculated total World Info budget.",
+        ],
+    },
+    globalStatsContextPercentage: {
+        title: "Context Percentage checkbox",
+        parts: [
+            "When enabled, the Context Percentage global WI statistic is displayed.\n\nContext Percentage shows the configured World Info budget percentage.",
+        ],
+    },
+    globalStatsBudgetCap: {
+        title: "Budget Cap checkbox",
+        parts: [
+            "When enabled, the Budget Cap global WI statistic is displayed.\n\nBudget Cap shows the configured World Info budget cap. If no cap is configured, it displays Off.",
+        ],
+    },
+    globalStatsTokenizer: {
+        title: "Tokenizer checkbox",
+        parts: [
+            "When enabled, the Tokenizer global WI statistic is displayed.\n\nTokenizer shows the active tokenizer name.",
+        ],
+    },
+    globalStatsIgnored: {
+        title: "Ignored checkbox",
+        parts: [
+            "When enabled, the Ignored global WI statistic is displayed.\n\nIgnored counts enabled entries that ignore the World Info budget.",
+        ],
+    },
+    globalStatsDropped: {
+        title: "Dropped checkbox",
+        parts: [
+            "When enabled, the Dropped global WI statistic is displayed.\n\nDropped counts entries removed from the final prompt by the latest budget trimming pass.",
+        ],
+    },
+    globalStatsFolders: {
+        title: "Folders checkbox",
+        parts: [
+            "When enabled, the Folders global WI statistic is displayed.\n\nFolders shows the number of folders in the current layout.",
+        ],
+    },
+    globalStatsLorebooks: {
+        title: "Lorebooks checkbox",
+        parts: [
+            "When enabled, the Lorebooks global WI statistic is displayed.\n\nLorebooks shows the number of lorebooks in the current layout.",
+        ],
+    },
+    globalStatsUnchainedLorebooks: {
+        title: "Unchained lorebooks checkbox",
+        parts: [
+            "When enabled, unchained lorebook global WI statistics are displayed.\n\nThis displays separate Order Unchained and Budget Unchained counts.",
+        ],
+    },
+    globalStatsChainedLorebooks: {
+        title: "Chained lorebooks checkbox",
+        parts: [
+            "When enabled, chained lorebook global WI statistics are displayed.\n\nThis displays separate Order Chained and Budget Chained counts.",
+        ],
+    },
+    globalStatsGlobalLorebooks: {
+        title: "Global lorebooks checkbox",
+        parts: [
+            "When enabled, the Global lorebooks global WI statistic is displayed.\n\nGlobal lorebooks counts lorebooks assigned globally.",
+        ],
+    },
+    globalStatsCharacterTiedLorebooks: {
+        title: "Character-tied lorebooks checkbox",
+        parts: [
+            "When enabled, the Character-tied lorebooks global WI statistic is displayed.\n\nCharacter-tied lorebooks counts lorebooks assigned to characters.",
+        ],
+    },
+    globalStatsChatTiedLorebooks: {
+        title: "Chat-tied lorebooks checkbox",
+        parts: [
+            "When enabled, the Chat-tied lorebooks global WI statistic is displayed.\n\nChat-tied lorebooks counts lorebooks assigned to chats.",
+        ],
+    },
+    globalStatsPersonaTiedLorebooks: {
+        title: "Persona-tied lorebooks checkbox",
+        parts: [
+            "When enabled, the Persona-tied lorebooks global WI statistic is displayed.\n\nPersona-tied lorebooks counts lorebooks assigned to personas.",
+        ],
+    },
+    globalStatsUntiedLorebooks: {
+        title: "Untied lorebooks checkbox",
+        parts: [
+            "When enabled, the Untied lorebooks global WI statistic is displayed.\n\nUntied lorebooks counts lorebooks without a global, character, chat, or persona assignment.",
+        ],
+    },
+    nativeLorebookHeaderStatistics: {
+        title: "Header statistics on/off switch",
+        parts: [
+            "When enabled, Lorebook Stats are displayed in the native World Info header.\n\nThese lorebook statistics summarize the currently opened lorebook.",
+        ],
+    },
+    nativeLorebookMarkerTokenAlignment: {
+        title: "Marker & Token Alignment toggle",
+        parts: [
+            "Changes the alignment of entry markers and token counts in native World Info entries.\n\nEach press cycles the alignment between left, center, and right.",
+        ],
+    },
+    nativeLorebookTokenCounts: {
+        title: "Token counts on/off switch",
+        parts: [
+            "When enabled, token counts are displayed on individual native World Info entries.",
+        ],
+    },
+    nativeLorebookActivatedMarkers: {
+        title: "Activated Markers on/off switch",
+        parts: [
+            "When enabled, activation markers are displayed on individual native World Info entries.\n\nEntries that activated through keywords receive an \"A\" marker after the statistics scan.",
+        ],
+    },
+    nativeLorebookIncludedMarkers: {
+        title: "Included Markers on/off switch",
+        parts: [
+            "When enabled, inclusion markers are displayed on individual native World Info entries.\n\nEntries included in the final prompt receive an \"I\" marker after the statistics scan.",
         ],
     },
     duplicateSentences: {
@@ -8615,6 +9093,115 @@ function gigmaBindLayoutPresetTreePreviewInfoPopups(root){
         for (const [selector, infoId] of pairs) {
             const nodes = scope.querySelectorAll(selector);
             for (const node of nodes) gigmaBindInfoPopupLongPress(node, infoId);
+        }
+    }catch(_){ }
+}
+
+function gigmaBindStatisticsSettingsDropdownInfoPopups(panel, kind){
+    try{
+        if (!panel || !panel.querySelectorAll) return;
+        const isGlobal = String(kind || '').toLowerCase() === 'global';
+        const prefix = isGlobal ? 'globalStats' : 'lorebookStats';
+        const bind = (el, infoId) => {
+            try{
+                if (!el || !infoId) return;
+                gigmaBindInfoPopupLongPress(el, infoId);
+            }catch(_eBind){ }
+        };
+        const bindClosest = (selector, infoId, closestSelector) => {
+            try{
+                const nodes = panel.querySelectorAll(selector);
+                for (const node of nodes) {
+                    const target = closestSelector && node.closest ? (node.closest(closestSelector) || node) : node;
+                    bind(target, infoId);
+                }
+            }catch(_eClosest){ }
+        };
+        const categoryInfoByKey = {
+            total: prefix + 'CategoryTotal',
+            enabled: prefix + 'CategoryEnabled',
+            disabled: prefix + 'CategoryDisabled',
+            constant: prefix + 'CategoryConstant',
+            normal: prefix + 'CategoryNormal',
+            vectorized: prefix + 'CategoryVectorized',
+            charUp: prefix + 'CategoryCharUp',
+            charDown: prefix + 'CategoryCharDown',
+            emUp: prefix + 'CategoryEmUp',
+            emDown: prefix + 'CategoryEmDown',
+            anUp: prefix + 'CategoryAnUp',
+            anDown: prefix + 'CategoryAnDown',
+            depthSystem: prefix + 'CategoryDepthSystem',
+            depthUser: prefix + 'CategoryDepthUser',
+            depthAssistant: prefix + 'CategoryDepthAssistant',
+            outlet: prefix + 'CategoryOutlet',
+        };
+        const globalExtraInfoByKey = {
+            fullContext: 'globalStatsContext',
+            usableContext: 'globalStatsUsable',
+            responseTokens: 'globalStatsResponse',
+            globalBudget: 'globalStatsWorldInfoBudget',
+            contextPercent: 'globalStatsContextPercentage',
+            budgetCap: 'globalStatsBudgetCap',
+            tokenizer: 'globalStatsTokenizer',
+            ignoredBudget: 'globalStatsIgnored',
+            trimmedBudget: 'globalStatsDropped',
+            folders: 'globalStatsFolders',
+            lorebooks: 'globalStatsLorebooks',
+            unchained: 'globalStatsUnchainedLorebooks',
+            chained: 'globalStatsChainedLorebooks',
+            global: 'globalStatsGlobalLorebooks',
+            character: 'globalStatsCharacterTiedLorebooks',
+            chat: 'globalStatsChatTiedLorebooks',
+            persona: 'globalStatsPersonaTiedLorebooks',
+            other: 'globalStatsUntiedLorebooks',
+        };
+        if (isGlobal) {
+            bindClosest('input[data-gigma-gwi-switch="1"]', 'globalStatsDisplaySwitch', '.gigma-gwi-panel-headrow');
+            bindClosest('input[data-gigma-gwi-collapse-switch="1"]', 'globalStatsShowExpandCollapseButton', '.gigma-gwi-panel-switchline');
+            bindClosest('input[data-gigma-gwi-remove-irrelevant-switch="1"]', 'globalStatsRemoveIrrelevantCategories', '.gigma-gwi-panel-switchline');
+            bindClosest('input[data-gigma-gwi-remove-zero-tokens-switch="1"]', 'globalStatsRemoveZeroTokensCategories', '.gigma-gwi-panel-switchline');
+            bindClosest('button[data-gigma-gwi-count="entries"]', 'globalStatsEntries');
+            bindClosest('button[data-gigma-gwi-count="tokens"]', 'globalStatsTokens');
+            bindClosest('button[data-gigma-gwi-section="context"]', 'globalStatsBudgetContext');
+            bindClosest('button[data-gigma-gwi-section="books"]', 'globalStatsLorebooksFolders');
+            bindClosest('button[data-gigma-gwi-section="raw"]', 'globalStatsRaw');
+            bindClosest('button[data-gigma-gwi-section="activated"]', 'globalStatsActivated');
+            bindClosest('button[data-gigma-gwi-section="included"]', 'globalStatsIncluded');
+            bindClosest('button[data-gigma-gwi-action="all"]', 'globalStatsAll');
+            bindClosest('button[data-gigma-gwi-action="none"]', 'globalStatsNone');
+            const boxes = panel.querySelectorAll('input[data-gigma-gwi]');
+            for (const cb of boxes) {
+                const key = String(cb.getAttribute('data-gigma-gwi') || '');
+                const infoId = categoryInfoByKey[key] || globalExtraInfoByKey[key];
+                if (infoId) bind(cb.closest && cb.closest('label') ? cb.closest('label') : cb, infoId);
+            }
+            return;
+        }
+        bindClosest('input[data-gigma-lore-switch="1"]', 'lorebookStatsDisplaySwitch', '.gigma-gwi-panel-headrow');
+        bindClosest('input[data-gigma-lore-collapse-switch="1"]', 'lorebookStatsShowExpandCollapseButton', '.gigma-gwi-panel-switchline');
+        bindClosest('input[data-gigma-lore-remove-irrelevant-switch="1"]', 'lorebookStatsRemoveIrrelevantCategories', '.gigma-gwi-panel-switchline');
+        bindClosest('input[data-gigma-lore-remove-zero-tokens-switch="1"]', 'lorebookStatsRemoveZeroTokensCategories', '.gigma-gwi-panel-switchline');
+        bindClosest('input[data-gigma-wi-lore="enabled"]', 'lorebookStatsDisplaySwitch', '.gigma-wi-lorebook-stats-headrow');
+        bindClosest('input[data-gigma-wi-lore="collapse"]', 'lorebookStatsShowExpandCollapseButton', '.gigma-wi-lorebook-stats-row');
+        bindClosest('input[data-gigma-wi-lore="remove-irrelevant"]', 'lorebookStatsRemoveIrrelevantCategories', '.gigma-wi-lorebook-stats-row');
+        bindClosest('input[data-gigma-wi-lore="remove-zero-tokens"]', 'lorebookStatsRemoveZeroTokensCategories', '.gigma-wi-lorebook-stats-row');
+        bindClosest('input[data-gigma-wi-lore="header"]', 'nativeLorebookHeaderStatistics', '.gigma-wi-lorebook-stats-row');
+        bindClosest('button[data-gigma-wi-lore="align"]', 'nativeLorebookMarkerTokenAlignment', '.gigma-wi-lorebook-stats-row');
+        bindClosest('input[data-gigma-wi-lore="tokens"]', 'nativeLorebookTokenCounts', '.gigma-wi-lorebook-stats-row');
+        bindClosest('input[data-gigma-wi-lore="activated"]', 'nativeLorebookActivatedMarkers', '.gigma-wi-lorebook-stats-row');
+        bindClosest('input[data-gigma-wi-lore="included"]', 'nativeLorebookIncludedMarkers', '.gigma-wi-lorebook-stats-row');
+        bindClosest('#gigma-modal-stats-entries, #gigma-modal-stats-entries-right, #gigma-layout-preset-tree-stats-entries', 'lorebookStatsEntries');
+        bindClosest('#gigma-modal-stats-tokens, #gigma-modal-stats-tokens-right, #gigma-layout-preset-tree-stats-tokens', 'lorebookStatsTokens');
+        bindClosest('#gigma-modal-stats-section-raw, #gigma-modal-stats-section-raw-right, #gigma-layout-preset-tree-stats-section-raw, button[data-gigma-wi-lore-section="raw"]', 'lorebookStatsRaw');
+        bindClosest('#gigma-modal-stats-section-activated, #gigma-modal-stats-section-activated-right, #gigma-layout-preset-tree-stats-section-activated, button[data-gigma-wi-lore-section="activated"]', 'lorebookStatsActivated');
+        bindClosest('#gigma-modal-stats-section-included, #gigma-modal-stats-section-included-right, #gigma-layout-preset-tree-stats-section-included, button[data-gigma-wi-lore-section="included"]', 'lorebookStatsIncluded');
+        bindClosest('#gigma-modal-stats-all, #gigma-modal-stats-all-right, #gigma-layout-preset-tree-stats-cats-all, button[data-gigma-wi-lore-action="all"]', 'lorebookStatsAll');
+        bindClosest('#gigma-modal-stats-none, #gigma-modal-stats-none-right, #gigma-layout-preset-tree-stats-cats-none, button[data-gigma-wi-lore-action="none"]', 'lorebookStatsNone');
+        const boxes = panel.querySelectorAll('input[data-gigma-cat], input[data-gigma-wi-lore-cat]');
+        for (const cb of boxes) {
+            const key = String(cb.getAttribute('data-gigma-cat') || cb.getAttribute('data-gigma-wi-lore-cat') || '');
+            const infoId = categoryInfoByKey[key];
+            if (infoId) bind(cb.closest && cb.closest('label') ? cb.closest('label') : cb, infoId);
         }
     }catch(_){ }
 }
@@ -14695,6 +15282,7 @@ function gigmaBuildGlobalWiStatsPanel(panel, place){
         }
 
         panel.appendChild(list);
+        try { gigmaBindStatisticsSettingsDropdownInfoPopups(panel, 'global'); } catch (_eInfoStatsPanel) { }
 
         // Wire interactions (panel-local; works for modal+preview)
         panel.addEventListener('click', (ev) => {
@@ -16965,6 +17553,7 @@ const ensure = (toolbarSelector, suffix) => {
         panelCats.appendChild(sectionToggles);
         panelCats.appendChild(actions);
         panelCats.appendChild(list);
+        try { gigmaBindStatisticsSettingsDropdownInfoPopups(panelCats, 'lorebook'); } catch (_eInfoLoreStatsPanel) { }
 
         // Global WI stats panel (single instance)
         let panelGlobal = null;
@@ -18899,6 +19488,7 @@ function gigmaBuildLayoutPresetTreePreviewLorebookStatsPanel(panel) {
         }
 
         panel.appendChild(list);
+        try { gigmaBindStatisticsSettingsDropdownInfoPopups(panel, 'lorebook'); } catch (_eInfoLoreStatsPanel) { }
     } catch (_e) { }
 }
 
@@ -19962,6 +20552,7 @@ function gigmaBuildWorldInfoLorebookStatsDropdown(panel){
             list.appendChild(row);
         }
         panel.appendChild(list);
+        try { gigmaBindStatisticsSettingsDropdownInfoPopups(panel, 'lorebook'); } catch (_eInfoLoreStatsPanel) { }
 
         panel.addEventListener('click', (ev) => {
             try{
