@@ -5497,6 +5497,19 @@ const GIGMA_INFO_POPUPS = {
             { sectionEnd: true },
         ],
     },
+    introductionGigma: {
+        title: 'Introduction',
+        titleIconSelector: '#lorebook_ordering_button',
+        parts: [
+            'Gigliomachine (GIGMA) is a SillyTavern extension for controlling lorebook order, lorebook budget, and token consumption statistics for all lorebooks.\n\nLorebook order controls the order in which lorebooks are inserted into the final prompt sent to the API. Lorebook budget controls how much of a lorebook is included in the prompt sent to the API, using token or entry limits.\n\nGIGMA shows which entries get keyword activated and which entries are included in the final prompt after GIGMA\'s budget limits are applied. Activated entries receive an "A" marker, and included entries receive an "I" marker.\n\nIt also includes a Duplicate Sentences Removal tool, which detects duplicate sentences across all lorebooks and removes all duplicate sentences apart from the last one.',
+        ],
+    },
+    infoPopupGlossary: {
+        title: 'Information popup table of contents',
+        parts: [],
+        speech: 'contents',
+    },
+
     showWelcomeInfoPopup: {
         title: 'Show welcome info popup',
         parts: [
@@ -6887,6 +6900,58 @@ const GIGMA_INFO_POPUPS = {
     },
 };
 
+const GIGMA_INFO_POPUP_TOC_SECTIONS = [
+    {
+        title: 'Introduction and glossary',
+        ids: ['introductionGigma', 'welcomeGigma', 'infoPopupGlossary'],
+    },
+    {
+        title: 'Native World Info toolbar',
+        ids: ['openGigmaButton', 'generateStatistics', 'globalWiStatisticsSettings', 'lorebookStatisticsSettings', 'expandCollapseGlobalWiStatistics', 'expandCollapseLorebookStatistics', 'duplicateSentences'],
+    },
+    {
+        title: 'GIGMA modal header',
+        ids: ['saveCloseButton', 'wideNarrowButton', 'viewLockButton', 'scrollTopButton', 'scrollCenterButton', 'scrollBottomButton', 'helpButton', 'bugButton', 'closeWithoutSavingButton'],
+    },
+    {
+        title: 'GIGMA modal main controls',
+        ids: ['settingsButton', 'lorebookContentButtons', 'expandCollapseLorebookContent', 'childParentPresetToggle', 'switchOrderParent', 'switchBudgetParent', 'editableChainedLorebooks', 'dimChainedLorebooks', 'dimUnchainedLorebooks', 'editableUnchainedLorebooks', 'orderBudgetMode', 'undoRedoButton'],
+    },
+    {
+        title: 'Layout preset row',
+        ids: ['layoutPreset', 'saveAsOtherPreset', 'restoreLayoutPreset', 'newLayoutPreset', 'quicksaveLayoutPreset', 'saveLayoutPreset', 'renameLayoutPreset', 'deleteLayoutPreset', 'deleteMultipleLayoutPresets'],
+    },
+    {
+        title: 'Folder and lorebook rows',
+        ids: ['createFolder', 'expandAllFolders', 'collapseAllFolders', 'restoreFolderStates', 'searchLorebooksAndFolders', 'resetListBudgetParent', 'previewLayoutPreset', 'focusedFolderShortcut', 'folderName', 'removeFolder', 'collapseFolder', 'expandFolder', 'focusFolder', 'defocusFolder'],
+    },
+    {
+        title: 'Assignment preset popup and rows',
+        ids: ['assignmentPreset', 'previewAssignmentPreset', 'restoreAssignmentPreset', 'newAssignmentPreset', 'quicksaveAssignmentPreset', 'saveAssignmentPreset', 'renameAssignmentPreset', 'deleteAssignmentPreset', 'deleteMultipleAssignmentPresets', 'addAssignmentSection', 'deleteAssignmentSection', 'assignmentSectionCharacters', 'assignmentSectionChildParentToggle', 'allUnassignedCharactersSection'],
+    },
+    {
+        title: 'Settings popup',
+        ids: ['trimWhenWiBudgetExceeded', 'onlyBypassNeededReplacements', 'removeEmptyFoldersLeft', 'removeEmptyFoldersRight', 'budgetSettingsAlignment', 'countNewlineSeparator', 'detailedLorebookEntries', 'debugLogs', 'autoUpdateEntryOrderInWiUi', 'undoHistorySteps', 'hideUndoRedoDesktop', 'showWelcomeInfoPopup', 'longPressInfoPopup', 'infoPopupDelay', 'infoPopupTextAlignment', 'autoTtsInfoText', 'lorebookIdProcessDialog', 'eraseLorebookIds', 'eraseGigmaSettings'],
+    },
+    {
+        title: 'Global WI statistics dropdown',
+        ids: ['globalStatsDisplaySwitch', 'globalStatsShowExpandCollapseButton', 'globalStatsRemoveIrrelevantCategories', 'globalStatsRemoveZeroTokensCategories', 'globalStatsEntries', 'globalStatsTokens', 'globalStatsBudgetContext', 'globalStatsLorebooksFolders', 'globalStatsRaw', 'globalStatsActivated', 'globalStatsIncluded', 'globalStatsAll', 'globalStatsNone', 'globalStatsCategoryTotal', 'globalStatsCategoryEnabled', 'globalStatsCategoryDisabled', 'globalStatsCategoryConstant', 'globalStatsCategoryNormal', 'globalStatsCategoryVectorized', 'globalStatsCategoryCharUp', 'globalStatsCategoryCharDown', 'globalStatsCategoryEmUp', 'globalStatsCategoryEmDown', 'globalStatsCategoryAnUp', 'globalStatsCategoryAnDown', 'globalStatsCategoryDepthSystem', 'globalStatsCategoryDepthUser', 'globalStatsCategoryDepthAssistant', 'globalStatsCategoryOutlet', 'globalStatsContext', 'globalStatsUsable', 'globalStatsResponse', 'globalStatsWorldInfoBudget', 'globalStatsContextPercentage', 'globalStatsBudgetCap', 'globalStatsTokenizer', 'globalStatsIgnored', 'globalStatsDropped', 'globalStatsFolders', 'globalStatsLorebooks', 'globalStatsUnchainedLorebooks', 'globalStatsChainedLorebooks', 'globalStatsGlobalLorebooks', 'globalStatsCharacterTiedLorebooks', 'globalStatsChatTiedLorebooks', 'globalStatsPersonaTiedLorebooks', 'globalStatsUntiedLorebooks'],
+    },
+    {
+        title: 'Lorebook statistics dropdown and native rows',
+        ids: ['lorebookStatsDisplaySwitch', 'lorebookStatsShowExpandCollapseButton', 'lorebookStatsRemoveIrrelevantCategories', 'lorebookStatsRemoveZeroTokensCategories', 'lorebookStatsEntries', 'lorebookStatsTokens', 'lorebookStatsRaw', 'lorebookStatsActivated', 'lorebookStatsIncluded', 'lorebookStatsAll', 'lorebookStatsNone', 'lorebookStatsCategoryTotal', 'lorebookStatsCategoryEnabled', 'lorebookStatsCategoryDisabled', 'lorebookStatsCategoryConstant', 'lorebookStatsCategoryNormal', 'lorebookStatsCategoryVectorized', 'lorebookStatsCategoryCharUp', 'lorebookStatsCategoryCharDown', 'lorebookStatsCategoryEmUp', 'lorebookStatsCategoryEmDown', 'lorebookStatsCategoryAnUp', 'lorebookStatsCategoryAnDown', 'lorebookStatsCategoryDepthSystem', 'lorebookStatsCategoryDepthUser', 'lorebookStatsCategoryDepthAssistant', 'lorebookStatsCategoryOutlet', 'nativeLorebookHeaderStatistics', 'nativeLorebookMarkerTokenAlignment', 'nativeLorebookTokenCounts', 'nativeLorebookActivatedMarkers', 'nativeLorebookIncludedMarkers'],
+    },
+    {
+        title: 'Layout preset tree preview popup',
+        ids: ['resetPreviewControls', 'showHideChainedLorebooks', 'chainedLorebooks', 'showHideUnchainedLorebooks', 'unchainedLorebooks', 'closePreview'],
+    },
+    {
+        title: 'Linked terms inside info popups',
+        ids: ['modal'],
+    },
+];
+
+
 function gigmaGetLongPressInfoPopupPref(){
     try{
         return !!gigmaReadBinaryToggle(gigmaExtensionSettings && gigmaExtensionSettings.longPressInfoPopup, true);
@@ -7167,7 +7232,24 @@ function gigmaBuildInfoPopupBodyPartsHtml(parts){
         return gigmaBuildInfoPopupPartHtml(part);
     }).join('');
 }
+function gigmaBuildInfoPopupTocItemHtml(infoId){
+    const info = GIGMA_INFO_POPUPS[infoId];
+    if (!info) return '';
+    return `<li><span role="button" tabindex="0" class="gigma-info-link gigma-info-toc-link" data-gigma-info-target="${gigmaEscapeInfoPopupText(infoId)}">${gigmaEscapeInfoPopupText(info.title || infoId)}</span></li>`;
+}
+function gigmaBuildInfoPopupTocHtml(){
+    const sections = GIGMA_INFO_POPUP_TOC_SECTIONS.map((section) => {
+        const items = (section.ids || []).map(gigmaBuildInfoPopupTocItemHtml).filter(Boolean).join('');
+        if (!items) return '';
+        return `<li><div class="gigma-info-toc-section-title">${gigmaEscapeInfoPopupText(section.title)}</div><ol class="gigma-info-toc-items">${items}</ol></li>`;
+    }).filter(Boolean).join('');
+    return `
+        <h2 class="gigma-info-title"><span class="gigma-info-title-text">${gigmaEscapeInfoPopupText(GIGMA_INFO_POPUPS.infoPopupGlossary.title)}</span></h2>
+        <div class="gigma-info-copy gigma-info-toc" lang="en"><ol class="gigma-info-toc-sections">${sections}</ol></div>
+    `;
+}
 function gigmaBuildInfoPopupBodyHtml(infoId){
+    if (infoId === 'infoPopupGlossary') return gigmaBuildInfoPopupTocHtml();
     const info = GIGMA_INFO_POPUPS[infoId] || GIGMA_INFO_POPUPS[GIGMA_INFO_POPUP_DEFAULT_ID];
     const body = gigmaBuildInfoPopupBodyPartsHtml(info.parts || []);
     return `
@@ -7605,6 +7687,7 @@ function gigmaBuildInfoPopupShellHtml(){
                     <button id="gigma-info-back" class="menu_button gigma-info-square-btn" type="button" aria-label="Previous information popup" title="Previous information popup"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
                     <button id="gigma-info-forward" class="menu_button gigma-info-square-btn" type="button" aria-label="Next information popup" title="Next information popup"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
                 </div>
+                <button id="gigma-info-toc" class="menu_button gigma-info-toc-btn" type="button" aria-label="Information popup table of contents" title="Information popup table of contents"><i class="fa-solid fa-list" aria-hidden="true"></i><span>Contents</span></button>
                 <button id="gigma-info-close" class="menu_button gigma-global-cancel gigma-global-icon gigma-info-close" type="button" aria-label="Close information popup" title="Close information popup">
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
                 </button>
@@ -7720,6 +7803,20 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
   opacity:0.38;
   cursor:not-allowed;
   filter:grayscale(1);
+}
+#gigma-info-popup-root .gigma-info-toc-btn{
+  grid-column:2;
+  justify-self:center;
+  height:var(--gigma-hdr-btn, 2.2em) !important;
+  min-height:var(--gigma-hdr-btn, 2.2em) !important;
+  padding:0 0.75em !important;
+  margin:0 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:0.35em;
+  box-sizing:border-box !important;
+  white-space:nowrap;
 }
 #gigma-info-popup-root .gigma-info-close{
   grid-column:3;
@@ -8163,6 +8260,25 @@ dialog:has(#gigma-info-popup-root) :is(.popup-buttons,.popup-controls,.popup-but
 #gigma-info-popup-root .gigma-info-link:hover,
 #gigma-info-popup-root .gigma-info-link:focus-visible{
   color:#9dccff;
+}
+#gigma-info-popup-root .gigma-info-toc-sections,
+#gigma-info-popup-root .gigma-info-toc-items{
+  margin:0;
+  padding-left:1.4em;
+}
+#gigma-info-popup-root .gigma-info-toc-sections{
+  display:flex;
+  flex-direction:column;
+  gap:0.8em;
+}
+#gigma-info-popup-root .gigma-info-toc-items{
+  margin-top:0.35em;
+}
+#gigma-info-popup-root .gigma-info-toc-section-title{
+  font-weight:700;
+}
+#gigma-info-popup-root .gigma-info-toc-link{
+  margin:0.08em 0;
 }
 #gigma-info-popup-root .gigma-info-tts-section{
   flex:0 0 auto;
@@ -9231,6 +9347,12 @@ function gigmaMountInfoPopup(root, autoSpeak){
                 ev.preventDefault();
                 ev.stopPropagation();
                 gigmaInfoPopupHistoryStep(1);
+                return;
+            }
+            if (target.id === 'gigma-info-toc') {
+                ev.preventDefault();
+                ev.stopPropagation();
+                gigmaInfoPopupGoTo('infoPopupGlossary');
                 return;
             }
             if (target.id === 'gigma-info-close') {
