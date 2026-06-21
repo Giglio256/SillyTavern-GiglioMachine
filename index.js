@@ -5460,10 +5460,10 @@ const GIGMA_INFO_POPUP_STATE = {
 
 const GIGMA_INFO_POPUPS = {
     welcomeGigma: {
-        title: 'Gigliomachine (GIGMA)',
+        title: 'Welcome to Gigliomachine (GIGMA)',
         titleIconSelector: '#lorebook_ordering_button',
         parts: [
-            'Welcome to Gigliomachine. Thank you for installing the extension. Please read this short introduction to the extension\'s functionality.\n\nGIGMA is a SillyTavern extension for controlling lorebook order and lorebook budget.\n\nLorebook ',
+            'Thank you for installing the extension. Please read this short introduction to the extension\'s functionality.\n\nGIGMA is a SillyTavern extension for controlling lorebook order and lorebook budget.\n\nLorebook ',
             { text: 'order', target: 'orderBudgetMode' },
             ' controls the order in which lorebooks are inserted into the final prompt sent to the API. Lorebook ',
             { text: 'budget', target: 'orderBudgetMode' },
@@ -5505,7 +5505,7 @@ const GIGMA_INFO_POPUPS = {
         ],
     },
     infoPopupGlossary: {
-        title: 'Information popup table of contents',
+        title: 'Table of contents',
         parts: [],
         speech: 'contents',
     },
@@ -6902,8 +6902,8 @@ const GIGMA_INFO_POPUPS = {
 
 const GIGMA_INFO_POPUP_TOC_SECTIONS = [
     {
-        title: 'Introduction and glossary',
-        ids: ['introductionGigma', 'welcomeGigma', 'infoPopupGlossary'],
+        title: 'Welcome message and introduction',
+        ids: ['welcomeGigma', 'introductionGigma'],
     },
     {
         title: 'Native World Info toolbar',
@@ -7687,7 +7687,7 @@ function gigmaBuildInfoPopupShellHtml(){
                     <button id="gigma-info-back" class="menu_button gigma-info-square-btn" type="button" aria-label="Previous information popup" title="Previous information popup"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
                     <button id="gigma-info-forward" class="menu_button gigma-info-square-btn" type="button" aria-label="Next information popup" title="Next information popup"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
                 </div>
-                <button id="gigma-info-toc" class="menu_button gigma-info-toc-btn" type="button" aria-label="Information popup table of contents" title="Information popup table of contents"><i class="fa-solid fa-list" aria-hidden="true"></i><span>Contents</span></button>
+                <button id="gigma-info-toc" class="menu_button gigma-info-toc-btn" type="button" aria-label="Table of contents" title="Table of contents"><i class="fa-solid fa-list" aria-hidden="true"></i><span>Contents</span></button>
                 <button id="gigma-info-close" class="menu_button gigma-global-cancel gigma-global-icon gigma-info-close" type="button" aria-label="Close information popup" title="Close information popup">
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="gigma-global-icon-svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>
                 </button>
